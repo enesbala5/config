@@ -1,0 +1,15 @@
+# Configure laptop screen
+{{- $laptop := index .MonitorsByTag "laptop" -}}
+{{- if $laptop }}
+
+monitor={{$laptop.Name}},2256x1504@60.00000,0x0,1.56666667,transform,0,vrr,0	
+			
+{{ end }}
+
+{{- if isOnBattery }}
+
+# Decrease brightness to 80% if it's greater than 80%
+# exec = brillo -O && brightness=$(brillo -G) && [ $(echo "$brightness > 80" | bc) -eq 1 ] && brillo -e -u 150000 -S 80
+
+{{end }}
+

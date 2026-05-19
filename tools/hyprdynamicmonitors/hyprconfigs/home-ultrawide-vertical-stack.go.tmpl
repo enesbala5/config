@@ -1,0 +1,33 @@
+# Configure external ultrawide monitor
+{{- $xiaomi := index .MonitorsByTag "xiaomi-34" -}}
+{{- if $xiaomi }}
+# Configure monitor
+monitor={{$xiaomi.Name}},3440x1440@50.00000,-1000x-1440,1.00000000,transform,0,vrr,0
+
+# Assign workspaces to monitor
+workspace = 1,monitor:{{$xiaomi.Name}}
+workspace = 2,monitor:{{$xiaomi.Name}}
+workspace = 3,monitor:{{$xiaomi.Name}}
+workspace = 4,monitor:{{$xiaomi.Name}}
+workspace = 5,monitor:{{$xiaomi.Name}}
+workspace = 6,monitor:{{$xiaomi.Name}}
+workspace = 7,monitor:{{$xiaomi.Name}}
+workspace = 8,monitor:{{$xiaomi.Name}}
+
+{{ end }}
+
+# Configure laptop screen
+{{- $laptop := index .MonitorsByTag "laptop" -}}
+{{- if $laptop }}
+
+monitor={{$laptop.Name}},2256x1504@60.00000,0x0,1.56666667,transform,0,vrr,0
+
+workspace = 9,monitor:{{$laptop.Name}}
+exec = hyprctl dispatch moveworkspacetomonitor 9 {{$laptop.Name}}
+
+{{ end }}
+
+# Set Performance mode when docked and charging
+{{- if and (not isOnBattery) $xiaomi }}
+exec = powerprofilesctl set performance
+{{ end }}

@@ -1,0 +1,7 @@
+**result
+.direnv
+nix/nixos/nixos-switch.log
+.cursor
+.env
+.vscode
+tools/rclone/**.conf

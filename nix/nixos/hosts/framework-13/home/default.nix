@@ -1,0 +1,28 @@
+{
+  inputs,
+  pkgs,
+  config,
+  data,
+  ...
+}:
+{
+  imports = [
+    inputs.zen-browser.homeModules.beta
+    inputs.vicinae.homeManagerModules.default
+    ./programs
+  ];
+
+  home.file = {
+    ".config/hypr/hyprlock.conf" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hyprlock/configuration.conf";
+    };
+
+    ".config/hypr/hypridle.conf" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hypridle/configuration.conf";
+    };
+
+    ".config/hypr/hyprsunset.conf" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hyprsunset/configuration.conf";
+    };
+  };
+}

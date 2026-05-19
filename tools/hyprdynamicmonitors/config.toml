@@ -1,0 +1,65 @@
+[general]
+destination = "$HOME/.config/hypr/monitors.conf"
+
+[power_events]
+
+[power_events.dbus_query_object]
+path = "/org/freedesktop/UPower/devices/line_power_ACAD"
+
+[[power_events.dbus_signal_match_rules]]
+object_path = "/org/freedesktop/UPower/devices/line_power_ACAD"
+
+[profiles.home_office]
+config_file = "$HOME/.config/hyprdynamicmonitors/hyprconfigs/home_office.go.tmpl"
+config_file_type = "template"
+
+[profiles.home_office.conditions]
+
+[[profiles.home_office.conditions.required_monitors]]
+description = "BOE 0x0BCA"
+monitor_tag = "laptop"
+
+[[profiles.home_office.conditions.required_monitors]]
+description = "Xiaomi Corporation Mi Monitor"
+monitor_tag = "xiaomi-34"
+
+[[profiles.home_office.conditions.required_monitors]]
+description = "Dell Inc. DELL U2415 7MT017CK0JAU"
+monitor_tag = "dell-24"
+
+[profiles.undocked]
+config_file = "$HOME/.config/hyprdynamicmonitors/hyprconfigs/undocked.go.tmpl"
+config_file_type = "template"
+
+[profiles.undocked.conditions]
+
+[[profiles.undocked.conditions.required_monitors]]
+description = "BOE 0x0BCA"
+monitor_tag = "laptop"
+
+[profiles.home-ultrawide-vertical-stack]
+config_file = "$HOME/.config/hyprdynamicmonitors/hyprconfigs/home-ultrawide-vertical-stack.go.tmpl"
+config_file_type = "template"
+
+[profiles.home-ultrawide-vertical-stack.conditions]
+
+[[profiles.home-ultrawide-vertical-stack.conditions.required_monitors]]
+description = "BOE 0x0BCA"
+monitor_tag = "laptop"
+
+[[profiles.home-ultrawide-vertical-stack.conditions.required_monitors]]
+description = "Xiaomi Corporation Mi Monitor"
+monitor_tag = "xiaomi-34"
+
+[profiles.TV]
+config_file = "$HOME/.config/hyprdynamicmonitors/hyprconfigs/TV.go.tmpl"
+config_file_type = "template"
+[profiles.TV.conditions]
+
+[[profiles.TV.conditions.required_monitors]]
+description = "BOE 0x0BCA"
+monitor_tag = "monitor0"
+
+[[profiles.TV.conditions.required_monitors]]
+description = "Philips Consumer Electronics Company Philips UHDTV 0x01010101"
+monitor_tag = "monitor1"
