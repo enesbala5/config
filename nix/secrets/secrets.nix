@@ -12,6 +12,10 @@ let
 
     # /home/e/.ssh/id_ed25519.pub
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGm00Erh3zQ4qlWP9kwXzXvdOovcZ8KmN8Dj/YmYDXVw E - User"
+
+    # Home Server
+    # /home/e/.ssh/id_ed25519.pub
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL0eRCXdwly0mD+VR5GL6Vr8nvSgdrxZY9xWg4GCnVQj"
   ];
 
   userConfig = {
