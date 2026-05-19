@@ -97,14 +97,26 @@ Run the installation steps detailed in the "Installing" section of the README (i
 
 Once that is completed, the profile "HifiScan+EEGuide" should be automatically selected on startup.
 
+### Home Server
+The home server configuration provisions base system dependencies, firewall rules, and native storage points. Application-level services and environments are layered directly on top using the assets maintained in `./tools`.
+
+#### Infrastructure Run-Steps
+- **Coolify / Docker:** Container setups are kept in `./tools/coolify` and updated via the included `upgrade.sh` helper logic.
+- **Incus:** Certificate at `./nix/nixos/hosts/home-server/certificates/incus` used to authenticate to Incus Web UI.
+- **Production Backups:** Background maintenance workflows execute shell operations using encrypted variables parsed straight out of Agenix (e.g., database states for platforms like Audiobookshelf and custom web apps via restic / rclone).
+
 ## Secret Management
 
-Secret management is handled by [Agenix](https://github.com/ryantm/agenix). In order to update existing secrets, run `manage-secret <secret-name>`.
+Secret management is handled by [Agenix](https://github.com/ryantm/agenix). In order to update existing secrets, run:
+
+```bash
+manage-secret <secret-name>
+```
+
 Creating new secrets is done by adding a new entry to [secrets.nix](./nix/secrets/secrets.nix) and then running `manage-secret <secret-name>`.
+Keep in mind - secrets are not accessible in the Nix configuration at [nixos](./nix/nixos/) until they've been committed to the repository.
 
-> You can reference secrets in your Nix configuration using `<secret-name>` without the `.age` extension.
-
-Note: Secrets are not accessible in the Nix configuration at [nixos](./nix/nixos/) until they've been committed to the repository.
+> You can reference secrets in Nix configuration files using `<secret-name>` without the `.age` extension. This also applies to home-manager configuration files.
 
 ## Tools
 
