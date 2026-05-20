@@ -16,8 +16,9 @@
 - [x] Setup the file manager so that it works well
 - [x] Replace `thunar` with `dolphin`
 - [ ] Symlink Zed Editor Settings - Source from config folder
-- [ ] Home Server
-	- [ ] Resolve PM2 issue (resurrect all not working properly)
+- [x] Home Server
+	- [x] Resolve PM2 issue (resurrect all not working properly)
+	- [ ] Test PM2 startup (home-server)
 
 - [x] Waybar
 	- [x] Update volume widget to have lower opacity / (M) text visible (if active source is muted)
