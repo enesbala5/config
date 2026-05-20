@@ -5,15 +5,16 @@ let
 
   keys = [
 	  # Host Keys - Used for authoring secrets
+	  # ---
 
-    # Home Server - /home/e/.ssh/id_ed25519.pub
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL0eRCXdwly0mD+VR5GL6Vr8nvSgdrxZY9xWg4GCnVQj"
-    
     # Framework 13 - /home/e/.ssh/id_ed25519.pub
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGm00Erh3zQ4qlWP9kwXzXvdOovcZ8KmN8Dj/YmYDXVw E - User"
 
     # Framework 13 - /root/.ssh/id_ed25519.pub
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDLUlxMQpQfFDEH1wc3/B4vGw+HJNyhYQI8xeIBgB86v Framework 13 - Root User"
+
+    # Home Server - /home/e/.ssh/id_ed25519.pub
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL0eRCXdwly0mD+VR5GL6Vr8nvSgdrxZY9xWg4GCnVQj"
 
 	  # System Keys - Used while building the system
 	  # ---
