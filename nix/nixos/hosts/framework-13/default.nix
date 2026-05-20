@@ -239,7 +239,6 @@ in
           ExecReload = "${pkgs.pm2}/bin/pm2 reload all";
           ExecStop = "${pkgs.pm2}/bin/pm2 kill";
           Restart = "always";
-
         };
       };
 

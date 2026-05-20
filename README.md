@@ -16,7 +16,11 @@ This repository houses the entire declarative environment for my machines. It is
 
 ### Preparing Secrets (Agenix)
 
-Before running the install script, you'll need the SSH private key used to decrypt agenix secrets.
+Agenix decrypts secrets during system activation using the host's SSH key (`/etc/ssh/ssh_host_ed25519_key`). This key must be listed as a recipient in secrets.nix for every secret the host needs.
+
+If setting up a new machine, get its host key (cat /etc/ssh/ssh_host_ed25519_key.pub), add it to secrets.nix (on a machine with host key already configured), and re-encrypt all secrets with `agenix -r` before committing changes & pushing to GitHub. Afterwards, the new machine should be able to decrypt secrets automatically on activation (after pulling changes from the remote).
+
+On an existing machine where the host key is already a recipient, no extra steps are needed.
 
 > Note: This step can be skipped as long the [secrets.nix](./nix/secrets/secrets.nix) has been updated with new SSH keys & secrets (`.age` files) recreated via agenix. More at "Secret Management".
 

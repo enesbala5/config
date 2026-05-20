@@ -4,23 +4,24 @@ let
   };
 
   keys = [
-	  # Framework 13
+	  # Host Keys - Used for authoring secrets
 
-			# /root/.ssh/id_ed25519.pub
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDLUlxMQpQfFDEH1wc3/B4vGw+HJNyhYQI8xeIBgB86v Framework 13 - Root User"
-
-    # /etc/ssh/ssh_host_ed25519_key.pub
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH7g+sWNdCtaVjPb7nZ8Cp2Hu6b06HgAzWi+k4N9OGrt root@nixos"
-
-    # /home/e/.ssh/id_ed25519.pub
+    # Home Server - /home/e/.ssh/id_ed25519.pub
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL0eRCXdwly0mD+VR5GL6Vr8nvSgdrxZY9xWg4GCnVQj"
+    
+    # Framework 13 - /home/e/.ssh/id_ed25519.pub
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGm00Erh3zQ4qlWP9kwXzXvdOovcZ8KmN8Dj/YmYDXVw E - User"
 
-    # Home Server
+    # Framework 13 - /root/.ssh/id_ed25519.pub
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDLUlxMQpQfFDEH1wc3/B4vGw+HJNyhYQI8xeIBgB86v Framework 13 - Root User"
 
-    # /home/e/.ssh/id_ed25519.pub
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL0eRCXdwly0mD+VR5GL6Vr8nvSgdrxZY9xWg4GCnVQj"
+	  # System Keys - Used while building the system
+	  # ---
 
-    # /etc/ssh/ssh_host_ed25519_key.pub
+    # Framework 13 - /etc/ssh/ssh_host_ed25519_key.pub
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH7g+sWNdCtaVjPb7nZ8Cp2Hu6b06HgAzWi+k4N9OGrt root@nixos"
+
+    # Home Server - /etc/ssh/ssh_host_ed25519_key.pub
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOVWSIkl769OhawintQNchyZ/5md0qWsqsWP67bO8MIO root@nixos"
   ];
 
