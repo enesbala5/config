@@ -47,6 +47,7 @@
       sl = "ls";
       f = "xdg-open";
 
+      reload-hyprlock = "${data.configDirectory}/scripts/utilities/reload-hyprlock.sh";
       fix-history = "${data.configDirectory}/tools/zsh/scripts/fix-history.sh";
 
       # Development Shortcuts
