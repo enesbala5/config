@@ -19,17 +19,14 @@ This repository houses the entire declarative environment for my machines. It is
 Agenix decrypts secrets during system activation using the host's SSH key (`/etc/ssh/ssh_host_ed25519_key`). This key must be listed as a recipient in secrets.nix for every secret the host needs.
 
 If setting up a new machine, get its host key (cat /etc/ssh/ssh_host_ed25519_key.pub), add it to secrets.nix (on a machine with host key already configured), and re-encrypt all secrets with `agenix -r` before committing changes & pushing to GitHub. Afterwards, the new machine should be able to decrypt secrets automatically on activation (after pulling changes from the remote).
+Alternatively you can skip re-encrypting secrets and use an existing key instead, with the steps listed below:
 
-On an existing machine where the host key is already a recipient, no extra steps are needed.
-
-> Note: This step can be skipped as long the [secrets.nix](./nix/secrets/secrets.nix) has been updated with new SSH keys & secrets (`.age` files) recreated via agenix. More at "Secret Management".
-
-1. Retrieve key from password manager, eg. "Agenix SSH - Framework 13 - e User"
-2. Copy it to `~/.ssh/id_ed25519`
-3. Set the correct permissions:
+1. Retrieve key from password manager, eg. "Agenix SSH (System) - Framework 13"
+2. Rewrite `/etc/ssh/ssh_host_ed25519_key` with the retrieved key
+3. Ensure the key has the correct permissions:
 
 ```bash
-chmod 600 ~/.ssh/id_ed25519
+chmod 600 /etc/ssh/ssh_host_ed25519_key
 ```
 
 ### Fresh Install
@@ -111,22 +108,25 @@ The home server configuration provisions base system dependencies, firewall rule
 
 ## Secret Management
 
-Secret management is handled by [Agenix](https://github.com/ryantm/agenix). In order to update existing secrets, run:
+Secret management is handled by [Agenix](https://github.com/ryantm/agenix). To edit or create secrets you need your **user key** (`~/.ssh/id_ed25519`) listed as a recipient in `secrets.nix` (or manually specify the identity file through `agenix -i`).
+
+> Retrieve your user key from the password manager (e.g. *"Agenix SSH - Framework 13 - e User"*), copy it to `~/.ssh/id_ed25519`, and run `chmod 600 ~/.ssh/id_ed25519`.
+
+To update an existing secret:
 
 ```bash
 manage-secret <secret-name>
 ```
 
-Or alternatively, run:
+Or alternatively:
 
 ```bash
 cd ~/config/nix/secrets && EDITOR='zeditor --wait' agenix -e # replace zeditor as needed
 ```
 
-Creating new secrets is done by adding a new entry to [secrets.nix](./nix/secrets/secrets.nix) and then running `manage-secret <secret-name>`.
-Keep in mind - secrets are not accessible in the Nix configuration at [nixos](./nix/nixos/) until they've been committed to the repository.
+Creating new secrets: add an entry to [`secrets.nix`](./nix/secrets/secrets.nix), then run `manage-secret <secret-name>`.
 
-> You can reference secrets in Nix configuration files using `<secret-name>` without the `.age` extension. This also applies to home-manager configuration files.
+> Secrets are not accessible in Nix configuration at [nixos](./nix/nixos/) until committed to the repository. Reference them without the `.age` extension - this applies to home-manager configs too.
 
 ## Tools
 
