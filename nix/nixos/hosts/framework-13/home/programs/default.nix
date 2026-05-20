@@ -220,6 +220,14 @@ in
             };
           };
 
+          links = {
+            entrypoints = {
+              google-drive = {
+                alias = "gdrive";
+              };
+            };
+          };
+
           power = {
             entrypoints = {
               power-off = {
@@ -480,6 +488,24 @@ in
       #   type = "Link";
       #   terminal = null;
       # };
+
+      google-drive = {
+        name = "Google Drive";
+        icon = "${data.configDirectory}/tools/links/google-drive.png";
+        exec = "xdg-open ${data.homeDirectory}/gdrive";
+        genericName = "Google Drive";
+        type = "Application";
+        terminal = false;
+      };
+
+      google-drive-web = {
+        name = "Google Drive Web";
+        icon = "${data.configDirectory}/tools/links/google-drive.png";
+        settings.URL = "https://drive.google.com";
+        genericName = "Google Drive Web";
+        type = "Link";
+        terminal = null;
+      };
 
       google-calendar = {
         name = "Google Calendar";

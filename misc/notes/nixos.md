@@ -19,6 +19,9 @@
 - [x] Home Server
 	- [x] Resolve PM2 issue (resurrect all not working properly)
 	- [ ] Test PM2 startup (home-server)
+- [x] Add a link for "Google Drive" & "Google Drive Web"
+	- [x] Add vicinae alias "gdrive" to the first link
+- [ ] Fix SSH Agent - solve issue of multiple prompts for the same ssh key
 
 - [x] Waybar
 	- [x] Update volume widget to have lower opacity / (M) text visible (if active source is muted)
