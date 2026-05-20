@@ -88,6 +88,14 @@ cd ~/config/nix/secrets && EDITOR='zeditor --wait' agenix -e rclone-conf.age
 
 ## Hosts
 
+### Home Server
+The home server configuration provisions base system dependencies, firewall rules, and native storage points. Application-level services and environments are layered directly on top using the assets maintained in `./tools`.
+
+#### Infrastructure Run-Steps
+- **Coolify / Docker:** Container setups are kept in `./tools/coolify` and updated via the included `upgrade.sh` helper logic.
+- **Incus:** Certificate at `./nix/nixos/hosts/home-server/certificates/incus` used to authenticate to Incus Web UI.
+- **Production Backups:** Background maintenance workflows execute shell operations using encrypted variables parsed straight out of Agenix (e.g., database states for platforms like Audiobookshelf and custom web apps via restic / rclone).
+
 ### Framework 13
 
 #### Audio Setup
@@ -98,13 +106,6 @@ Run the installation steps detailed in the "Installing" section of the README (i
 
 Once that is completed, the profile "HifiScan+EEGuide" should be automatically selected on startup.
 
-### Home Server
-The home server configuration provisions base system dependencies, firewall rules, and native storage points. Application-level services and environments are layered directly on top using the assets maintained in `./tools`.
-
-#### Infrastructure Run-Steps
-- **Coolify / Docker:** Container setups are kept in `./tools/coolify` and updated via the included `upgrade.sh` helper logic.
-- **Incus:** Certificate at `./nix/nixos/hosts/home-server/certificates/incus` used to authenticate to Incus Web UI.
-- **Production Backups:** Background maintenance workflows execute shell operations using encrypted variables parsed straight out of Agenix (e.g., database states for platforms like Audiobookshelf and custom web apps via restic / rclone).
 
 ## Secret Management
 
