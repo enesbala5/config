@@ -347,6 +347,15 @@ in
   security = {
     sudo = {
       enable = true;
+      extraRules = [
+        {
+          users = [ data.username ];
+          commands = [
+            { command = "/run/current-system/specialisation/light/bin/switch-to-configuration"; options = [ "NOPASSWD" ]; }
+            { command = "/nix/var/nix/profiles/system/bin/switch-to-configuration"; options = [ "NOPASSWD" ]; }
+          ];
+        }
+      ];
     };
 
     pam.services = {
