@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  lib,
   unstable,
   data,
   inputs,
@@ -519,6 +520,19 @@ in
         ../../modules/home/default.nix
         ./home/default.nix
       ];
+    };
+  };
+
+  # ------------------------------------------------------------------------------------------
+  # Specialisations
+  # ------------------------------------------------------------------------------------------
+
+  specialisation = {
+    light.configuration = {
+      home-manager.users.${data.username} = {
+        stylix.polarity = lib.mkForce "light";
+        stylix.base16Scheme = lib.mkForce "${data.configDirectory}/misc/scheme/equilibrium-gray-light.yaml";
+      };
     };
   };
 }
