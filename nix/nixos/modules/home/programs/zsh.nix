@@ -43,6 +43,7 @@
       "s!" = "sudo !!";
 
       sl = "ls";
+      f = "xdg-open";
 
       fix-history = "${data.configDirectory}/tools/zsh/scripts/fix-history.sh";
 

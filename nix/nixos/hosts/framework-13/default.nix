@@ -222,6 +222,27 @@ in
     services = {
       NetworkManager-wait-online.enable = false;
 
+      pm2 = {
+        enable = true;
+        description = "PM2 process manager";
+        wantedBy = [ "multi-user.target" ];
+        after = [ "network.target" ];
+        unitConfig = {
+          Type = "simple";
+        };
+        environment = {
+          PM2_HOME = "${data.homeDirectory}/.pm2"; # Stores process list and logs
+        };
+        serviceConfig = {
+          User = data.username;
+          ExecStart = "${pkgs.pm2}/bin/pm2 resurrect";
+          ExecReload = "${pkgs.pm2}/bin/pm2 reload all";
+          ExecStop = "${pkgs.pm2}/bin/pm2 kill";
+          Restart = "always";
+
+        };
+      };
+
       power-profile-handler = {
         description = "Power Profile Handler - Monitor & apply changes (system)";
         wantedBy = [ "multi-user.target" ];
