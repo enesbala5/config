@@ -270,14 +270,17 @@ in
         "inode/directory" = "thunar.desktop";
         "x-scheme-handler/http" = [
           "zen-beta.desktop"
+          "helium.desktop"
           "google-chrome.desktop"
         ];
         "x-scheme-handler/https" = [
           "zen-beta.desktop"
+          "helium.desktop"
           "google-chrome.desktop"
         ];
         "text/html" = [
           "zen-beta.desktop"
+          "helium.desktop"
           "google-chrome.desktop"
         ];
         "text/plain" = [
@@ -292,16 +295,19 @@ in
         "image/jpeg" = [
           "org.nomacs.ImageLounge.desktop"
           "zen-beta.desktop"
+          "helium.desktop"
           "google-chrome.desktop"
         ];
         "image/png" = [
           "org.nomacs.ImageLounge.desktop"
           "zen-beta.desktop"
+          "helium.desktop"
           "google-chrome.desktop"
         ];
         "image/svg+xml" = [
           "org.nomacs.ImageLounge.desktop"
           "zen-beta.desktop"
+          "helium.desktop"
           "google-chrome.desktop"
         ];
         "video/mp4" = [
@@ -311,13 +317,17 @@ in
         "video/mp3" = [
           "vlc.desktop"
           "zen-beta.desktop"
+          "helium.desktop"
         ];
         "video/webm" = [
           "vlc.desktop"
           "org.shotcut.Shotcut.desktop"
+          "helium.desktop"
+          "google-chrome.desktop"
         ];
         "application/pdf" = [
           "zen-beta.desktop"
+          "helium.desktop"
           "google-chrome.desktop"
         ];
       };
