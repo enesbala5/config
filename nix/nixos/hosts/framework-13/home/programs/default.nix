@@ -88,7 +88,7 @@ in
     };
 
     ssh = {
-	    enable = true;
+      enable = true;
       # startAgent = false;
 
       includes = [ config.age.secrets.ssh-config.path ];
@@ -196,31 +196,7 @@ in
             };
           };
 
-          "@Gelei/vicinae-extension-bluetooth-0" = {
-            entrypoints = {
-              devices = {
-                alias = "bluetooth";
-              };
-            };
-          };
-
-          "@botkooper/vicinae-extension-power-profile-0" = {
-            entrypoints = {
-              power-profile = {
-                alias = "power";
-              };
-            };
-          };
-
-          "@dagimg-dot/vicinae-extension-wifi-commander-0" = {
-            entrypoints = {
-              scan-wifi = {
-                alias = "wifi";
-              };
-            };
-          };
-
-          links = {
+          applications = {
             entrypoints = {
               google-drive = {
                 alias = "gdrive";
@@ -247,6 +223,30 @@ in
                   confirm = true;
                   customProgram = "pidof hyprlock --no-fade-in || hyprlock";
                 };
+              };
+            };
+          };
+
+          "@Gelei/vicinae-extension-bluetooth-0" = {
+            entrypoints = {
+              devices = {
+                alias = "bluetooth";
+              };
+            };
+          };
+
+          "@botkooper/vicinae-extension-power-profile-0" = {
+            entrypoints = {
+              power-profile = {
+                alias = "power";
+              };
+            };
+          };
+
+          "@dagimg-dot/vicinae-extension-wifi-commander-0" = {
+            entrypoints = {
+              scan-wifi = {
+                alias = "wifi";
               };
             };
           };
