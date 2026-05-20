@@ -464,15 +464,18 @@ in
 
       pm2 = {
         enable = true;
-        description = "pm2";
+        description = "PM2 process manager";
+        wantedBy = [ "multi-user.target" ];
+        after = [ "network.target" ];
         unitConfig = {
           Type = "simple";
         };
-        wantedBy = [ "multi-user.target" ];
         serviceConfig = {
+          User = data.username;
           ExecStart = "${pkgs.pm2}/bin/pm2 resurrect";
           ExecReload = "${pkgs.pm2}/bin/pm2 reload all";
           ExecStop = "${pkgs.pm2}/bin/pm2 kill";
+          Restart = "always";
         };
       };
 
