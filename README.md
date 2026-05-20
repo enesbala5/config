@@ -113,6 +113,12 @@ Secret management is handled by [Agenix](https://github.com/ryantm/agenix). In o
 manage-secret <secret-name>
 ```
 
+Or alternatively, run:
+
+```bash
+cd ~/config/nix/secrets && EDITOR='zeditor --wait' agenix -e # replace zeditor as needed
+```
+
 Creating new secrets is done by adding a new entry to [secrets.nix](./nix/secrets/secrets.nix) and then running `manage-secret <secret-name>`.
 Keep in mind - secrets are not accessible in the Nix configuration at [nixos](./nix/nixos/) until they've been committed to the repository.
 
@@ -128,7 +134,7 @@ Service management commands:
 - **`rclone-logs`** - Follow service logs
 - **`rclone-start`** - Start service (timer, path watcher, service)
 - **`rclone-stop`** - Stop service
-- **`rclone-resync`** - Full resync (stops service, prompts confirmation, restarts) ⚠️
+- **`rclone-resync`** - Full resync (stops service, prompts confirmation, restarts)
 
 ### Keymapper
 

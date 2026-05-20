@@ -4,7 +4,9 @@ let
   };
 
   keys = [
-    # /root/.ssh/id_ed25519.pub
+	  # Framework 13
+
+			# /root/.ssh/id_ed25519.pub
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDLUlxMQpQfFDEH1wc3/B4vGw+HJNyhYQI8xeIBgB86v Framework 13 - Root User"
 
     # /etc/ssh/ssh_host_ed25519_key.pub
@@ -14,8 +16,12 @@ let
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGm00Erh3zQ4qlWP9kwXzXvdOovcZ8KmN8Dj/YmYDXVw E - User"
 
     # Home Server
+
     # /home/e/.ssh/id_ed25519.pub
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL0eRCXdwly0mD+VR5GL6Vr8nvSgdrxZY9xWg4GCnVQj"
+
+    # /etc/ssh/ssh_host_ed25519_key.pub
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOVWSIkl769OhawintQNchyZ/5md0qWsqsWP67bO8MIO root@nixos"
   ];
 
   userConfig = {

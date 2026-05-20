@@ -24,7 +24,7 @@
       lib.mapAttrs' (
         name: attrs:
         lib.nameValuePair (lib.removeSuffix ".age" name) {
-          file = ../../../secrets/${name};
+        file = ../../../secrets/${name};
         }
       ) secrets;
   };
