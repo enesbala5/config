@@ -507,6 +507,7 @@ in
       dnsmasq
       phodav
       devcontainer
+      pm2
     ])
     ++ (with unstable; [
     ]);
