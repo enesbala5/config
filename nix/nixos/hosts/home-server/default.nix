@@ -406,6 +406,8 @@ in
           User = "root";
           Group = "root";
           EnvironmentFile = config.age.secrets.restart-cloudflared-service-env.path;
+          Restart = "on-failure";
+          RestartSec = "5s";
         };
         script = ''
           #! ${pkgs.bash}/bin/bash
