@@ -163,6 +163,7 @@ in
           "applications:cursor"
           "applications:dev.zed.Zed-Nightly.desktop"
           "applications:whatsApp"
+          "applications:google-drive"
           "@Gelei/vicinae-extension-bluetooth-0:devices"
         ];
 
