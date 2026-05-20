@@ -228,17 +228,18 @@ in
         wantedBy = [ "multi-user.target" ];
         after = [ "network.target" ];
         unitConfig = {
-          Type = "simple";
+          Type = "forking";
         };
         environment = {
-          PM2_HOME = "${data.homeDirectory}/.pm2"; # Stores process list and logs
+          PM2_HOME = "${data.homeDirectory}/.pm2";
         };
         serviceConfig = {
           User = data.username;
+          PIDFile = "${data.homeDirectory}/.pm2/pm2.pid";
           ExecStart = "${pkgs.pm2}/bin/pm2 resurrect";
           ExecReload = "${pkgs.pm2}/bin/pm2 reload all";
           ExecStop = "${pkgs.pm2}/bin/pm2 kill";
-          Restart = "always";
+          Restart = "on-failure";
         };
       };
 
