@@ -470,6 +470,9 @@ in
         unitConfig = {
           Type = "simple";
         };
+        environment = {
+          PM2_HOME = "${data.homeDirectory}/.pm2"; # Stores process list and logs
+        };
         serviceConfig = {
           User = data.username;
           ExecStart = "${pkgs.pm2}/bin/pm2 resurrect";
