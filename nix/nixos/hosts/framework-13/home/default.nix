@@ -12,6 +12,13 @@
     ./programs
   ];
 
+  home.sessionVariables = {
+    # Allow all GTK apps to find the xfsettingsd GTK sync module so they
+    # don't emit "Failed to load module xfsettingsd-gtk-settings-sync" warnings
+    # when xfsettingsd broadcasts the Gtk/Modules XSetting.
+    GTK_PATH = "${pkgs.xfce.xfce4-settings}/lib/gtk-3.0";
+  };
+
   home.file = {
     ".config/hypr/hyprlock.conf" = {
       source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hyprlock/configuration.conf";
