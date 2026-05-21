@@ -38,7 +38,10 @@
         Install.WantedBy = [ "graphical-session.target" ];
 
         Service = {
-          Environment = "PATH=${data.homeDirectory}/bin";
+          Environment = [
+            "PATH=${data.homeDirectory}/bin"
+            "GTK_PATH=${pkgs.xfce.xfce4-settings}/lib"
+          ];
           ExecStart = "${pkgs.xfce.xfce4-settings}/bin/xfsettingsd";
           Restart = "on-abort";
         };
