@@ -193,8 +193,5 @@
 
   services = {
     udiskie.enable = true;
-
-    # Apply GTK/icon theme settings to XFCE apps (Thunar) via stylix
-    xfsettingsd.enable = true;
   };
 }
