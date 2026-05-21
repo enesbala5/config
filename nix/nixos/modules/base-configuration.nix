@@ -373,6 +373,10 @@ in
       hyprlock = { };
 
       gdm.enableGnomeKeyring = true;
+      # GDM auto-login uses a separate PAM service; without this the keyring
+      # is never unlocked at session start and stored SSH passphrases can't
+      # be retrieved by gcr-ssh-agent.
+      gdm-autologin.enableGnomeKeyring = true;
     };
 
     rtkit.enable = true;

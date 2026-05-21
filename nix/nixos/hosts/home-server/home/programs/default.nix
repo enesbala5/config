@@ -66,7 +66,8 @@
       includes = [ config.age.secrets.home-server-ssh-config.path ];
 
       extraConfig = ''
-        AddKeysToAgent yes
+        Host *
+          AddKeysToAgent yes
       '';
     };
   };

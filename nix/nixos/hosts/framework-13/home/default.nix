@@ -40,7 +40,7 @@
         Service = {
           Environment = [
             "PATH=${data.homeDirectory}/bin"
-            "GTK_PATH=${pkgs.xfce.xfce4-settings}/lib"
+            "GTK_PATH=${pkgs.xfce.xfce4-settings}/lib/gtk-3.0"
           ];
           ExecStart = "${pkgs.xfce.xfce4-settings}/bin/xfsettingsd";
           Restart = "on-abort";
