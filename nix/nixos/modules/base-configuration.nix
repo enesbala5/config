@@ -213,6 +213,7 @@ in
     };
 
     gnome.gnome-keyring.enable = true;
+    
     # Use keyring's SSH agent (gcr) so SSH key passphrase is read from keyring, not prompted in terminal.
     gnome.gcr-ssh-agent.enable = true;
 
@@ -372,11 +373,10 @@ in
 
       hyprlock = { };
 
-      gdm.enableGnomeKeyring = true;
-      # GDM auto-login uses a separate PAM service; without this the keyring
-      # is never unlocked at session start and stored SSH passphrases can't
-      # be retrieved by gcr-ssh-agent.
-      gdm-autologin.enableGnomeKeyring = true;
+      # LightDM unlocks the keyring at login; lightdm-autologin covers the
+      # auto-login path (no password prompt) so the keyring is still unlocked.
+      lightdm.enableGnomeKeyring = true;
+      lightdm-autologin.enableGnomeKeyring = true;
     };
 
     rtkit.enable = true;
