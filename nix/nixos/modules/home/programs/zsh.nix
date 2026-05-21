@@ -12,8 +12,6 @@
       source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
       source ${data.configDirectory}/tools/zsh/powerlevel10k/.p10k.zsh
 
-      eval $(keychain --eval --quiet /run/agenix/github-private-key)
-
       # Source Telegram credentials - Needed for `telegram-notify` script
 	    [ -f /run/agenix/default-telegram ] && source /run/agenix/default-telegram
 

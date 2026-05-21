@@ -453,7 +453,6 @@ in
       gnumake
       docker
       coreutils-full
-      keychain
       systemd
       home-manager
       udiskie

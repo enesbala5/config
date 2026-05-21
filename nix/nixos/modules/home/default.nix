@@ -98,6 +98,17 @@
   # Let Home Manager install and manage itself
   programs.home-manager.enable = true;
 
+  # Run gnome-keyring-daemon in the user session so gcr-ssh-agent has a
+  # backend to store/retrieve credentials. The "ssh" component is excluded
+  # because gcr-ssh-agent (services.gnome.gcr-ssh-agent) handles SSH instead.
+  services.gnome-keyring = {
+    enable = true;
+    components = [
+      "pkcs11"
+      "secrets"
+    ];
+  };
+
   wayland.windowManager.hyprland.systemd.enable = true;
   wayland.windowManager.hyprland.systemd.variables = [ "--all" ];
 }

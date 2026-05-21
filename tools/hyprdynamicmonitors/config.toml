@@ -1,5 +1,5 @@
 [general]
-destination = "$HOME/.config/hypr/monitors.conf"
+destination = "/home/e/.config/hypr/monitors.conf"
 
 [power_events]
 
@@ -10,7 +10,7 @@ path = "/org/freedesktop/UPower/devices/line_power_ACAD"
 object_path = "/org/freedesktop/UPower/devices/line_power_ACAD"
 
 [profiles.home_office]
-config_file = "$HOME/.config/hyprdynamicmonitors/hyprconfigs/home_office.go.tmpl"
+config_file = "/home/e/.config/hyprdynamicmonitors/hyprconfigs/home_office.go.tmpl"
 config_file_type = "template"
 
 [profiles.home_office.conditions]
@@ -28,7 +28,7 @@ description = "Dell Inc. DELL U2415 7MT017CK0JAU"
 monitor_tag = "dell-24"
 
 [profiles.undocked]
-config_file = "$HOME/.config/hyprdynamicmonitors/hyprconfigs/undocked.go.tmpl"
+config_file = "/home/e/.config/hyprdynamicmonitors/hyprconfigs/undocked.go.tmpl"
 config_file_type = "template"
 
 [profiles.undocked.conditions]
@@ -38,7 +38,7 @@ description = "BOE 0x0BCA"
 monitor_tag = "laptop"
 
 [profiles.home-ultrawide-vertical-stack]
-config_file = "$HOME/.config/hyprdynamicmonitors/hyprconfigs/home-ultrawide-vertical-stack.go.tmpl"
+config_file = "/home/e/.config/hyprdynamicmonitors/hyprconfigs/home-ultrawide-vertical-stack.go.tmpl"
 config_file_type = "template"
 
 [profiles.home-ultrawide-vertical-stack.conditions]
@@ -52,7 +52,7 @@ description = "Xiaomi Corporation Mi Monitor"
 monitor_tag = "xiaomi-34"
 
 [profiles.TV]
-config_file = "$HOME/.config/hyprdynamicmonitors/hyprconfigs/TV.go.tmpl"
+config_file = "/home/e/.config/hyprdynamicmonitors/hyprconfigs/TV.go.tmpl"
 config_file_type = "template"
 [profiles.TV.conditions]
 
