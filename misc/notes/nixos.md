@@ -26,14 +26,14 @@
 	- [x] Update volume widget to have lower opacity / (M) text visible (if active source is muted)
 - [ ] Implement light / dark mode
 	- [x] Add `toggle-polarity` script
-	- [ ] Add notifications or some sort of loading indicator
+	- [x] Add notifications or some sort of loading indicator
 	
 		> Very hard to understand what is occuring considering the delay caused by the specialization
 
 	- [ ] Apps
 		- [ ] Waybar (text is a bit hard to read & workspace widget is very opaque)
-		- [ ] Configure automatic wallpaper change (currently using `waypaper` & manual updates)
-		- [ ] Zed Editor
+		- [x] Configure automatic wallpaper change (currently using `waypaper` & manual updates)
+		- [x] Zed Editor
 		- [ ] kitty
 		- [ ] thunar
 
