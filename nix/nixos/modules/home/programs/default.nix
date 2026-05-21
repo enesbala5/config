@@ -17,6 +17,7 @@
     # ./tofi.nix # app launcher
 
     ./dunst.nix # notification daemon
+    ./kitty.nix # terminal emulator
 
     # ./firefox # web browser
     # ./spicetify.nix # spotify retheming
@@ -192,5 +193,8 @@
 
   services = {
     udiskie.enable = true;
+
+    # Apply GTK/icon theme settings to XFCE apps (Thunar) via stylix
+    xfsettingsd.enable = true;
   };
 }

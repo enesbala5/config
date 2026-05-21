@@ -57,11 +57,6 @@
         source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/typora/themes/";
         recursive = true;
       };
-      # Kitty
-      ".config/kitty" = {
-        source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/kitty/";
-        recursive = true;
-      };
     };
 
     pointerCursor = {
