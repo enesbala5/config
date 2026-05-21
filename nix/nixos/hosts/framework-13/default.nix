@@ -125,7 +125,7 @@ in
   # ------------------------------------------------------------------------------------------
 
   services = {
-		# Ensure EasyEffects is not selected automatically as the default audio sink
+    # Ensure EasyEffects is not selected automatically as the default audio sink
     pipewire.wireplumber.extraConfig = {
       "52-hide-easyeffects-sink" = {
         "monitor.pipewire.rules" = [

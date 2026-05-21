@@ -107,12 +107,12 @@
       pulsemixer # audio control
       pulseaudio # provides pactl (client only, talks to PipeWire pulse socket)
 
-      stremio  # Video Streaming
+      stremio # Video Streaming
     ])
     # Unstable packages
     # ---
     ++ (with unstable; [
-    	google-chrome # Web Browser
+      google-chrome # Web Browser
     ])
     # Flakes
     # ---

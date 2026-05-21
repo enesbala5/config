@@ -25,4 +25,24 @@
       source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hyprsunset/configuration.conf";
     };
   };
+
+  systemd.user = {
+    services = {
+      xfsettingsd = {
+        Unit = {
+          Description = "xfsettingsd";
+          After = [ "graphical-session-pre.target" ];
+          PartOf = [ "graphical-session.target" ];
+        };
+
+        Install.WantedBy = [ "graphical-session.target" ];
+
+        Service = {
+          Environment = "PATH=${data.homeDirectory}/bin";
+          ExecStart = "${pkgs.xfce.xfce4-settings}/bin/xfsettingsd";
+          Restart = "on-abort";
+        };
+      };
+    };
+  };
 }

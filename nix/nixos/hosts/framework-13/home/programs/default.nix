@@ -146,6 +146,7 @@ in
             name = "nord-light";
             icon_theme = "Bibata-Modern-Classic";
           };
+          
           dark = {
             name = "stylix";
             icon_theme = "Bibata-Modern-Classic";
