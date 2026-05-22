@@ -11,19 +11,26 @@
 - [x] Configure Zsh Plugins - View ~/config/zsh/zsh-plugin-init.md
 - [x] Fix Cloudflared Access
 - [x] Framework Flake
+
 - [x] Setup Default Applications || *xdg.mimeApps.defaultApplications*
 	- [x] Fix Issue with Firefox / Zen not integrating with the File Manager
+
 - [x] Setup the file manager so that it works well
-- [x] Replace `thunar` with `dolphin`
+- [x] Replace `thunar` with `dolphin` (Reverted)
+
 - [x] Home Server
 	- [x] Resolve PM2 issue (resurrect all not working properly)
 	- [ ] Test PM2 startup (home-server)
+
 - [x] Add a link for "Google Drive" & "Google Drive Web"
 	- [x] Add vicinae alias "gdrive" to the first link
+
 - [x] Fix SSH Agent - solve issue of multiple prompts for the same ssh key
 - [x] Symlink Zed Editor Settings - Source from config folder
+
 - [x] Waybar
 	- [x] Update volume widget to have lower opacity / (M) text visible (if active source is muted)
+
 - [ ] Implement light / dark mode
 	- [x] Add `toggle-polarity` script
 	- [x] Add notifications or some sort of loading indicator
