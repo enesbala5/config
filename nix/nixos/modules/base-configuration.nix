@@ -131,13 +131,10 @@ in
     # Rclone config (shared so both framework and home-server can use it)
     RCLONE_CONFIG = "${data.configDirectory}/tools/rclone/rclone.conf";
 
-    # Use GNOME Keyring's SSH agent (gcr) so ssh/git use keyring-stored passphrase (e.g. in Hyprland).
-    SSH_AUTH_SOCK = "\$XDG_RUNTIME_DIR/gcr/ssh";
-
     PATH = "/run/current-system/sw/bin:/run/wrappers/bin";
 
     # Other
-	  # ---
+    # ---
     USER_FULL_NAME = data.fullName;
     USER_EMAIL = data.email;
   };
@@ -212,19 +209,32 @@ in
       };
     };
 
-    gnome.gnome-keyring.enable = true;
-    
-    # Use keyring's SSH agent (gcr) so SSH key passphrase is read from keyring, not prompted in terminal.
-    gnome.gcr-ssh-agent.enable = true;
-
     # Enable touchpad support (enabled default in most desktopManager).
     libinput.enable = true;
 
     # Enable automatic login for the user.
-    displayManager.autoLogin = {
-      enable = true;
-      user = data.username;
+    displayManager = {
+      autoLogin = {
+        enable = true;
+        user = data.username;
+
+      };
+      gdm = {
+        enable = true;
+        autoLogin = {
+          delay = 0;
+        };
+      };
     };
+
+    gnome.gnome-keyring = {
+      enable = true;
+    };
+
+    dbus.packages = [
+      pkgs.gnome-keyring
+      pkgs.gcr
+    ];
 
     # Enable the OpenSSH daemon.
     openssh = {
@@ -352,8 +362,14 @@ in
         {
           users = [ data.username ];
           commands = [
-            { command = "/run/current-system/specialisation/light/bin/switch-to-configuration"; options = [ "NOPASSWD" ]; }
-            { command = "/nix/var/nix/profiles/system/bin/switch-to-configuration"; options = [ "NOPASSWD" ]; }
+            {
+              command = "/run/current-system/specialisation/light/bin/switch-to-configuration";
+              options = [ "NOPASSWD" ];
+            }
+            {
+              command = "/nix/var/nix/profiles/system/bin/switch-to-configuration";
+              options = [ "NOPASSWD" ];
+            }
           ];
         }
       ];
@@ -373,10 +389,17 @@ in
 
       hyprlock = { };
 
-      # LightDM unlocks the keyring at login; lightdm-autologin covers the
-      # auto-login path (no password prompt) so the keyring is still unlocked.
-      lightdm.enableGnomeKeyring = true;
-      lightdm-autologin.enableGnomeKeyring = true;
+      gdm = {
+        enable = true;
+        enableGnomeKeyring = true;
+
+        fprintAuth = true;
+        rules.auth.fprintd.settings = {
+          max_tries = 1;
+          timeout = 3;
+        };
+
+      };
     };
 
     rtkit.enable = true;
@@ -507,6 +530,10 @@ in
 
     seahorse.enable = true;
 
+    ssh = {
+      # enable = true;
+    };
+
     git = {
       enable = true;
       config = {
@@ -544,13 +571,9 @@ in
       enable = true;
       xwayland.enable = true;
 
-      # withUWSM = true;
-
       package = hyprlandPackages.hyprland;
-      # package = unstable.hyprland;
 
       portalPackage = hyprlandPackages.xdg-desktop-portal-hyprland;
-      # portalPackage = unstable.xdg-desktop-portal-hyprland;
     };
 
     nix-ld = {

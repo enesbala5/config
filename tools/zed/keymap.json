@@ -1,0 +1,370 @@
+// Zed keymap
+//
+// For information on binding keys, see the Zed
+// documentation: https://zed.dev/docs/key-bindings
+//
+// To see the default key bindings run `zed: open default keymap`
+// from the command palette.
+[
+	{
+		"context": "Workspace",
+		"bindings": {
+			// "shift shift": "file_finder::Toggle"
+		}
+	},
+	{
+		"context": "Editor && vim_mode == insert",
+		"bindings": {
+			// "j k": "vim::NormalBefore"
+		}
+	},
+	{
+		"context": "Pane",
+		"bindings": {
+			"ctrl-shift-tab": "pane::ActivatePreviousItem",
+			"ctrl-tab": "pane::ActivateNextItem"
+		}
+	},
+ {
+  "bindings": {
+   "ctrl-p": "command_palette::Toggle"
+  }
+ },
+ {
+  "bindings": {
+   "ctrl-k o": "workspace::AddFolderToProject"
+  }
+ },
+ {
+  "context": "Editor",
+  "bindings": {
+   "ctrl-alt-right": null
+  }
+ },
+ {
+  "context": "Editor",
+  "bindings": {
+   "ctrl-alt-left": null
+  }
+ },
+ {
+  "context": "Editor",
+  "bindings": {
+   "ctrl-alt-shift-left": null
+  }
+ },
+ {
+  "bindings": {
+   "ctrl-alt-right": "pane::SplitAndMoveRight"
+  }
+ },
+ {
+  "bindings": {
+   "ctrl-alt-left": "pane::SplitAndMoveLeft"
+  }
+ },
+ {
+  "context": "Workspace",
+  "bindings": {
+   "ctrl-e": null
+  }
+ },
+ {
+  "context": "Editor",
+  "bindings": {
+   "ctrl-e": [
+    "editor::MoveToEndOfLine",
+    {
+     "stop_at_soft_wraps": true
+    }
+   ]
+  }
+ },
+ {
+  "context": "(Editor && mode == full)",
+  "bindings": {
+   "alt-z": "editor::ToggleSoftWrap"
+  }
+ },
+ {
+  "context": "(Editor && mode == full)",
+  "bindings": {
+   "ctrl-k z": null
+  }
+ },
+ {
+  "context": "(Editor && mode == full)",
+  "bindings": {
+   "ctrl-k ctrl-z": null
+  }
+ },
+ {
+  "context": "Editor",
+  "bindings": {
+   "alt-shift-up": "editor::DuplicateLineUp"
+  }
+ },
+ {
+  "context": "(Editor && mode == full)",
+  "bindings": {
+   "ctrl-shift-k": null
+  }
+ },
+ {
+  "context": "((AgentPanel || ContextEditor) || MessageEditor > Editor)",
+  "bindings": {
+   "ctrl-shift-k": null
+  }
+ },
+ {
+  "context": "Editor",
+  "bindings": {
+   "ctrl-shift-k": "editor::DeleteLine"
+  }
+ },
+ {
+  "context": "AgentPanel",
+  "bindings": {
+   "ctrl-alt-n": null
+  }
+ },
+ {
+  "context": "ProjectPanel",
+  "bindings": {
+   "ctrl-alt-n": null
+  }
+ },
+ {
+  "context": "Workspace",
+  "bindings": {
+   "ctrl-n": "project_panel::NewFile"
+  }
+ },
+ {
+  "context": "Workspace",
+  "bindings": {
+   "ctrl-alt-n": "workspace::NewWindow"
+  }
+ },
+ {
+  "context": "Workspace",
+  "unbind": {
+   "ctrl-shift-n": "workspace::NewWindow"
+  }
+ },
+ {
+  "context": "Workspace",
+  "bindings": {
+   "ctrl-shift-i": "agent::ToggleFocus"
+  }
+ },
+ {
+  "context": "Editor && mode == full",
+  "bindings": {
+   "ctrl-shift-i": "agent::ToggleFocus"
+  }
+ },
+ {
+  "bindings": {
+   "ctrl-|": "workspace::ToggleRightDock"
+  }
+ },
+ {
+  "context": "AgentPanel || MessageEditor > Editor",
+  "unbind": {
+   "ctrl-shift-i": "workspace::ToggleRightDock"
+  }
+ },
+ {
+  "context": "Editor && mode == full",
+  "unbind": {
+   "ctrl-l": "agent::AddSelectionToThread"
+  }
+ },
+ {
+  "context": "Editor && mode == full",
+  "bindings": {
+   "ctrl-i": "agent::AddSelectionToThread"
+  }
+ },
+ {
+  "context": "Editor && mode == full",
+  "unbind": {
+   "ctrl-shift-l": "agent::AddSelectionToThread"
+  }
+ },
+ {
+  "context": "Workspace",
+  "unbind": {
+   "ctrl-i": "agent::ToggleFocus"
+  }
+ },
+ {
+  "context": "Editor && mode == full",
+  "unbind": {
+   "ctrl-i": "agent::ToggleFocus"
+  }
+ },
+ {
+  "context": "Editor",
+  "bindings": {
+   "ctrl-shift-i": "agent::NewThread"
+  }
+ },
+ {
+  "context": "Editor",
+  "bindings": {
+   "alt-shift-f": "editor::Format"
+  }
+ },
+ {
+  "context": "Editor",
+  "unbind": {
+   "ctrl-shift-i": "editor::Format"
+  }
+ },
+ {
+  "context": "Editor",
+  "bindings": {
+   "ctrl-alt-shift-down": [
+    "editor::AddSelectionBelow",
+    {
+     "skip_soft_wrap": true
+    }
+   ]
+  }
+ },
+ {
+  "context": "Editor",
+  "bindings": {
+   "alt-shift-down": [
+    "editor::AddSelectionBelow",
+    {
+     "skip_soft_wrap": true
+    }
+   ]
+  }
+ },
+ {
+  "context": "Editor",
+  "bindings": {
+   "shift-alt-down": "editor::DuplicateLineDown"
+  }
+ },
+ {
+  "context": "Editor",
+  "unbind": {
+   "ctrl-alt-shift-up": "editor::DuplicateLineUp"
+  }
+ },
+ {
+  "context": "Editor",
+  "bindings": {
+   "ctrl-alt-shift-up": [
+    "editor::AddSelectionAbove",
+    {
+     "skip_soft_wrap": true
+    }
+   ]
+  }
+ },
+ {
+  "context": "Editor",
+  "unbind": {
+   "alt-shift-up": [
+    "editor::AddSelectionAbove",
+    {
+     "skip_soft_wrap": true
+    }
+   ]
+  }
+ },
+ {
+  "context": "Editor",
+  "unbind": {
+   "ctrl-|": "editor::MoveToEnclosingBracket"
+  }
+ },
+ {
+  "context": "FileFinder",
+  "bindings": {
+   "ctrl-alt-enter": "pane::SplitRight"
+  }
+ },
+ {
+  "context": "FileFinder || FileFinder > Picker > Editor || FileFinder > Picker > menu",
+  "unbind": {
+   "ctrl-l": "pane::SplitRight"
+  }
+ },
+ {
+  "context": "Workspace",
+  "unbind": {
+   "ctrl-e": "file_finder::Toggle"
+  }
+ },
+ {
+  "context": "Workspace",
+  "bindings": {
+   "ctrl-shift-p": "file_finder::Toggle"
+  }
+ },
+ {
+  "context": "Workspace",
+  "unbind": {
+   "ctrl-p": "file_finder::Toggle"
+  }
+ },
+ {
+  "context": "FileFinder || FileFinder > Picker > Editor",
+  "bindings": {
+   "ctrl-shift-p": "file_finder::Toggle"
+  }
+ },
+ {
+  "context": "FileFinder || FileFinder > Picker > Editor",
+  "unbind": {
+   "ctrl-p": "file_finder::Toggle"
+  }
+ },
+ {
+  "context": "Editor && edit_prediction && edit_prediction_mode == eager && !showing_completions",
+  "bindings": {
+   "alt-enter": "editor::AcceptEditPrediction"
+  }
+ },
+ {
+  "context": "Editor && edit_prediction && edit_prediction_mode == eager && !showing_completions",
+  "unbind": {
+   "tab": "editor::AcceptEditPrediction"
+  }
+ },
+ {
+  "context": "Editor && mode == full",
+  "unbind": {
+   "alt-enter": "editor::OpenSelectionsInMultibuffer"
+  }
+ },
+ {
+  "bindings": {
+   "ctrl-<": "zed::OpenSettingsFile"
+  }
+ },
+ {
+  "unbind": {
+   "ctrl-alt-,": "zed::OpenSettingsFile"
+  }
+ },
+ {
+  "context": "Workspace",
+  "unbind": {
+   "ctrl-shift-m": "diagnostics::Deploy"
+  }
+ },
+ {
+  "context": "Workspace",
+  "bindings": {
+   "ctrl-shift-m": "editor::ToggleMinimap"
+  }
+ }
+]

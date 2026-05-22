@@ -31,6 +31,11 @@
     ".config/hypr/hyprsunset.conf" = {
       source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hyprsunset/configuration.conf";
     };
+
+    ".config/zed" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/zed";
+      recursive = true;
+    };
   };
 
   systemd.user = {

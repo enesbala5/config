@@ -444,14 +444,11 @@ in
   # ------------------------------------------------------------------------------------------
 
   security = {
-    pam.services.login.enableGnomeKeyring = true;
-
     # pki = {
     #   certificateFiles = [
     #     ./certificates/incus/incus.enesbala.com.crt
     #   ];
     # };
-
   };
 
   # ------------------------------------------------------------------------------------------
@@ -531,7 +528,13 @@ in
     light.configuration = {
       home-manager.users.${data.username} = {
         stylix.polarity = lib.mkForce "light";
-        stylix.base16Scheme = lib.mkForce "${data.configDirectory}/misc/scheme/equilibrium-gray-light.yaml";
+        stylix.base16Scheme = lib.mkForce "${data.configDirectory}/misc/scheme/google-light.yaml";
+      };
+    };
+    dark.configuration = {
+      home-manager.users.${data.username} = {
+        stylix.polarity = lib.mkForce "dark";
+        stylix.base16Scheme = lib.mkForce "${data.configDirectory}/misc/scheme/google-dark.yaml";
       };
     };
   };

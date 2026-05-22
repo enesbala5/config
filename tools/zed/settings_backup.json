@@ -1,0 +1,84 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "agent_servers": {
+    "cursor": {
+      "type": "registry"
+    }
+  },
+  "icon_theme": "Zed (Default)",
+  "format_on_save": "off",
+  "agent": {
+    "always_allow_tool_actions": true,
+    "default_model": {
+      "provider": "zed.dev",
+      "model": "claude-sonnet-4-6"
+    },
+    "model_parameters": []
+  },
+  "preview_tabs": {
+    "enabled": true
+  },
+  "tabs": {
+    "file_icons": true,
+    "git_status": true
+  },
+  "tab_bar": {
+    "show": true
+  },
+  "terminal": {
+    "env": {
+      "EDITOR": "\"code\""
+    },
+    "font_family": "MesloLGS NF"
+  },
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false
+  },
+  "project_panel": {
+    "auto_fold_dirs": false
+  },
+  "base_keymap": "Cursor",
+  "minimap": {
+    "show": "auto"
+  },
+  "cursor_blink": true,
+  "autosave": {
+    "after_delay": {
+      "milliseconds": 500
+    }
+  },
+  "confirm_quit": true,
+  "buffer_font_fallbacks": [
+    "Fira Code"
+  ],
+  "buffer_font_family": "Fira Code Retina",
+  "file_types": {
+    "tailwindcss": [
+      "*.css"
+    ],
+    "typescriptreact": [
+      "*.tsx"
+    ]
+  },
+  "linked_edits": true,
+  "show_edit_predictions": true,
+  "preferred_line_length": 144,
+  "soft_wrap": "editor_width",
+  "hard_tabs": true,
+  "tab_size": 2,
+  "ui_font_size": 16,
+  "buffer_font_size": 13.0,
+  "theme": {
+    "mode": "dark",
+    "light": "macOS Classic Light",
+    "dark": "VSCode Dark Modern"
+  }
+}

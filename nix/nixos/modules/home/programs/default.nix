@@ -144,7 +144,9 @@
     # gtk.iconTheme.package = pkgs.papirus-icon-theme;
     # gtk.iconTheme.name = "Papirus";
 
-    base16Scheme = "${data.configDirectory}/misc/scheme/equilibrium-gray-dark.yaml";
+    # base16Scheme = "${pkgs.base16-schemes}/share/themes/onedark.yaml";
+
+    base16Scheme = "${data.configDirectory}/misc/scheme/google-dark.yaml";
 
     fonts = {
       serif = {
@@ -183,6 +185,7 @@
       waybar.enable = true;
       rofi.enable = false;
       dunst.enable = false;
+      zed.enable = true;
       vicinae.enable = true;
     };
   };

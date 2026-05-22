@@ -7,6 +7,7 @@ set -o pipefail
 # Parse command line arguments
 SKIP_CHECK=false
 SHOW_TRACE=false
+NO_COMMIT=true
 HOSTNAME=""
 
 show_help() {
@@ -23,12 +24,14 @@ show_help() {
     echo "  -f, --force       Skip checking for changes before rebuilding"
     echo "                    Also required when git or nixfmt are not installed"
     echo "  --show-trace      Show detailed error traces during rebuild"
+    echo "  --commit          Commit changes after a successful rebuild"
     echo ""
     echo "Examples:"
     echo "  $0 framework-13"
     echo "  $0 --force framework-13"
     echo "  $0 -f home-server"
     echo "  $0 --show-trace framework-13"
+    echo "  $0--commit framework-13"
 }
 
 # Parse arguments
@@ -44,6 +47,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --show-trace)
             SHOW_TRACE=true
+            shift
+            ;;
+       --commit)
+            NO_COMMIT=false
             shift
             ;;
         -*)
@@ -155,7 +162,7 @@ fi
 }
 
 # Get current generation metadata and commit changes (only if both git and nixfmt are available)
-if [ "$HAS_GIT" = true ] && [ "$HAS_NIXFMT" = true ]; then
+if [ "$HAS_GIT" = true ] && [ "$HAS_NIXFMT" = true ] && [ "$NO_COMMIT" = false ]; then
     current=$(nixos-rebuild list-generations | grep -i current)
     echo "--------------------------------------"
     echo "Commiting Changes..."

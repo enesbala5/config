@@ -150,6 +150,8 @@ in
         PasswordAuthentication = false;
       };
     };
+
+    fail2ban.enable = true;
   };
 
   systemd = {

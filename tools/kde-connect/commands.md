@@ -43,3 +43,15 @@ loginctl lock-session
 ```bash
 ~/config/scripts/utilities/reload-hyprlock.sh
 ```
+
+- Clear Monitor Config
+
+```bash
+sh -c '> ~/.config/hypr/monitors.conf' && pkill -9 -f hyprdynamicmonitors
+```
+
+- Run Hyprdynamicmonitors
+
+```bash
+hyprdynamicmonitors run
+```

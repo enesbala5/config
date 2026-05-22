@@ -89,13 +89,21 @@ in
 
     ssh = {
       enable = true;
-      # startAgent = false;
+
+      matchBlocks."*" = {
+        forwardAgent = false;
+        addKeysToAgent = "yes";
+        compression = false;
+        serverAliveInterval = 0;
+        serverAliveCountMax = 3;
+        hashKnownHosts = false;
+        userKnownHostsFile = "~/.ssh/known_hosts";
+        controlMaster = "no";
+        controlPath = "~/.ssh/master-%r@%n:%p";
+        controlPersist = "no";
+      };
 
       includes = [ config.age.secrets.ssh-config.path ];
-
-      extraConfig = ''
-        AddKeysToAgent yes
-      '';
     };
   };
 
@@ -146,7 +154,7 @@ in
             name = "nord-light";
             icon_theme = "Bibata-Modern-Classic";
           };
-          
+
           dark = {
             name = "stylix";
             icon_theme = "Bibata-Modern-Classic";
@@ -202,6 +210,9 @@ in
             entrypoints = {
               google-drive = {
                 alias = "gdrive";
+              };
+              "org.gnome.seahorse.Application" = {
+                alias = "seahorse";
               };
             };
           };

@@ -1,0 +1,183 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+	// "indent_guides": {
+	// 	"background_coloring": "indent_aware",
+	// },
+	"title_bar": {
+		"show_branch_status_icon": false,
+		"show_branch_name": true,
+		"show_project_items": true,
+		"show_sign_in": true,
+		"show_user_menu": true,
+		"show_user_picture": true,
+		"show_menus": false,
+		"button_layout": "platform_default"
+	},
+	// "theme_overrides": {
+	// 	"VSCode Dark Modern": {
+	// 		"background.appearance": "blurred",
+
+	// 		"accents": ["#FFD700", "#DA70D6", "#179FFF", "#FFD700", "#DA70D6", "#179FFF", "#FFD700", "#DA70D6", "#179FFF"],
+	// 		"border.focused": "#0078D4E6",
+	// 		"elevated_surface.background": "#1F1F1FF2",
+	// 		"background": "#1F1F1FE6",
+	// 		"element.background": "#383838FF",
+	// 		"element.hover": "#3B4445FF",
+	// 		"element.active": "#0076C4FF",
+	// 		"element.selected": "#09609FFF",
+	// 		"ghost_element.selected": "#09609FFF",
+	// 		"status_bar.background": "#181818E6",
+	// 		"title_bar.background": "#181818E6",
+	// 		"title_bar.inactive_background": "#1F1F1FE6",
+	// 		"tab_bar.background": "#18181899",
+	// 		"tab.inactive_background": "#18181880",
+	// 		"tab.active_background": "#3030304D",
+	// 		"panel.background": "#1C1C1C00",
+	// 		"panel.focused_border": "#0078D4E6",
+	// 		"pane.focused_border": null,
+	// 		"minimap.thumb.background": "#1A1A1A4D",
+	// 		"minimap.thumb.hover_background": "#1A1A1A26",
+	// 		"minimap.thumb.active_background": "#1A1A1A26",
+	// 		"editor.foreground": "#CCCCCCFF",
+	// 		"editor.background": "#1F1F1F00",
+	// 		"editor.gutter.background": "#1F1F1F1A",
+	// 		"editor.subheader.background": "#1A1A1AFF",
+	// 		"editor.active_line.background": "#17171733",
+	// 		"editor.highlighted_line.background": "#40404059",
+	// 		"terminal.foreground": "#CCCCCCFF",
+	// 		"syntax": {
+	// 			"predictive": {},
+	// 		},
+	// 		"element.selection_background": "#0ED1EB1A",
+	// 	},
+	// },
+	"use_system_prompts": true,
+	"use_system_path_prompts": true,
+	"prettier": {
+		"allowed": true
+	},
+	"outline_panel": {
+		"button": true,
+		"file_icons": true
+	},
+	"edit_predictions": {
+		"allow_data_collection": "no"
+	},
+	"cli_default_open_behavior": "new_window",
+	"git_panel": {
+		"folder_icons": true,
+		"dock": "left"
+	},
+	"agent_servers": {
+		"cursor": {
+			"type": "registry"
+		}
+	},
+	"icon_theme": {
+		"mode": "dark",
+		"light": "Catppuccin Frappé",
+		"dark": "VSCode Icons"
+	},
+	"format_on_save": "off",
+	"agent": {
+		"default_profile": "write",
+		"profiles": {},
+		"dock": "right",
+		"tool_permissions": {
+			"default": "allow"
+		},
+		"default_model": {
+			"effort": "medium",
+			"enable_thinking": true,
+			"provider": "zed.dev",
+			"model": "claude-sonnet-4-6"
+		},
+		"model_parameters": []
+	},
+	"preview_tabs": {
+		"enabled": true
+	},
+	"tabs": {
+		"file_icons": true,
+		"git_status": true
+	},
+	"tab_bar": {
+		"show": true
+	},
+	"terminal": {
+		"env": {
+			"EDITOR": "\"code\""
+		},
+		"font_family": "MesloLGS NF"
+	},
+	"telemetry": {
+		"diagnostics": false,
+		"metrics": false
+	},
+	"project_panel": {
+		"dock": "left",
+		"auto_fold_dirs": false
+	},
+	"base_keymap": "Cursor",
+	"minimap": {
+		"show": "auto"
+	},
+	"cursor_blink": true,
+	"autosave": {
+		"after_delay": {
+			"milliseconds": 500
+		}
+	},
+	"confirm_quit": true,
+	"buffer_font_fallbacks": ["Fira Code"],
+	"buffer_font_family": "Fira Code Retina",
+	"file_types": {
+		"tailwindcss": ["*.css"],
+		"typescriptreact": ["*.tsx"]
+	},
+	"linked_edits": true,
+	"show_edit_predictions": true,
+	"preferred_line_length": 144,
+	"soft_wrap": "editor_width",
+	"hard_tabs": true,
+	"tab_size": 2,
+	"ui_font_size": 16,
+	"buffer_font_size": 13.0,
+	"theme": {
+		"mode": "system",
+		"light": "macOS Classic Light",
+		"dark": "VSCode Dark Modern"
+	},
+	"languages": {
+		"Nix": {
+			"language_servers": ["nixd", "!nil"],
+			"formatter": {
+				"external": {
+					"command": "nixfmt"
+				}
+			}
+		}
+	},
+
+	"lsp": {
+		"nixd": {
+			"initialization_options": {
+				"formatting": {
+					"command": ["nixfmt"]
+				}
+			},
+			"settings": {
+				"diagnostic": {
+					"suppress": ["sema-extra-with"]
+				}
+			}
+		}
+	}
+}

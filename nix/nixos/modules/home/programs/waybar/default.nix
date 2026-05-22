@@ -305,12 +305,11 @@
 
                   #workspaces button {
                   	padding: 0 3px;
-                    /* border-radius: 0; */
                     font-weight: 400;
                   }
 
                   #workspaces button.active {
-                  	/* background: rgba(255, 255, 255, 0.1); */
+                  	background: rgba(255, 255, 255, 0.1);
                   }
 
                   #workspaces button:hover {
