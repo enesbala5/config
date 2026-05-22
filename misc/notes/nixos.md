@@ -20,8 +20,8 @@
 	- [ ] Test PM2 startup (home-server)
 - [x] Add a link for "Google Drive" & "Google Drive Web"
 	- [x] Add vicinae alias "gdrive" to the first link
-- [ ] Fix SSH Agent - solve issue of multiple prompts for the same ssh key
-- [ ] Symlink Zed Editor Settings - Source from config folder
+- [x] Fix SSH Agent - solve issue of multiple prompts for the same ssh key
+- [x] Symlink Zed Editor Settings - Source from config folder
 - [x] Waybar
 	- [x] Update volume widget to have lower opacity / (M) text visible (if active source is muted)
 - [ ] Implement light / dark mode
@@ -38,7 +38,7 @@
 		- [ ] thunar (Hot Reload)
 		- [ ] Chrome / Helium (Hot Reload)
 		
-- [ ] Update base16 themes
+- [x] Update base16 themes
 
 
 

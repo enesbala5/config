@@ -1,4 +1,4 @@
-{ ... }:
+{ lib, ... }:
 {
   programs.kitty = {
     enable = true;
@@ -9,6 +9,8 @@
       # Stylix sets font_family (monospace) and font_size; override italic/bold-italic here.
       italic_font = "Operator Mono Book Italic";
       bold_italic_font = "Operator Mono Medium Italic";
+      bold_font = "Operator Mono Medium";
+      font_size = "13";
 
       # ---
       # Cursor
@@ -43,10 +45,11 @@
 
       # ---
       # Window
-      window_padding_width = 0;
+      window_padding_width = 4;
       confirm_os_window_close = 0;
       hide_window_decorations = "no";
       inactive_text_alpha = "1.0";
+      background_opacity = lib.mkForce "0.85";
 
       # ---
       # Tab bar

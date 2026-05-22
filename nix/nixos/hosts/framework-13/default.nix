@@ -528,13 +528,13 @@ in
     light.configuration = {
       home-manager.users.${data.username} = {
         stylix.polarity = lib.mkForce "light";
-        stylix.base16Scheme = lib.mkForce "${data.configDirectory}/misc/scheme/google-light.yaml";
+        stylix.base16Scheme = lib.mkForce data.schemes.light;
       };
     };
     dark.configuration = {
       home-manager.users.${data.username} = {
         stylix.polarity = lib.mkForce "dark";
-        stylix.base16Scheme = lib.mkForce "${data.configDirectory}/misc/scheme/google-dark.yaml";
+        stylix.base16Scheme = lib.mkForce data.schemes.dark;
       };
     };
   };

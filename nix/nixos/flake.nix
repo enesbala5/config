@@ -114,6 +114,11 @@
         # Google Drive
         googleDriveRemoteName = "gdrive";
         googleDriveLocalDir = "${data.homeDirectory}/gdrive";
+
+        schemes = {
+          light = "${data.configDirectory}/misc/scheme/google-light.yaml";
+          dark = "${data.configDirectory}/misc/scheme/circus.yaml";
+        };
       };
 
       system = "x86_64-linux";
