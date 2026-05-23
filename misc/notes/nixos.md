@@ -17,6 +17,7 @@
 
 - [x] Setup the file manager so that it works well
 - [x] Replace `thunar` with `dolphin` (Reverted)
+- [x] Style Dolphin
 
 - [x] Home Server
 	- [x] Resolve PM2 issue (resurrect all not working properly)
@@ -48,10 +49,8 @@
 - [x] Update base16 themes
 
 
-
 ## Postponed / Rejected
 
-- [ ] Style Dolphin
 - [ ] Tools
 	- [ ] [Hyprswitch](https://github.com/H3rmt/hyprswitch) - Alt + Tab
 	- [ ] [Hyprpanel](https://github.com/Jas-SinghFSU/HyprPanel) - Waybar Panel~~
