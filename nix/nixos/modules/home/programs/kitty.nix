@@ -53,7 +53,7 @@
       confirm_os_window_close = 0;
       hide_window_decorations = "no";
       inactive_text_alpha = "1.0";
-      background_opacity = lib.mkForce "0.85";
+      background_opacity = lib.mkForce "0.9";
 
       # ---
       # Tab bar
