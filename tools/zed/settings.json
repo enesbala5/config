@@ -87,7 +87,12 @@
 	},
 	"format_on_save": "off",
 	"agent": {
-		"default_profile": "write",
+		"inline_assistant_model": {
+   "provider": "zed.dev",
+   "model": "gpt-5-nano",
+   "enable_thinking": false
+  },
+  "default_profile": "write",
 		"profiles": {},
 		"dock": "right",
 		"tool_permissions": {

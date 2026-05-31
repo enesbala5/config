@@ -217,8 +217,8 @@ in
       autoLogin = {
         enable = true;
         user = data.username;
-
       };
+
       gdm = {
         enable = true;
         autoLogin = {

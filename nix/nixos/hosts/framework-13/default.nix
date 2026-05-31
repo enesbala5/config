@@ -111,12 +111,15 @@ in
 
     # Bind domain names to IP addresses.
     extraHosts = ''
-      127.0.0.1 brennero-bim.test
-      192.168.41.4 gitlab.sedetn01.a22
-      127.0.0.1 onlyoffice.test
+        127.0.0.1 brennero-bim.test
+        192.168.41.4 gitlab.sedetn01.a22
+        127.0.0.1 onlyoffice.test
 
-      127.0.0.1 landing.in2me.test
-      127.0.0.1 in2me.test
+      	192.168.10.116 cantieri.autobrennero.it
+        192.168.10.125 cantieridocs.autobrennero.it
+
+        127.0.0.1 landing.in2me.test
+        127.0.0.1 in2me.test
     '';
   };
 

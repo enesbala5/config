@@ -137,7 +137,7 @@
  {
   "context": "Workspace",
   "bindings": {
-   "ctrl-n": "project_panel::NewFile"
+   "ctrl-t": "project_panel::NewFile"
   }
  },
  {
@@ -366,5 +366,38 @@
   "bindings": {
    "ctrl-shift-m": "editor::ToggleMinimap"
   }
- }
+ },
+ {
+  "context": "Editor",
+  "unbind": {
+   "ctrl-shift-up": [
+    "editor::SelectPrevious",
+    {
+     "replace_newest": false
+    }
+   ]
+  }
+ },
+ {
+  "context": "Editor",
+  "unbind": {
+   "ctrl-shift-up": [
+    "editor::SelectPrevious",
+    {
+     "replace_newest": false
+    }
+   ]
+  }
+ },
+ {
+  "context": "Editor",
+  "unbind": {
+   "ctrl-shift-up": [
+    "editor::SelectPrevious",
+    {
+     "replace_newest": false
+    }
+   ]
+  }
+ },
 ]
