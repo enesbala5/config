@@ -7,9 +7,12 @@
     syntaxHighlighting.enable = true;
     autosuggestion.enable = true;
     dotDir = "${data.homeDirectory}/.config/zsh";
+    envExtra = ''
+	    DISABLE_MAGIC_FUNCTIONS=true
+    '';
 
     initContent = ''
-      source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
+			source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
       source ${data.configDirectory}/tools/zsh/powerlevel10k/.p10k.zsh
 
       # Source Telegram credentials - Needed for `telegram-notify` script
@@ -29,6 +32,7 @@
 
     oh-my-zsh = {
       enable = true;
+      
       plugins = [
         "git"
         "fzf"
