@@ -113,6 +113,7 @@ in
     # Audio
     easyeffects = {
       enable = true;
+      
       package = pkgs.easyeffects;
       preset = "HifiScan+EEGuide"; # Profile from framework-dsp repository - Installation guide at README
     };

@@ -99,10 +99,9 @@
 			"default": "allow"
 		},
 		"default_model": {
-			"effort": "medium",
 			"enable_thinking": true,
-			"provider": "zed.dev",
-			"model": "claude-sonnet-4-6"
+			"provider": "google",
+			"model": "gemini-2.5-flash-lite"
 		},
 		"model_parameters": []
 	},

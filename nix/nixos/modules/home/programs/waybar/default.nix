@@ -53,8 +53,8 @@
           "custom/separator"
           "clock#time"
           # separator built in to spotify-pause;
-          "custom/spotify-pause"
-          "custom/spotify"
+          # "custom/spotify-pause"
+          # "custom/spotify"
           # "image#spotify-art"
         ];
         modules-right = [
@@ -105,21 +105,16 @@
           tooltip = true;
           tooltip-format = "{:%H:%M:%S}";
         };
-        #"image#spotify-art" = {
-        #	path = "/tmp/album_art.jpeg";
-        #	interval = 5;
-        #	size = 30;
-        #};
-        "custom/spotify-pause" = {
-          exec = "${data.configDirectory}/scripts/music/get_paused.sh";
-          on-click = "playerctl --player=spotify play-pause";
-          tooltip = false;
-        };
-        "custom/spotify" = {
-          exec = "${data.configDirectory}/scripts/music/get_playing.sh";
-          on-click = "playerctl --player=spotify play-pause";
-          tooltip = false;
-        };
+        # "custom/spotify-pause" = {
+        #   exec = "${data.configDirectory}/scripts/music/get_paused.sh";
+        #   on-click = "playerctl --player=spotify play-pause";
+        #   tooltip = false;
+        # };
+        # "custom/spotify" = {
+        #   exec = "${data.configDirectory}/scripts/music/get_playing.sh";
+        #   on-click = "playerctl --player=spotify play-pause";
+        #   tooltip = false;
+        # };
         "group/tray" = {
           orientation = "horizontal";
           modules = [

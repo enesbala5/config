@@ -378,9 +378,9 @@ in
     pam.services = {
       # Fingerprint for sudo — PAM owns this one, so fprintAuth is appropriate.
       # timeout keeps the fallback to password fast if fprintd is slow.
-
       sudo = {
         fprintAuth = true;
+
         rules.auth.fprintd.settings = {
           max_tries = 1;
           timeout = 3;
@@ -394,6 +394,7 @@ in
         enableGnomeKeyring = true;
 
         fprintAuth = true;
+
         rules.auth.fprintd.settings = {
           max_tries = 1;
           timeout = 3;
