@@ -105,11 +105,6 @@ in
 
     # Enable USB redirection
     spiceUSBRedirection.enable = true;
-
-    # qemu = {
-    #   swtpm.enable = true;
-    #   ovmf.packages = [ pkgs.OVMFFull.fd ];
-    # };
   };
 
   # Environment Configuration

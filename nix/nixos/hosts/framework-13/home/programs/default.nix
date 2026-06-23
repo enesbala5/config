@@ -63,7 +63,7 @@ in
       cursor-cli
 
       # TTS
-      # handy # Not available in this version of nixpkgs-unstable (using flake instead)
+      handy
     ])
     # Flakes
     # ---
