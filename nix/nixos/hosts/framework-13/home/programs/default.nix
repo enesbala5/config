@@ -51,7 +51,6 @@ in
 
       # Functionality
       # ------------------------------------------------------------------------------------------
-
     ])
     # Unstable packages
     # ---
@@ -62,6 +61,9 @@ in
       # IDE
       vscode
       cursor-cli
+
+      # TTS
+      # handy # Not available in this version of nixpkgs-unstable (using flake instead)
     ])
     # Flakes
     # ---
@@ -113,7 +115,7 @@ in
     # Audio
     easyeffects = {
       enable = true;
-      
+
       package = pkgs.easyeffects;
       preset = "HifiScan+EEGuide"; # Profile from framework-dsp repository - Installation guide at README
     };

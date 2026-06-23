@@ -160,7 +160,10 @@
 		"dark": "VSCode Dark Modern"
 	},
 	"languages": {
-		"Nix": {
+		"Markdown": {
+   "show_edit_predictions": false
+  },
+  "Nix": {
 			"language_servers": ["nixd", "!nil"],
 			"formatter": {
 				"external": {
