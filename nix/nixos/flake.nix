@@ -57,7 +57,7 @@
     };
 
     zen-browser = {
-      url = "github:0xc000022070/zen-browser-flake?rev=45bc54456044b96492923739bfae633e1a4352e1";
+      url = "github:0xc000022070/zen-browser-flake/beta";
 
       inputs = {
         # IMPORTANT: To ensure compatibility with the latest Firefox version, use nixpkgs-unstable.

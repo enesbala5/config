@@ -51,6 +51,7 @@ in
 
       # Functionality
       # ------------------------------------------------------------------------------------------
+      wtype # Needed for Text Insertion in Waybar (for Handy TTS)
     ])
     # Unstable packages
     # ---
