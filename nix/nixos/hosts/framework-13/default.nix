@@ -142,6 +142,18 @@ in
           }
         ];
       };
+      "52-disable-ryzen-mic" = {
+        "monitor.alsa.rules" = [
+          {
+            matches = [ { "node.name" = "alsa_input.pci-0000_c1_00.6.pro-input-0"; } ];
+            actions = {
+              update-props = {
+                "node.disabled" = true;
+              };
+            };
+          }
+        ];
+      };
     };
 
     teamviewer.enable = true;
