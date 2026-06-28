@@ -92,7 +92,7 @@
    "model": "gpt-5-nano",
    "enable_thinking": false
   },
-  "default_profile": "write",
+  "default_profile": "ask",
 		"profiles": {},
 		"dock": "right",
 		"tool_permissions": {
