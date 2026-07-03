@@ -20,7 +20,7 @@ workspace = 8,monitor:{{$xiaomi.Name}}
 {{- $laptop := index .MonitorsByTag "laptop" -}}
 {{- if $laptop }}
 
-monitor={{$laptop.Name}},2256x1504@60.00000,0x0,1.56666667,transform,0,vrr,0
+monitor={{$laptop.Name}},disable
 
 {{ end }}
 

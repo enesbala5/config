@@ -75,6 +75,10 @@
       url = "github:hyprwm/hyprshutdown?rev=f70097e670adddb5a02fb0994804532d6b483b72";
     };
 
+    aw-watcher-window-hyprland = {
+      url = "github:bobvanderlinden/aw-watcher-window-hyprland";
+    };
+
     zed-editor = {
       url = "github:zed-industries/zed/nightly";
     };
@@ -86,8 +90,6 @@
         nixpkgs.follows = "nixpkgs-unstable";
       };
     };
-
-    # handy
   };
 
   outputs =

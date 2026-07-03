@@ -43,15 +43,23 @@ in
       # ------------------------------------------------------------------------------------------
       obsidian # Note Taking App
       typora # Markdown Note Taking & PDF Exporting
+
+      # activitywatch # Time Tracker / Activity Monitoring
+
       nomacs # Image Viewer
-      remmina
+      remmina # Remote Desktop
       firefox
 
-      markdown-oxide
+      markdown-oxide # Markdown LSP
+
+      # Calculators
+      gnome-calculator
 
       # Functionality
       # ------------------------------------------------------------------------------------------
       wtype # Needed for Text Insertion in Waybar (for Handy TTS)
+
+
     ])
     # Unstable packages
     # ---

@@ -9,6 +9,10 @@ path = "/org/freedesktop/UPower/devices/line_power_ACAD"
 [[power_events.dbus_signal_match_rules]]
 object_path = "/org/freedesktop/UPower/devices/line_power_ACAD"
 
+
+# Home Office
+# -> Dell 24" + Xiaomi 34"
+
 [profiles.home_office]
 config_file = "/home/e/.config/hyprdynamicmonitors/hyprconfigs/home_office.go.tmpl"
 config_file_type = "template"
@@ -27,6 +31,9 @@ monitor_tag = "xiaomi-34"
 description = "Dell Inc. DELL U2415 7MT017CK0JAU"
 monitor_tag = "dell-24"
 
+
+# Undocked
+
 [profiles.undocked]
 config_file = "/home/e/.config/hyprdynamicmonitors/hyprconfigs/undocked.go.tmpl"
 config_file_type = "template"
@@ -37,19 +44,45 @@ config_file_type = "template"
 description = "BOE 0x0BCA"
 monitor_tag = "laptop"
 
-[profiles.home-ultrawide-vertical-stack]
-config_file = "/home/e/.config/hyprdynamicmonitors/hyprconfigs/home-ultrawide-vertical-stack.go.tmpl"
+[profiles.home-ultrawide]
+config_file = "/home/e/.config/hyprdynamicmonitors/hyprconfigs/home-ultrawide.go.tmpl"
 config_file_type = "template"
 
-[profiles.home-ultrawide-vertical-stack.conditions]
 
-[[profiles.home-ultrawide-vertical-stack.conditions.required_monitors]]
+# Home Ultrawide (Single Monitor)
+# -> Xiaomi 34"
+
+[profiles.home-ultrawide.conditions]
+
+[[profiles.home-ultrawide.conditions.required_monitors]]
 description = "BOE 0x0BCA"
 monitor_tag = "laptop"
 
-[[profiles.home-ultrawide-vertical-stack.conditions.required_monitors]]
+[[profiles.home-ultrawide.conditions.required_monitors]]
 description = "Xiaomi Corporation Mi Monitor"
 monitor_tag = "xiaomi-34"
+
+
+# Home Ultrawide (Dual Monitor)
+# -> Xiaomi 34" + Laptop
+
+# [profiles.home-ultrawide-vertical-stack]
+# config_file = "/home/e/.config/hyprdynamicmonitors/hyprconfigs/home-ultrawide-vertical-stack.go.tmpl"
+# config_file_type = "template"
+
+# [profiles.home-ultrawide-vertical-stack.conditions]
+
+# [[profiles.home-ultrawide-vertical-stack.conditions.required_monitors]]
+# description = "BOE 0x0BCA"
+# monitor_tag = "laptop"
+
+# [[profiles.home-ultrawide-vertical-stack.conditions.required_monitors]]
+# description = "Xiaomi Corporation Mi Monitor"
+# monitor_tag = "xiaomi-34"
+
+
+# Home TV
+# -> Philips Home TV
 
 [profiles.TV]
 config_file = "/home/e/.config/hyprdynamicmonitors/hyprconfigs/TV.go.tmpl"
