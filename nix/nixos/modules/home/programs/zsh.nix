@@ -32,7 +32,7 @@
 
     oh-my-zsh = {
       enable = true;
-      
+
       plugins = [
         "git"
         "fzf"
@@ -102,7 +102,7 @@
       zed = "zeditor";
       cursor = "appimage-run ${data.homeDirectory}/programs/cursor/cursor.AppImage";
 
-      manage-secret = "cd ${data.configDirectory}/nix/secrets && EDITOR='zeditor --wait' agenix -e";
+      manage-secret = "cd ${data.configDirectory}/nix/secrets && EDITOR='zeditor --new --wait' agenix -e";
 
       decrypt-rclone-conf = "cd ${data.configDirectory}/nix/secrets && agenix --decrypt rclone-conf.age > ${data.configDirectory}/tools/rclone/rclone.conf";
     };

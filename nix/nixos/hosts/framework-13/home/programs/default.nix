@@ -44,7 +44,7 @@ in
       obsidian # Note Taking App
       typora # Markdown Note Taking & PDF Exporting
 
-      # activitywatch # Time Tracker / Activity Monitoring
+      blender # 3D Modeling
 
       nomacs # Image Viewer
       remmina # Remote Desktop
@@ -59,6 +59,7 @@ in
       # ------------------------------------------------------------------------------------------
       wtype # Needed for Text Insertion in Waybar (for Handy TTS)
 
+			proton-pass
 
     ])
     # Unstable packages
@@ -66,7 +67,10 @@ in
     ++ (with unstable; [
       spotify
       telegram-desktop
+      discord
 
+			proton-vpn
+			
       # IDE
       vscode
       cursor-cli
