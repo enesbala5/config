@@ -153,32 +153,34 @@ if [ "$SHOW_TRACE" = true ]; then
     REBUILD_ARGS+=("--show-trace")
 fi
 
-# When running over SSH, wrap in systemd-run so the rebuild survives sshd
-# restarting mid-activation (which would otherwise kill this SSH session and
-# leave docker.socket / other units never started).
-#
-# systemd-run starts a clean root env (HOME=/root). Nix then fetches the flake
-# via git+file:// and refuses /home/e/config because it is owned by us, not
-# root. Normal `sudo` keeps HOME=/home/e so this never shows up. Write
-# safe.directory into /root/.gitconfig explicitly (not via --global — NixOS
-# sudo preserves HOME and would write to the wrong file).
-#
-# Do not use --pty/--pipe: a dropped SSH session (common via Cloudflare tunnel)
-# closes the PTY/pipe and can SIGHUP/SIGPIPE the rebuild. Stream via journal
-# instead. Also set PATH — manager env is only systemd's bin, but
-# nixos-rebuild-ng shells out to coreutils `test`.
-#
-# Prepend a systemd-run wrapper so nixos-rebuild-ng does not nest another
-# --pipe unit for switch-to-configuration (already covered by this unit).
-if [ -n "${SSH_CONNECTION:-}" ]; then
-    echo "SSH session detected — running via systemd-run to survive sshd restart"
-    echo "(if connection drops, reconnect and run: journalctl -fu nixos-rebuild-switch)"
-    echo "--------------------------------------"
-    sudo git config --file /root/.gitconfig --add safe.directory "${HOME}/config"
+export NIXPKGS_ALLOW_INSECURE=1
 
-    wrapper_dir=$(mktemp -d)
-    ln -s "${HOME}/config/scripts/nixos-rebuild-systemd-run-wrapper.sh" "${wrapper_dir}/systemd-run"
-    chmod +x "${HOME}/config/scripts/nixos-rebuild-systemd-run-wrapper.sh"
+show_rebuild_errors() {
+    echo ""
+    echo "--------------------------------------"
+    echo "Build failed! Errors:"
+    echo "--------------------------------------"
+    grep -iE '(^|\s)(error:|failed|NOPERMISSION|Errno|traceback|returned non-zero|units failed)' nixos-switch.log |
+        grep -viE 'evaluation warning|xcbutilerrors' |
+        grep --color=always -iE '(error:|failed|NOPERMISSION|Errno|traceback|returned non-zero|units failed)' ||
+        tail -n 40 nixos-switch.log || true
+}
+
+# Over SSH (esp. Cloudflare tunnel): activation restarts sshd / may bounce docker
+# (cloudflared). That kills this SSH session. If nixos-rebuild dies with it,
+# switch-to-configuration aborts before docker.socket is started — leaving
+# Docker dead until a manual fix.
+#
+# Run the rebuild as a systemd transient unit with journal stdio (no --pty/--pipe)
+# so the unit keeps going after the SSH client dies. Follow logs while connected;
+# if you get dropped: journalctl -fu nixos-rebuild-switch
+if [ -n "${SSH_CONNECTION:-}" ]; then
+    echo "SSH session detected — detaching rebuild so sshd/tunnel drop cannot abort activation"
+    echo "(if connection drops: journalctl -fu nixos-rebuild-switch)"
+    echo "--------------------------------------"
+
+    # flake git+file:// as root needs this (sudo normally keeps HOME=/home/e)
+    sudo git config --file /root/.gitconfig --add safe.directory "${HOME}/config"
 
     journalctl -u nixos-rebuild-switch -f -n 0 --no-pager -o cat |
         tee nixos-switch.log &
@@ -191,7 +193,7 @@ if [ -n "${SSH_CONNECTION:-}" ]; then
         --wait \
         --setenv=HOME=/root \
         --setenv=NIXPKGS_ALLOW_INSECURE=1 \
-        --setenv=PATH="${wrapper_dir}:/run/current-system/sw/bin:/run/wrappers/bin" \
+        --setenv=PATH="/run/current-system/sw/bin:/run/wrappers/bin" \
         --property=StandardOutput=journal \
         --property=StandardError=journal \
         "${REBUILD_ARGS[@]}" || rebuild_status=$?
@@ -199,29 +201,14 @@ if [ -n "${SSH_CONNECTION:-}" ]; then
     sleep 0.5
     kill "$log_pid" 2>/dev/null || true
     wait "$log_pid" 2>/dev/null || true
-    rm -rf "${wrapper_dir}"
 
     if [ "$rebuild_status" -ne 0 ]; then
-        echo ""
-        echo "--------------------------------------"
-        echo "Build failed! Errors:"
-        echo "--------------------------------------"
-        grep -iE '(^|\s)(error:|failed|NOPERMISSION|Errno|traceback|returned non-zero)' nixos-switch.log |
-            grep -viE 'evaluation warning|xcbutilerrors' |
-            grep --color=always -iE '(error:|failed|NOPERMISSION|Errno|traceback|returned non-zero)' ||
-            tail -n 40 nixos-switch.log || true
+        show_rebuild_errors
         exit 1
     fi
 else
-    sudo "${REBUILD_ARGS[@]}" 2>&1 | tee nixos-switch.log || {
-        echo ""
-        echo "--------------------------------------"
-        echo "Build failed! Errors:"
-        echo "--------------------------------------"
-        grep -iE '(^|\s)(error:|failed|NOPERMISSION|Errno|traceback|returned non-zero)' nixos-switch.log |
-            grep -viE 'evaluation warning|xcbutilerrors' |
-            grep --color=always -iE '(error:|failed|NOPERMISSION|Errno|traceback|returned non-zero)' ||
-            tail -n 40 nixos-switch.log || true
+    sudo --preserve-env=NIXPKGS_ALLOW_INSECURE "${REBUILD_ARGS[@]}" 2>&1 | tee nixos-switch.log || {
+        show_rebuild_errors
         exit 1
     }
 fi

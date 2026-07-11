@@ -156,6 +156,14 @@ in
 
   systemd = {
     services = {
+      # Remote/Cloudflare SSH: do not kill sshd mid-switch. Activation restarts
+      # sshd by default, which drops the tunnel and can abort switch before
+      # docker.socket starts. Apply sshd changes on reboot or: systemctl restart sshd
+      sshd = {
+        restartIfChanged = false;
+        stopIfChanged = false;
+      };
+
       deploy-merre = {
         enable = true;
         description = "Deploy Merre";
@@ -543,9 +551,13 @@ in
         description = "Send Telegram notification when server boots";
         wantedBy = [ "multi-user.target" ];
         after = [ "network-online.target" ];
-        requires = [ "network-online.target" ];
+        wants = [ "network-online.target" ];
+        # Don't re-run on every nixos-rebuild switch — only on boot / first start.
+        restartIfChanged = false;
+        stopIfChanged = false;
         serviceConfig = {
           Type = "oneshot";
+          RemainAfterExit = true;
           User = "root";
           Group = "root";
           EnvironmentFile = config.age.secrets.notify-server-boot-service-env.path;
@@ -556,11 +568,13 @@ in
 
           BOOT_TIME=$(${pkgs.coreutils}/bin/date '+%Y-%m-%d %H:%M:%S %Z')
 
+          # Telegram outages must not fail nixos-rebuild switch / boot activation.
           ${data.configDirectory}/tools/telegram/notify.sh \
             "🚀 *Home Server is online!*
           🖥️ Host: ${hostname}
           🕒 Boot time: $BOOT_TIME
-          ✅ System reached multi-user target."
+          ✅ System reached multi-user target." \
+            || echo "Telegram boot notification failed (non-fatal)" >&2
         '';
       };
 
