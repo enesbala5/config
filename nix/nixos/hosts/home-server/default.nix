@@ -428,8 +428,9 @@ in
           }
 
           SSH_CFG="${config.age.secrets.home-server-ssh-config.path}"
-          SSH="${pkgs.openssh}/bin/ssh -F $SSH_CFG -o StrictHostKeyChecking=accept-new -o BatchMode=yes"
-          SCP="${pkgs.openssh}/bin/scp -F $SSH_CFG -o StrictHostKeyChecking=accept-new"
+          export SSHPASS="$SSH_PASSPHRASE"
+          SSH="${pkgs.sshpass}/bin/sshpass -e ${pkgs.openssh}/bin/ssh -F $SSH_CFG -o StrictHostKeyChecking=accept-new"
+          SCP="${pkgs.sshpass}/bin/sshpass -e ${pkgs.openssh}/bin/scp -F $SSH_CFG -o StrictHostKeyChecking=accept-new"
           REMOTE_TMP="/tmp/kuma.db"
           LOCAL_TMP="/tmp/kuma-backup.db"
 
