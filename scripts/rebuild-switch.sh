@@ -148,18 +148,41 @@ sudo echo "--------------------------------------" && echo "Starting rebuild..."
 
 # Rebuild NixOS, stream output in real-time while also saving to log file
 # On error, show highlighted errors from the log
-REBUILD_ARGS=("sudo" "nixos-rebuild" "switch" "--impure" "--flake" "${HOME}/config/nix/nixos/#${HOSTNAME}")
+REBUILD_ARGS=("nixos-rebuild" "switch" "--impure" "--flake" "${HOME}/config/nix/nixos/#${HOSTNAME}")
 if [ "$SHOW_TRACE" = true ]; then
     REBUILD_ARGS+=("--show-trace")
 fi
-"${REBUILD_ARGS[@]}" 2>&1 | tee nixos-switch.log || {
-    echo ""
+
+# When running over SSH, wrap in systemd-run so the rebuild survives sshd
+# restarting mid-activation (which would otherwise kill this SSH session and
+# leave docker.socket / other units never started).
+if [ -n "${SSH_CONNECTION:-}" ]; then
+    echo "SSH session detected — running via systemd-run to survive sshd restart"
+    echo "(if connection drops, reconnect and run: journalctl -fu nixos-rebuild-switch)"
     echo "--------------------------------------"
-    echo "Build failed! Errors:"
-    echo "--------------------------------------"
-    grep --color error nixos-switch.log || true
-    exit 1
-}
+    sudo systemd-run \
+        --unit=nixos-rebuild-switch \
+        --collect \
+        --wait \
+        --pty \
+        "${REBUILD_ARGS[@]}" 2>&1 | tee nixos-switch.log || {
+        echo ""
+        echo "--------------------------------------"
+        echo "Build failed! Errors:"
+        echo "--------------------------------------"
+        grep --color error nixos-switch.log || true
+        exit 1
+    }
+else
+    sudo "${REBUILD_ARGS[@]}" 2>&1 | tee nixos-switch.log || {
+        echo ""
+        echo "--------------------------------------"
+        echo "Build failed! Errors:"
+        echo "--------------------------------------"
+        grep --color error nixos-switch.log || true
+        exit 1
+    }
+fi
 
 # Get current generation metadata and commit changes (only if both git and nixfmt are available)
 if [ "$HAS_GIT" = true ] && [ "$HAS_NIXFMT" = true ] && [ "$NO_COMMIT" = false ]; then
