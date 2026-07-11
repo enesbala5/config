@@ -452,7 +452,12 @@ in
   };
 
   # Memory Management
-  # Swap is configured in hardware-configuration.nix using the swap partition
+  # Swap partition is configured in hardware-configuration.nix.
+  # zswap acts as a compressed RAM cache in front of the partition.
+
+  # boot.zswap = {
+  #   enable = true;
+  # };
 
   # ------------------------------------------------------------------------------------------
   # Security

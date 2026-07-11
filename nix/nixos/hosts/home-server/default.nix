@@ -349,6 +349,7 @@ in
 
           CONFIG_PATH=$(${pkgs.docker}/bin/docker inspect "$ABS_CONTAINER" \
             --format '{{ range .Mounts }}{{ if eq .Destination "/config" }}{{ .Source }}{{ end }}{{ end }}')
+
           METADATA_PATH=$(${pkgs.docker}/bin/docker inspect "$ABS_CONTAINER" \
             --format '{{ range .Mounts }}{{ if eq .Destination "/metadata" }}{{ .Source }}{{ end }}{{ end }}')
 
@@ -390,6 +391,101 @@ in
 
           SNAPSHOT=$(${pkgs.restic}/bin/restic snapshots --latest 1 --json \
             | ${pkgs.jq}/bin/jq -r '.[0].short_id')
+
+          echo "Done. Snapshot: $SNAPSHOT"
+        '';
+      };
+
+      db-backup-uptime-kuma = {
+        enable = true;
+        description = "Backup Uptime Kuma Database (on Hetzner VPS) to Cloudflare R2";
+        after = [
+          "network-online.target"
+        ];
+        requires = [ "network-online.target" ];
+        serviceConfig = {
+          Type = "oneshot";
+          User = "root";
+          Group = "root";
+          EnvironmentFile = config.age.secrets.uptime-kuma-database-backup-env.path;
+        };
+        script = ''
+          #! ${pkgs.bash}/bin/bash
+          set -euo pipefail
+
+          notify_failure() {
+            ${data.configDirectory}/tools/telegram/notify.sh \
+              "❌ *Uptime Kuma backup failed on ${hostname}*
+          $1" || true
+          }
+
+          SSH="${pkgs.openssh}/bin/ssh -i $SSH_IDENTITY_FILE -o StrictHostKeyChecking=accept-new -o BatchMode=yes"
+          SCP="${pkgs.openssh}/bin/scp -i $SSH_IDENTITY_FILE -o StrictHostKeyChecking=accept-new"
+          REMOTE_TMP="/tmp/kuma.db"
+          LOCAL_TMP="/tmp/kuma-backup.db"
+
+          echo "Starting Uptime Kuma backup from $SSH_HOST..."
+
+          UK_CONTAINER=$($SSH "$SSH_HOST" \
+            "docker ps --format '{{.Names}}' | grep '^uptime-kuma-' | head -n1")
+
+          if [ -z "$UK_CONTAINER" ]; then
+            notify_failure "Uptime Kuma container not found on $SSH_HOST."
+            exit 1
+          fi
+
+          echo "Found container: $UK_CONTAINER"
+
+          echo "Stopping container..."
+          if ! $SSH "$SSH_HOST" "docker stop $UK_CONTAINER"; then
+            notify_failure "Failed to stop container $UK_CONTAINER."
+            exit 1
+          fi
+
+          echo "Copying database to remote temp..."
+          if ! $SSH "$SSH_HOST" "docker cp $UK_CONTAINER:/app/data/kuma.db $REMOTE_TMP"; then
+            $SSH "$SSH_HOST" "docker start $UK_CONTAINER" || true
+            notify_failure "Failed to copy database from container."
+            exit 1
+          fi
+
+          echo "Restarting container..."
+          $SSH "$SSH_HOST" "docker start $UK_CONTAINER" || true
+
+          echo "Downloading database..."
+          if ! $SCP "$SSH_HOST:$REMOTE_TMP" "$LOCAL_TMP"; then
+            notify_failure "Failed to download database from $SSH_HOST."
+            exit 1
+          fi
+
+          $SSH "$SSH_HOST" "rm -f $REMOTE_TMP" || true
+
+          BACKUP_SIZE=$(du -sh "$LOCAL_TMP" | cut -f1)
+          echo "Downloaded ($BACKUP_SIZE), backing up with restic..."
+
+          if ! ${pkgs.restic}/bin/restic backup \
+            --tag uptime-kuma \
+            --tag automated \
+            "$LOCAL_TMP"; then
+            notify_failure "restic backup command returned non-zero."
+            rm -f "$LOCAL_TMP"
+            exit 1
+          fi
+
+          if ! ${pkgs.restic}/bin/restic forget \
+            --prune \
+            --keep-daily 7 \
+            --keep-weekly 4 \
+            --keep-monthly 3; then
+            notify_failure "restic forget --prune command returned non-zero."
+            rm -f "$LOCAL_TMP"
+            exit 1
+          fi
+
+          SNAPSHOT=$(${pkgs.restic}/bin/restic snapshots --latest 1 --json \
+            | ${pkgs.jq}/bin/jq -r '.[0].short_id')
+
+          rm -f "$LOCAL_TMP"
 
           echo "Done. Snapshot: $SNAPSHOT"
         '';
@@ -570,6 +666,15 @@ in
           OnCalendar = "03:00";
           Persistent = true;
           Unit = "db-backup-audiobookshelf.service";
+        };
+      };
+
+      db-backup-uptime-kuma = {
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnCalendar = "03:30";
+          Persistent = true;
+          Unit = "db-backup-uptime-kuma.service";
         };
       };
 

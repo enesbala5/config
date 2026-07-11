@@ -45,6 +45,7 @@ in
       typora # Markdown Note Taking & PDF Exporting
 
       blender # 3D Modeling
+      pdfarranger
 
       nomacs # Image Viewer
       remmina # Remote Desktop
@@ -70,7 +71,7 @@ in
       discord
 
 			proton-vpn
-			
+
       # IDE
       vscode
       cursor-cli

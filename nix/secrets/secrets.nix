@@ -51,6 +51,7 @@ in
   "merre-database-backup-env.age" = rootConfig;
   "coverlttr-database-backup-env.age" = rootConfig;
   "audiobookshelf-database-backup-env.age" = rootConfig;
+  "uptime-kuma-database-backup-env.age" = rootConfig;
 
   "restart-cloudflared-service-env.age" = rootConfig;
   "notify-server-boot-service-env.age" = rootConfig;
