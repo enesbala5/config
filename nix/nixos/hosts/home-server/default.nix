@@ -439,11 +439,18 @@ in
 
           echo "Starting ssh-agent and unlocking key..."
           eval "$(${pkgs.openssh}/bin/ssh-agent -s)"
-          trap 'kill "$SSH_AGENT_PID" 2>/dev/null || true' EXIT
+          trap 'kill "$SSH_AGENT_PID" 2>/dev/null || true; rm -f "$ASKPASS"' EXIT
 
-          export SSHPASS="$SSH_PASSPHRASE"
-          if ! ${pkgs.sshpass}/bin/sshpass -e ${pkgs.openssh}/bin/ssh-add "$SSH_KEY" </dev/null; then
-            notify_failure "Failed to unlock SSH key (check SSH_PASSPHRASE)."
+          # sshpass often hangs under systemd; SSH_ASKPASS is the reliable path
+          ASKPASS=$(${pkgs.coreutils}/bin/mktemp)
+          ${pkgs.coreutils}/bin/chmod 700 "$ASKPASS"
+          printf '%s\n' '#!/bin/sh' 'printf "%s\n" "$SSH_PASSPHRASE"' > "$ASKPASS"
+
+          echo "Adding key via SSH_ASKPASS..."
+          if ! DISPLAY= SSH_ASKPASS_REQUIRE=force SSH_ASKPASS="$ASKPASS" \
+            ${pkgs.coreutils}/bin/timeout 15 \
+            ${pkgs.openssh}/bin/ssh-add "$SSH_KEY" </dev/null; then
+            notify_failure "Failed to unlock SSH key within 15s (check SSH_PASSPHRASE)."
             exit 1
           fi
           echo "SSH key unlocked."
