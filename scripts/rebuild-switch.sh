@@ -156,15 +156,23 @@ fi
 # When running over SSH, wrap in systemd-run so the rebuild survives sshd
 # restarting mid-activation (which would otherwise kill this SSH session and
 # leave docker.socket / other units never started).
+#
+# systemd-run starts a clean root env (HOME=/root). Nix then fetches the flake
+# via git+file:// and refuses /home/e/config because it is owned by us, not
+# root. Normal `sudo` keeps HOME=/home/e so this never shows up. Write
+# safe.directory into /root/.gitconfig explicitly (not via --global — NixOS
+# sudo preserves HOME and would write to the wrong file).
 if [ -n "${SSH_CONNECTION:-}" ]; then
     echo "SSH session detected — running via systemd-run to survive sshd restart"
     echo "(if connection drops, reconnect and run: journalctl -fu nixos-rebuild-switch)"
     echo "--------------------------------------"
+    sudo git config --file /root/.gitconfig --add safe.directory "${HOME}/config"
     sudo systemd-run \
         --unit=nixos-rebuild-switch \
         --collect \
         --wait \
         --pty \
+        --setenv=HOME=/root \
         "${REBUILD_ARGS[@]}" 2>&1 | tee nixos-switch.log || {
         echo ""
         echo "--------------------------------------"
