@@ -162,26 +162,45 @@ fi
 # root. Normal `sudo` keeps HOME=/home/e so this never shows up. Write
 # safe.directory into /root/.gitconfig explicitly (not via --global — NixOS
 # sudo preserves HOME and would write to the wrong file).
+#
+# Do not use --pty/--pipe: a dropped SSH session (common via Cloudflare tunnel)
+# closes the PTY/pipe and can SIGHUP/SIGPIPE the rebuild. Stream via journal
+# instead. Also set PATH — manager env is only systemd's bin, but
+# nixos-rebuild-ng shells out to coreutils `test`.
 if [ -n "${SSH_CONNECTION:-}" ]; then
     echo "SSH session detected — running via systemd-run to survive sshd restart"
     echo "(if connection drops, reconnect and run: journalctl -fu nixos-rebuild-switch)"
     echo "--------------------------------------"
     sudo git config --file /root/.gitconfig --add safe.directory "${HOME}/config"
+
+    journalctl -u nixos-rebuild-switch -f -n 0 --no-pager -o cat |
+        tee nixos-switch.log &
+    log_pid=$!
+
+    rebuild_status=0
     sudo systemd-run \
         --unit=nixos-rebuild-switch \
         --collect \
         --wait \
-        --pty \
         --setenv=HOME=/root \
         --setenv=NIXPKGS_ALLOW_INSECURE=1 \
-        "${REBUILD_ARGS[@]}" 2>&1 | tee nixos-switch.log || {
+        --setenv=PATH="/run/current-system/sw/bin:/run/wrappers/bin" \
+        --property=StandardOutput=journal \
+        --property=StandardError=journal \
+        "${REBUILD_ARGS[@]}" || rebuild_status=$?
+
+    sleep 0.5
+    kill "$log_pid" 2>/dev/null || true
+    wait "$log_pid" 2>/dev/null || true
+
+    if [ "$rebuild_status" -ne 0 ]; then
         echo ""
         echo "--------------------------------------"
         echo "Build failed! Errors:"
         echo "--------------------------------------"
         grep --color error nixos-switch.log || true
         exit 1
-    }
+    fi
 else
     sudo "${REBUILD_ARGS[@]}" 2>&1 | tee nixos-switch.log || {
         echo ""
