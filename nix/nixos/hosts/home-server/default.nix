@@ -427,16 +427,15 @@ in
           $1" || true
           }
 
-          HETZNER="root@49.13.0.124"
-          SSH_KEY="${config.age.secrets.amd-server-private-key.path}"
-          SSH="${pkgs.openssh}/bin/ssh -i $SSH_KEY -o StrictHostKeyChecking=accept-new -o BatchMode=yes -o IdentitiesOnly=yes"
-          SCP="${pkgs.openssh}/bin/scp -i $SSH_KEY -o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes"
+          SSH_CFG="${config.age.secrets.home-server-ssh-config.path}"
+          SSH="${pkgs.openssh}/bin/ssh -F $SSH_CFG -o StrictHostKeyChecking=accept-new -o BatchMode=yes"
+          SCP="${pkgs.openssh}/bin/scp -F $SSH_CFG -o StrictHostKeyChecking=accept-new"
           REMOTE_TMP="/tmp/kuma.db"
           LOCAL_TMP="/tmp/kuma-backup.db"
 
-          echo "Starting Uptime Kuma backup from $HETZNER..."
+          echo "Starting Uptime Kuma backup from hetzner-server..."
 
-          UK_CONTAINER=$($SSH "$HETZNER" \
+          UK_CONTAINER=$($SSH hetzner-server \
             "docker ps --format '{{.Names}}' | grep '^uptime-kuma-' | head -n1")
 
           if [ -z "$UK_CONTAINER" ]; then
@@ -447,28 +446,28 @@ in
           echo "Found container: $UK_CONTAINER"
 
           echo "Stopping container..."
-          if ! $SSH "$HETZNER" "docker stop $UK_CONTAINER"; then
+          if ! $SSH hetzner-server "docker stop $UK_CONTAINER"; then
             notify_failure "Failed to stop container $UK_CONTAINER."
             exit 1
           fi
 
           echo "Copying database to remote temp..."
-          if ! $SSH "$HETZNER" "docker cp $UK_CONTAINER:/app/data/kuma.db $REMOTE_TMP"; then
-            $SSH "$HETZNER" "docker start $UK_CONTAINER" || true
+          if ! $SSH hetzner-server "docker cp $UK_CONTAINER:/app/data/kuma.db $REMOTE_TMP"; then
+            $SSH hetzner-server "docker start $UK_CONTAINER" || true
             notify_failure "Failed to copy database from container."
             exit 1
           fi
 
           echo "Restarting container..."
-          $SSH "$HETZNER" "docker start $UK_CONTAINER" || true
+          $SSH hetzner-server "docker start $UK_CONTAINER" || true
 
           echo "Downloading database..."
-          if ! $SCP "$HETZNER:$REMOTE_TMP" "$LOCAL_TMP"; then
+          if ! $SCP "hetzner-server:$REMOTE_TMP" "$LOCAL_TMP"; then
             notify_failure "Failed to download database from hetzner-server."
             exit 1
           fi
 
-          $SSH "$HETZNER" "rm -f $REMOTE_TMP" || true
+          $SSH hetzner-server "rm -f $REMOTE_TMP" || true
 
           BACKUP_SIZE=$(du -sh "$LOCAL_TMP" | cut -f1)
           echo "Downloaded ($BACKUP_SIZE), backing up with restic..."
