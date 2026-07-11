@@ -173,6 +173,7 @@ if [ -n "${SSH_CONNECTION:-}" ]; then
         --wait \
         --pty \
         --setenv=HOME=/root \
+        --setenv=NIXPKGS_ALLOW_INSECURE=1 \
         "${REBUILD_ARGS[@]}" 2>&1 | tee nixos-switch.log || {
         echo ""
         echo "--------------------------------------"
