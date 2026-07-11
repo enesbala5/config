@@ -428,13 +428,32 @@ in
           }
 
           SSH_CFG="${config.age.secrets.home-server-ssh-config.path}"
-          export SSHPASS="$SSH_PASSPHRASE"
-          SSH="${pkgs.sshpass}/bin/sshpass -e ${pkgs.openssh}/bin/ssh -F $SSH_CFG -o StrictHostKeyChecking=accept-new"
-          SCP="${pkgs.sshpass}/bin/sshpass -e ${pkgs.openssh}/bin/scp -F $SSH_CFG -o StrictHostKeyChecking=accept-new"
+          SSH_KEY="${config.age.secrets.amd-server-private-key.path}"
           REMOTE_TMP="/tmp/kuma.db"
           LOCAL_TMP="/tmp/kuma-backup.db"
 
+          if [ -z "''${SSH_PASSPHRASE:-}" ]; then
+            notify_failure "SSH_PASSPHRASE is not set in environment file."
+            exit 1
+          fi
+
+          echo "Starting ssh-agent and unlocking key..."
+          eval "$(${pkgs.openssh}/bin/ssh-agent -s)"
+          trap 'kill "$SSH_AGENT_PID" 2>/dev/null || true' EXIT
+
+          export SSHPASS="$SSH_PASSPHRASE"
+          if ! ${pkgs.sshpass}/bin/sshpass -e ${pkgs.openssh}/bin/ssh-add "$SSH_KEY" </dev/null; then
+            notify_failure "Failed to unlock SSH key (check SSH_PASSPHRASE)."
+            exit 1
+          fi
+          echo "SSH key unlocked."
+
+          # BatchMode fails fast instead of hanging if auth still needs a prompt
+          SSH="${pkgs.openssh}/bin/ssh -F $SSH_CFG -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o BatchMode=yes"
+          SCP="${pkgs.openssh}/bin/scp -F $SSH_CFG -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o BatchMode=yes"
+
           echo "Starting Uptime Kuma backup from hetzner-server..."
+          echo "Resolving container name..."
 
           UK_CONTAINER=$($SSH hetzner-server \
             "docker ps --format '{{.Names}}' | grep '^uptime-kuma-' | head -n1")
