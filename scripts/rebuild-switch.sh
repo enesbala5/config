@@ -167,11 +167,18 @@ fi
 # closes the PTY/pipe and can SIGHUP/SIGPIPE the rebuild. Stream via journal
 # instead. Also set PATH — manager env is only systemd's bin, but
 # nixos-rebuild-ng shells out to coreutils `test`.
+#
+# Prepend a systemd-run wrapper so nixos-rebuild-ng does not nest another
+# --pipe unit for switch-to-configuration (already covered by this unit).
 if [ -n "${SSH_CONNECTION:-}" ]; then
     echo "SSH session detected — running via systemd-run to survive sshd restart"
     echo "(if connection drops, reconnect and run: journalctl -fu nixos-rebuild-switch)"
     echo "--------------------------------------"
     sudo git config --file /root/.gitconfig --add safe.directory "${HOME}/config"
+
+    wrapper_dir=$(mktemp -d)
+    ln -s "${HOME}/config/scripts/nixos-rebuild-systemd-run-wrapper.sh" "${wrapper_dir}/systemd-run"
+    chmod +x "${HOME}/config/scripts/nixos-rebuild-systemd-run-wrapper.sh"
 
     journalctl -u nixos-rebuild-switch -f -n 0 --no-pager -o cat |
         tee nixos-switch.log &
@@ -184,7 +191,7 @@ if [ -n "${SSH_CONNECTION:-}" ]; then
         --wait \
         --setenv=HOME=/root \
         --setenv=NIXPKGS_ALLOW_INSECURE=1 \
-        --setenv=PATH="/run/current-system/sw/bin:/run/wrappers/bin" \
+        --setenv=PATH="${wrapper_dir}:/run/current-system/sw/bin:/run/wrappers/bin" \
         --property=StandardOutput=journal \
         --property=StandardError=journal \
         "${REBUILD_ARGS[@]}" || rebuild_status=$?
@@ -192,13 +199,17 @@ if [ -n "${SSH_CONNECTION:-}" ]; then
     sleep 0.5
     kill "$log_pid" 2>/dev/null || true
     wait "$log_pid" 2>/dev/null || true
+    rm -rf "${wrapper_dir}"
 
     if [ "$rebuild_status" -ne 0 ]; then
         echo ""
         echo "--------------------------------------"
         echo "Build failed! Errors:"
         echo "--------------------------------------"
-        grep --color error nixos-switch.log || true
+        grep -iE '(^|\s)(error:|failed|NOPERMISSION|Errno|traceback|returned non-zero)' nixos-switch.log |
+            grep -viE 'evaluation warning|xcbutilerrors' |
+            grep --color=always -iE '(error:|failed|NOPERMISSION|Errno|traceback|returned non-zero)' ||
+            tail -n 40 nixos-switch.log || true
         exit 1
     fi
 else
@@ -207,7 +218,10 @@ else
         echo "--------------------------------------"
         echo "Build failed! Errors:"
         echo "--------------------------------------"
-        grep --color error nixos-switch.log || true
+        grep -iE '(^|\s)(error:|failed|NOPERMISSION|Errno|traceback|returned non-zero)' nixos-switch.log |
+            grep -viE 'evaluation warning|xcbutilerrors' |
+            grep --color=always -iE '(error:|failed|NOPERMISSION|Errno|traceback|returned non-zero)' ||
+            tail -n 40 nixos-switch.log || true
         exit 1
     }
 fi
