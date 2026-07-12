@@ -14,8 +14,12 @@ let
   ];
 in
 {
-  programs.git.includes = map (id: {
-    condition = "hasconfig:remote.*.url:${id.alias}:**";
-    contents.user = { inherit (id) name email; };
-  }) identities;
+  programs.git = {
+    enable = true;
+
+    includes = map (id: {
+      condition = "hasconfig:remote.*.url:${id.alias}:*/**";
+      contents.user = { inherit (id) name email; };
+    }) identities;
+  };
 }

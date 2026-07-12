@@ -486,7 +486,7 @@ in
   # List packages installed in system profile. To search, run: `nix search wget`
   environment.systemPackages =
     (with pkgs; [
-      fprintd
+    fprintd
       teamviewer
       powertop
       iw
@@ -506,7 +506,10 @@ in
       devcontainer
     ])
     ++ (with unstable; [
-    ]);
+    ])
+    ++ [
+      inputs.aw-watcher-window-hyprland.defaultPackage.${system}
+    ];
 
   programs = {
     virt-manager.enable = true;
