@@ -11,8 +11,10 @@
     # shell
     ./zsh.nix
 
+    ./git.nix
+
     # window manager / desktop stuff
-    ./waybar/default.nix # status bar
+    ./waybar # status bar
     # ./hyprland # window manager
     # ./tofi.nix # app launcher
 
