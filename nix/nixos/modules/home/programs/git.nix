@@ -4,12 +4,12 @@ let
     {
       alias = "github-enesbala5";
       name = "Enes Bala";
-      email = "enes@contact@enesbala.com";
+      email = "contact@enesbala.com";
     } # Not using global constants as the GitHub info will likely not change
     {
-      alias = "github-flamingo-7";
-      name = "Enes Bala";
-      email = "enes@flamingo.com";
+      alias = "github-f";
+      name = "John Doe";
+      email = "email@example.com";
     }
   ];
 in

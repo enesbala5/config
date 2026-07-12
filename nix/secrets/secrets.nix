@@ -67,7 +67,7 @@ in
   "brennero-gitlab-private-key.age" = userConfig;
   "davide-server-private-key.age" = userConfig;
   "github-private-key.age" = userConfig;
-  "github-flamingo-7.age" = userConfig;
+  "github-f.age" = userConfig;
   "gitlab-deploy-private-key.age" = userConfig;
   "home-server-private-key.age" = userConfig;
   "laconics-azure-private-key.age" = userConfig;
