@@ -1,33 +1,33 @@
 { pkgs, data, ... }:
 {
   programs.zsh = {
-	  # Hel
+    # Hel
     enable = true;
     enableCompletion = true;
     syntaxHighlighting.enable = true;
     autosuggestion.enable = true;
     dotDir = "${data.homeDirectory}/.config/zsh";
     envExtra = ''
-	    DISABLE_MAGIC_FUNCTIONS=true
+      	    DISABLE_MAGIC_FUNCTIONS=true
     '';
 
     initContent = ''
-			source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
-      source ${data.configDirectory}/tools/zsh/powerlevel10k/.p10k.zsh
+      			source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
+            source ${data.configDirectory}/tools/zsh/powerlevel10k/.p10k.zsh
 
-      # Source Telegram credentials - Needed for `telegram-notify` script
-	    [ -f /run/agenix/default-telegram ] && set -a && source /run/agenix/default-telegram
+            # Source Telegram credentials - Needed for `telegram-notify` script
+      	    [ -f /run/agenix/default-telegram ] && set -a && source /run/agenix/default-telegram
 
-      PATH=~/.console-ninja/.bin:$PATH
+            PATH=~/.console-ninja/.bin:$PATH
 
-      bindkey -e
+            bindkey -e
 
-      # Control + backspace
-      bindkey '^H' backward-kill-word
+            # Control + backspace
+            bindkey '^H' backward-kill-word
 
-      # Control + arrows
-      bindkey ";5C" forward-word
-      bindkey ";5D" backward-word
+            # Control + arrows
+            bindkey ";5C" forward-word
+            bindkey ";5D" backward-word
     '';
 
     oh-my-zsh = {
@@ -50,7 +50,7 @@
       f = "xdg-open";
 
       reload-hyprlock = "${data.configDirectory}/scripts/utilities/reload-hyprlock.sh";
-      clear-monitor-config = "sh -c '> ~/.config/hypr/monitors.conf' && pkill -9 -f hyprdynamicmonitors";
+      clear-monitor-config = "${data.configDirectory}/scripts/utilities/clear-monitor-config.sh";
       toggle-polarity = "${data.configDirectory}/scripts/utilities/toggle-polarity.sh";
       fix-history = "${data.configDirectory}/tools/zsh/scripts/fix-history.sh";
 
@@ -98,6 +98,7 @@
       telegram-notify = "${data.configDirectory}/tools/telegram/notify.sh";
 
       flush-dns = "sudo systemctl restart nscd";
+      reload-waybar = "pkill -9 waybar && hyprctl --instance 0 'dispatch exec waybar'";
 
       zed = "zeditor";
       cursor = "appimage-run ${data.homeDirectory}/programs/cursor/cursor.AppImage";

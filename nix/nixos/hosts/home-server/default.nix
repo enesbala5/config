@@ -834,9 +834,11 @@ in
       inherit data;
       inherit unstable;
     };
+
     users.${data.username} = {
       imports = [
         ../../modules/home/default.nix
+        ./home/default.nix
       ];
     };
   };

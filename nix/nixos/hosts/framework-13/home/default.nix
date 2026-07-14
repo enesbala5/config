@@ -10,7 +10,6 @@
     inputs.zen-browser.homeModules.beta
     inputs.vicinae.homeManagerModules.default
     ./programs
-    ./programs/activitywatch.nix
   ];
 
   home.sessionVariables = {

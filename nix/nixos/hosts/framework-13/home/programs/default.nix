@@ -10,6 +10,10 @@
 let
 in
 {
+  imports = [
+    ./activitywatch.nix
+  ];
+
   home.packages =
     (with pkgs; [
       # System
@@ -60,7 +64,7 @@ in
       # ------------------------------------------------------------------------------------------
       wtype # Needed for Text Insertion in Waybar (for Handy TTS)
 
-			proton-pass
+      proton-pass
 
     ])
     # Unstable packages
@@ -70,7 +74,7 @@ in
       telegram-desktop
       discord
 
-			proton-vpn
+      proton-vpn
 
       # IDE
       vscode

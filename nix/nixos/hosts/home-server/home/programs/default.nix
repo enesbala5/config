@@ -15,9 +15,6 @@
       dunst # Notification Interface
       networkmanagerapplet # Network Manager Applet
 
-      hypridle # Idle State
-      hyprlock # Lock Screen
-
       # Development
       # ------------------------------------------------------------------------------------------
       neovim # Neovim

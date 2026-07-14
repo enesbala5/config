@@ -6,6 +6,7 @@
 #	  - [x] sachk/aw-watcher-zed // Zed Editor
 #	  - [x] aw-watcher-vscode // VS Code & Cursor
 #	  - [ ] LordGrimmauld/aw-watcher-obsidian // Obsidian
+
 #	- [ ] Optional
 #	  - [ ] Alwinator/aw-watcher-utilization // Monitors CPU, RAM, disk, network, and sensor usage
 #	  - [ ] RTnhN/aw-watcher-toggl // A Watcher to import time entries from Toggl.
