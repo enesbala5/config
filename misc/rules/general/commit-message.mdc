@@ -1,0 +1,34 @@
+---
+description: Commit message format — TITLE plus bullet list
+alwaysApply: true
+---
+
+# Commit Message Format
+
+When drafting or creating a git commit message, always use this structure:
+
+```
+TITLE
+
+- bullet item summarizing a change
+- another bullet item
+```
+
+## Rules
+
+- **TITLE**: Short imperative summary of the overall change (no trailing period). Focus on why/what landed, not a file laundry list.
+- **Blank line** between TITLE and bullets.
+- **Bullets**: One concrete change per line. Start with a verb when useful (Add, Fix, Update, Remove).
+- Prefer 2–6 bullets; skip trivial or purely mechanical noise.
+- Do not wrap the title in quotes or prefix with `feat:` / `fix:` unless the repo already uses that convention in recent commits.
+- Pass the full message via a HEREDOC when running `git commit`.
+
+## Example
+
+```
+Add cover letter credit cost estimate API
+
+- Add POST /api/coverLetter/cost that returns cost and discounts without charging
+- Expose get_cover_letter_cost MCP tool and document public /api/coverLetter routes
+- Add discount labels to creditDiscounts SSOT and use them in RegenerateAction
+```

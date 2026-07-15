@@ -388,6 +388,11 @@ in
     consoleLogLevel = 0;
     plymouth.enable = true;
     initrd.verbose = false;
+    # zswap compressor/zpool must be available before swap is activated
+    initrd.kernelModules = [
+      "zstd"
+      "zsmalloc"
+    ];
 
     kernelParams = [
       "quiet"
@@ -410,6 +415,15 @@ in
       "amd_pstate=active"
       "amdgpu.dpm=1"
       "amdgpu.ppfeaturemask=0xffffffff"
+
+      # zswap: compressed RAM cache in front of the swap partition
+      # (boot.zswap.* lands in nixpkgs after 25.11; these are the module defaults)
+      "zswap.enabled=1"
+      "zswap.compressor=zstd"
+      "zswap.zpool=zsmalloc"
+      "zswap.max_pool_percent=25"
+      "zswap.accept_threshold_percent=90"
+      "zswap.shrinker_enabled=1"
     ];
 
     loader = {
@@ -452,12 +466,8 @@ in
   };
 
   # Memory Management
-  # Swap partition is configured in hardware-configuration.nix.
-  # zswap acts as a compressed RAM cache in front of the partition.
-
-  # boot.zswap = {
-  #   enable = true;
-  # };
+  # Swap partition: hardware-configuration.nix (by-uuid).
+  # zswap (boot.kernelParams above) compresses pages in RAM, then writebacks to that partition.
 
   # ------------------------------------------------------------------------------------------
   # Security
