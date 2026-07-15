@@ -16,15 +16,74 @@
 # Tune SWITCH_DELAY if the first syllable of a recording is clipped (increase it),
 # or if there's a noticeable lag before recording starts (decrease it).
 
-BT_CARD="bluez_card.00_A4_1C_0C_C8_53"
-HSP_PROFILE="headset-head-unit"    # mSBC codec — best available HFP quality
-A2DP_PROFILE="a2dp-sink-sbc_xq"
+# Supported Bluetooth cards — add/remove entries as needed.
+# Names are PipeWire/Pulse card names (MAC with colons → underscores).
+BT_CARDS=(
+  "bluez_card.00_A4_1C_0C_C8_53"  # WH-CH720N
+  "bluez_card.80_9F_F5_71_73_8D"  # Galaxy Buds Live
+  "bluez_card.2C_BE_EE_2E_61_E8"  # CMF Buds 2 Plus
+)
+
+# Tried in order; first success wins. mSBC is preferred over CVSD.
+HSP_PROFILES=(
+  "headset-head-unit"       # HSP/HFP mSBC
+  "headset-head-unit-cvsd"  # HSP/HFP CVSD fallback
+)
+A2DP_PROFILES=(
+  "a2dp-sink-sbc_xq"
+  "a2dp-sink"               # often AAC
+  "a2dp-sink-sbc"
+)
+
 STATE_FILE="/tmp/handy-bt-recording"
 SWITCH_DELAY=0.05                  # seconds to wait for HSP profile to activate
 A2DP_RESTORE_DELAY=0.3             # seconds to wait for A2DP sink to reappear
 
+connected_bt_cards() {
+  local card available
+  available=$(pactl list cards short | awk '{print $2}')
+  for card in "${BT_CARDS[@]}"; do
+    printf '%s\n' "$available" | grep -qxF "$card" && printf '%s\n' "$card"
+  done
+}
+
+set_first_working_profile() {
+  local card=$1
+  shift
+  local profile
+  for profile in "$@"; do
+    if pactl set-card-profile "$card" "$profile" 2>/dev/null; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+switch_to_hsp() {
+  local card cards=()
+  mapfile -t cards < <(connected_bt_cards)
+  ((${#cards[@]})) || return 1
+  printf '%s\n' "${cards[@]}" >"${STATE_FILE}.cards"
+  for card in "${cards[@]}"; do
+    set_first_working_profile "$card" "${HSP_PROFILES[@]}" || return 1
+  done
+}
+
+switch_to_a2dp() {
+  local card cards=()
+  if [ -f "${STATE_FILE}.cards" ]; then
+    mapfile -t cards <"${STATE_FILE}.cards"
+    rm -f "${STATE_FILE}.cards"
+  else
+    mapfile -t cards < <(connected_bt_cards)
+  fi
+  for card in "${cards[@]}"; do
+    set_first_working_profile "$card" "${A2DP_PROFILES[@]}"
+  done
+}
+
 restore_audio() {
-    pactl set-card-profile "$BT_CARD" "$A2DP_PROFILE"
+    switch_to_a2dp
     if [ -f "${STATE_FILE}.playing" ]; then
         rm -f "${STATE_FILE}.playing"
         sleep "$A2DP_RESTORE_DELAY"
@@ -53,7 +112,10 @@ else
     fi
 
     touch "$STATE_FILE"
-    pactl set-card-profile "$BT_CARD" "$HSP_PROFILE"
+    if ! switch_to_hsp; then
+        rm -f "$STATE_FILE" "${STATE_FILE}.playing" "${STATE_FILE}.cards"
+        exit 1
+    fi
     sleep "$SWITCH_DELAY"
     handy --toggle-transcription
 fi
