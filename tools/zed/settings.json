@@ -10,7 +10,8 @@
 	// "indent_guides": {
 	// 	"background_coloring": "indent_aware",
 	// },
-	"title_bar": {
+	"diff_view_style": "split",
+ "title_bar": {
 		"show_branch_status_icon": false,
 		"show_branch_name": true,
 		"show_project_items": true,

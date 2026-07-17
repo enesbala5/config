@@ -6,7 +6,11 @@ alwaysApply: false
 
 # Component Folder Structure
 
-Colocate child components under a `components/` directory. Each component lives in its own folder named after the component, with a matching `.svelte` file.
+Every component is a **wrapper directory**.
+
+A component is **never** represented by a standalone `.svelte` file. Instead, every component lives inside a folder with the same name, and the component file inside that folder has the same name.
+
+If a component has child components, they are placed inside that component's `components/` directory. If it has no children, the wrapper folder still exists.
 
 ## Pattern
 
@@ -16,38 +20,62 @@ Parent/
 └── components/
     └── Child/
         ├── Child.svelte
-        └── components/          # only if Child has its own children
+        └── components/          # only if Child has children
             └── Grandchild/
-                └── Grandchild.svelte
+                └── Grandchild/
+                    └── Grandchild.svelte
 ```
 
 ## Rules
 
-1. **Own folder + matching filename**: Component `X` → `X/X.svelte` (not a loose `X.svelte` beside siblings).
-2. **Nest under `components/`**: Children of a parent go in that parent's `components/` folder — never flatten children next to the parent file.
-3. **Repeat at every level**: A child that needs its own subcomponents gets its own `components/` folder. Depth is unlimited; the pattern does not change.
-4. **Scope**: Use this for page-local and component-local UI. Shared/reusable UI still belongs under `lib/components/` (follow existing shared conventions there).
+1. **Every component has its own wrapper folder**: Component `X` is always stored as `X/X.svelte`. Never create standalone component files such as `X.svelte`.
+2. **Folder and component names must match**: The wrapper folder and `.svelte` file always share the same name (`Button/Button.svelte`).
+3. **Children belong in `components/`**: Child components are always placed inside their parent's `components/` directory.
+4. **Repeat recursively**: Every child follows the exact same structure. If a child has its own children, it gets its own `components/` directory. The wrapper-folder rule applies at every level.
+5. **Scope**: Use this for page-local and component-local UI. Shared/reusable UI still belongs under `lib/components/` (following existing shared conventions there).
 
 ## Examples
 
 Adding `X` under `PageComponent`:
+
 ```
-PageComponent/components/X/X.svelte
+PageComponent/
+└── components/
+    └── X/
+        └── X.svelte
 ```
+
 Adding `Y` used only by `X`:
+
 ```
-PageComponent/components/X/components/Y/Y.svelte
+PageComponent/
+└── components/
+    └── X/
+        ├── X.svelte
+        └── components/
+            └── Y/
+                └── Y.svelte
+```
+
+Even if `Y` has no children, it is **still** wrapped:
+
+```
+Y/
+└── Y.svelte
 ```
 
 ## Anti-patterns
 
-```
-# ❌ Flat file next to parent
+```text
+# ❌ Standalone component file
 PageComponent/X.svelte
 
-# ❌ Child not wrapped in components/
+# ❌ Component not wrapped in its own folder
+PageComponent/components/X.svelte
+
+# ❌ Child not inside parent's components/ directory
 PageComponent/components/X/Y/Y.svelte
 
 # ❌ Mismatched folder/file names
-PageComponent/components/X/XComponent.svelte
+PageComponent/components/Button/ButtonComponent.svelte
 ```
