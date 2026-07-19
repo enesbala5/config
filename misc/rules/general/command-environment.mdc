@@ -1,0 +1,46 @@
+---
+description: Detect nix/docker project environments before running shell commands; confirm with the user instead of retrying blindly
+alwaysApply: true
+---
+
+# Command Environment Detection
+
+Before running install, build, test, or other project commands, check how this repo expects commands to run.
+
+## Detection
+
+Look at the workspace root (and nearby) for environment markers:
+
+| Marker | Likely environment |
+| --- | --- |
+| `shell.nix`, `flake.nix`, `.envrc` (direnv + nix) | Commands should run inside Nix (`nix-shell`, `nix develop`, or `direnv`) |
+| `docker-compose.yml`, `docker-compose.yaml`, `compose.yml`, `compose.yaml` | Commands often need to run inside a service container (`docker compose exec` / `docker compose run`) |
+| `Dockerfile` only (no compose) | May need image build/run; confirm before assuming host commands work |
+
+Also check README / docs for an established workflow (e.g. "use nix-shell", "run in the `app` service").
+
+## Required behavior
+
+1. **Detect first** — If any marker above exists, do not assume bare host commands will work.
+2. **Confirm with the user** — Briefly state what you found and ask which environment to use before a long retry loop. Example:
+   - "This repo has `shell.nix`. Should I run commands via `nix-shell` / `nix develop`?"
+   - "This repo has `docker-compose.yml`. Should I run this inside a compose service (which one)?"
+3. **Do not thrash** — If a command fails with missing binaries, wrong Node/Python version, or similar environment errors, stop after one failure. Re-check for nix/docker markers and ask the user instead of retrying the same host command repeatedly.
+4. **Prefer project docs** — If the README already specifies the exact invocation, follow that after a short confirmation when the choice is ambiguous (e.g. multiple compose services).
+
+## Examples
+
+```bash
+# Nix
+nix-shell --run "pnpm test"
+# or, if using flakes:
+nix develop -c pnpm test
+
+# Docker Compose
+docker compose exec <service> pnpm test
+docker compose run --rm <service> pnpm test
+```
+
+## When host is fine
+
+If there are no nix/docker markers, or the user explicitly says to run on the host, proceed normally.
