@@ -493,6 +493,7 @@ in
       kdePackages.kio # Network File System (Dolphin)
       kdePackages.kio-extras # Extra protocols support (sftp, fish and more)
 
+      pkgs.croc # File Transfer tool
     ])
     ++ (with unstable; [ kitty ])
     ++ (with inputs; [
