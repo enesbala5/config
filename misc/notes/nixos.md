@@ -1,6 +1,6 @@
 # NixOS
 
-# Tasks
+## Tasks
 
 - [x] Change Wallpaper || waypaper || ~/config/wallpapers
 - [x] Fix NixOS Configuration - File System Mounting is not working properly
