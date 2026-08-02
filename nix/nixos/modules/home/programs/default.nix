@@ -79,6 +79,7 @@
       # ------------------------------------------------------------------------------------------
 
       unzip # Unzip Files
+      unrar-free # Extract .rar files
       p7zip # 7zip
       vlc # Media Player
       btop # Process Viewer

@@ -368,8 +368,8 @@ in
           "google-chrome.desktop"
         ];
         "application/pdf" = [
-          "zen-beta.desktop"
           "helium.desktop"
+          "zen-beta.desktop"
           "google-chrome.desktop"
         ];
       };
