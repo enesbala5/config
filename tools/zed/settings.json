@@ -10,7 +10,12 @@
 	// "indent_guides": {
 	// 	"background_coloring": "indent_aware",
 	// },
-	"git": {
+	"instrumentation": {
+  "performance_profiler": {
+   "enabled": false
+  }
+ },
+ "git": {
   "branch_picker": {
    "show_author_name": true
   }
