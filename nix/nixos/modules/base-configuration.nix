@@ -215,7 +215,6 @@ in
       gdm = {
         enable = true;
 
-
         autoLogin = {
           delay = 0;
         };
@@ -377,7 +376,7 @@ in
         rules.auth.fprintd.settings = {
           max_tries = 1;
           timeout = 3;
-		      # timeout keeps the fallback to password fast if fprintd is slow.
+          # timeout keeps the fallback to password fast if fprintd is slow.
         };
       };
 
