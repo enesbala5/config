@@ -1,0 +1,28 @@
+---
+description: Prefer undefined over null for optional values and props
+alwaysApply: true
+---
+
+# Prefer Undefined Over Null
+
+For optional values — especially component props and function parameters — use `undefined`, not `null`, and never both.
+
+## Props
+
+```typescript
+// ❌ BAD — dual absence, or null for "missing"
+user: PageUser | null | undefined;
+user: PageUser | null;
+
+// ✅ GOOD — optional prop (undefined when absent)
+user?: PageUser;
+// or explicitly:
+user: PageUser | undefined;
+```
+
+## Guidance
+
+- **Missing / not provided** → `undefined` (or omit the prop / use `?`)
+- **Do not** type the same field as `T | null | undefined`
+- Reserve `null` only when an external API or database contract explicitly uses it; normalize to `undefined` at the boundary when exposing values to app/UI code
+- Prefer truthy checks (`if (user)`) or nullish coalescing with undefined-shaped optionals
