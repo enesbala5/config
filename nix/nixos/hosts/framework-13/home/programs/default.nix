@@ -94,6 +94,10 @@ in
   programs = {
     zen-browser.enable = true;
 
+    opencode = {
+      enable = true;
+    };
+
     obs-studio = {
       enable = true;
 
@@ -395,7 +399,6 @@ in
     };
 
     desktopEntries = {
-
       cursor = {
         name = "Cursor";
         genericName = "Code Editor";
