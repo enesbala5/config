@@ -11,17 +11,17 @@
 	// 	"background_coloring": "indent_aware",
 	// },
 	"instrumentation": {
-  "performance_profiler": {
-   "enabled": false
-  }
- },
- "git": {
-  "branch_picker": {
-   "show_author_name": true
-  }
- },
- "diff_view_style": "split",
- "title_bar": {
+		"performance_profiler": {
+			"enabled": false
+		}
+	},
+	"git": {
+		"branch_picker": {
+			"show_author_name": true
+		}
+	},
+	"diff_view_style": "split",
+	"title_bar": {
 		"show_branch_status_icon": false,
 		"show_branch_name": true,
 		"show_project_items": true,
@@ -127,6 +127,7 @@
 		"show": true
 	},
 	"terminal": {
+		"font_size": 14.0,
 		"env": {
 			"EDITOR": "\"code\""
 		},
