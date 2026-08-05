@@ -346,14 +346,14 @@ in
         ];
         "image/png" = [
           "org.nomacs.ImageLounge.desktop"
-          "zen-beta.desktop"
           "helium.desktop"
+          "zen-beta.desktop"
           "google-chrome.desktop"
         ];
         "image/svg+xml" = [
           "org.nomacs.ImageLounge.desktop"
-          "zen-beta.desktop"
           "helium.desktop"
+          "zen-beta.desktop"
           "google-chrome.desktop"
         ];
         "video/mp4" = [
@@ -362,13 +362,15 @@ in
         ];
         "video/mp3" = [
           "vlc.desktop"
-          "zen-beta.desktop"
           "helium.desktop"
+          "zen-beta.desktop"
+          "google-chrome.desktop"
         ];
         "video/webm" = [
           "vlc.desktop"
           "org.shotcut.Shotcut.desktop"
           "helium.desktop"
+          "zen-beta.desktop"
           "google-chrome.desktop"
         ];
         "application/pdf" = [

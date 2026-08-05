@@ -10,6 +10,7 @@
 	// "indent_guides": {
 	// 	"background_coloring": "indent_aware",
 	// },
+	"proxy": "",
 	"instrumentation": {
 		"performance_profiler": {
 			"enabled": false
@@ -79,6 +80,7 @@
 		"file_icons": true
 	},
 	"edit_predictions": {
+		"provider": "codestral",
 		"allow_data_collection": "no"
 	},
 	"cli_default_open_behavior": "new_window",

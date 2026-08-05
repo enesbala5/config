@@ -36,6 +36,11 @@
       source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/zed";
       recursive = true;
     };
+
+    ".agents/skills" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/misc/skills";
+      recursive = true;
+    };
   };
 
   systemd.user = {
