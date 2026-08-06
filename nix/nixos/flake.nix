@@ -44,7 +44,7 @@
     # Framework-13
     # ---
     vicinae = {
-      url = "github:vicinaehq/vicinae?rev=3814742ea5a4642214ab8698a3dd837dced9fe70";
+      url = "github:vicinaehq/vicinae/v0.24.0";
     };
 
     vicinae-extensions = {

@@ -411,5 +411,11 @@
   "unbind": {
    "alt-l": "editor::AcceptEditPrediction"
   }
+ },
+ {
+  "context": "Editor && mode == full && edit_prediction",
+  "unbind": {
+   "ctrl-right": "editor::AcceptNextWordEditPrediction"
+  }
  }
 ]
