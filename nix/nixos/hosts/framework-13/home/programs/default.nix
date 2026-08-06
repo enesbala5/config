@@ -129,33 +129,24 @@ in
 
       includes = [ config.age.secrets.ssh-config.path ];
     };
-  };
-
-  services = {
-    kdeconnect.enable = true;
-
-    # Audio
-    easyeffects = {
-      enable = true;
-
-      package = pkgs.easyeffects;
-      preset = "HifiScan+EEGuide"; # Profile from framework-dsp repository - Installation guide at README
-    };
 
     vicinae = {
       # Schema: https://www.vicinae.com/schemas/config.json
       # Default Config: `vicinae config default`
+      #
+      # Use Home Manager's built-in module (HM 25.11+) with the flake package.
+      # Importing vicinae.homeManagerModules.default conflicts with HM's module.
+      # Input-server wrapper still comes from vicinae.nixosModules.default.
 
       enable = true;
+      package = inputs.vicinae.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
       systemd = {
         enable = true;
         autoStart = true;
-
-        environment = {
-          USE_LAYER_SHELL = 1;
-        };
       };
+
+      useLayerShell = true;
 
       settings = {
         close_on_focus_loss = false;
@@ -306,6 +297,18 @@ in
         # ---
         # google-fonts
       ];
+    };
+  };
+
+  services = {
+    kdeconnect.enable = true;
+
+    # Audio
+    easyeffects = {
+      enable = true;
+
+      package = pkgs.easyeffects;
+      preset = "HifiScan+EEGuide"; # Profile from framework-dsp repository - Installation guide at README
     };
   };
 

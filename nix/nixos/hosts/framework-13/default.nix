@@ -12,6 +12,11 @@
 let
 in
 {
+  imports = [
+    # Input-server capability wrapper (clipboard paste, snippets, etc.)
+    inputs.vicinae.nixosModules.default
+  ];
+
   # ------------------------------------------------------------------------------------------
   # Accounts
   # -> Don't forget to set a password with 'passwd'.

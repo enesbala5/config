@@ -8,7 +8,6 @@
 {
   imports = [
     inputs.zen-browser.homeModules.beta
-    inputs.vicinae.homeManagerModules.default
     ./programs
   ];
 
