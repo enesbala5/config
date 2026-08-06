@@ -134,19 +134,24 @@ in
       # Schema: https://www.vicinae.com/schemas/config.json
       # Default Config: `vicinae config default`
       #
-      # Use Home Manager's built-in module (HM 25.11+) with the flake package.
-      # Importing vicinae.homeManagerModules.default conflicts with HM's module.
+      # Use the flake HM module (settings via VICINAE_OVERRIDES). HM's built-in
+      # module is disabled in home/default.nix — it writes obsolete vicinae.json.
       # Input-server wrapper still comes from vicinae.nixosModules.default.
 
       enable = true;
-      package = inputs.vicinae.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
+      # Defaults true, but we don't use HM's firefox/chrome program modules.
+      enableFirefoxIntegration = false;
+      enableChromeIntegration = false;
 
       systemd = {
         enable = true;
         autoStart = true;
-      };
 
-      useLayerShell = true;
+        environment = {
+          USE_LAYER_SHELL = 1;
+        };
+      };
 
       settings = {
         close_on_focus_loss = false;
@@ -202,6 +207,14 @@ in
         };
 
         providers = {
+          files = {
+            entrypoints = {
+              search = {
+                "alias" = "f";
+              };
+            };
+          };
+
           clipboard = {
             enabled = true;
 
