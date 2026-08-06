@@ -37,6 +37,7 @@ in
       insomnia # API Client
       neovim # Neovim
       vim # Vim
+      sqlite # SQLite CLI
 
       # Graphic Design & Video Editing
       # ------------------------------------------------------------------------------------------
