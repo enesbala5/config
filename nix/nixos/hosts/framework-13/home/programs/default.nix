@@ -142,8 +142,8 @@ in
       enable = true;
 
       # Defaults true, but we don't use HM's firefox/chrome program modules.
-      enableFirefoxIntegration = false;
-      enableChromeIntegration = false;
+      enableFirefoxIntegration = true;
+      enableChromeIntegration = true;
 
       systemd = {
         enable = true;
@@ -227,11 +227,27 @@ in
             };
           };
 
+          # "files": {
+          #    "preferences": {
+          #       "excludedIndexingPaths": [
+          #          "/home/e/documents"
+          #       ],
+          #       "": [
+          #          "/home/e"
+          #       ]
+          #    }
+
           files = {
             preferences = {
               autoIndexing = true;
-              excludedPaths = "";
-              paths = "${data.homeDirectory}/";
+              excludedIndexingPaths = [
+                "${data.homeDirectory}/.config/"
+                "${data.homeDirectory}/.local/"
+                "${data.homeDirectory}/.ssh/"
+                "${data.homeDirectory}/.cache/"
+                "${data.homeDirectory}/.cursor/"
+              ];
+              indexingPaths = [ "${data.homeDirectory}/" ];
               watcherPaths = "";
             };
           };
@@ -310,6 +326,11 @@ in
         # Raycast Extensions
         # ---
         # google-fonts
+
+        ssh
+        zed-recents
+        hypr
+        agent-skills-sh
       ];
     };
   };
