@@ -312,8 +312,8 @@ in
         };
       };
 
-      extensions = with inputs.vicinae-extensions.packages.${pkgs.stdenv.hostPlatform.system}; [
-        bluetooth
+      extensions = with inputs.vicinae-extensions.packages.${system}; [
+        # bluetooth  # removed upstream: fails node-gyp / dbus-next
         nix
         power-profile
         wifi-commander
