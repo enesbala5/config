@@ -219,6 +219,14 @@ in
           clipboard = {
             enabled = true;
 
+            entrypoints = {
+              history = {
+                preferences = {
+                  defaultAction = "copy";
+                };
+              };
+            };
+
             preferences = {
               encryption = false;
               eraseOnStartup = false;
