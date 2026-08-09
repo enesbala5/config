@@ -729,14 +729,14 @@ in
         };
       };
 
-      restart-onlyoffice-nginx = {
-        wantedBy = [ "timers.target" ];
-        timerConfig = {
-          OnBootSec = "30m";
-          OnUnitActiveSec = "30m";
-          Unit = "restart-onlyoffice-nginx.service";
-        };
-      };
+      # restart-onlyoffice-nginx = {
+      #   wantedBy = [ "timers.target" ];
+      #   timerConfig = {
+      #     OnBootSec = "30m";
+      #     OnUnitActiveSec = "30m";
+      #     Unit = "restart-onlyoffice-nginx.service";
+      #   };
+      # };
     };
 
     # Stop Gnome from suspending, copied from https://discourse.nixos.org/t/stop-pc-from-sleep/5757/2
