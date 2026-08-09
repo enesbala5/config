@@ -96,3 +96,13 @@ monitor_tag = "monitor0"
 [[profiles.TV.conditions.required_monitors]]
 description = "Philips Consumer Electronics Company Philips UHDTV 0x01010101"
 monitor_tag = "monitor1"
+
+
+[profiles.TV-2]
+config_file = "/home/e/.config/hyprdynamicmonitors/hyprconfigs/TV-2.go.tmpl"
+config_file_type = "template"
+[profiles.TV-2.conditions]
+
+[[profiles.TV-2.conditions.required_monitors]]
+description = "Philips Consumer Electronics Company Philips UHDTV 0x01010101"
+monitor_tag = "monitor0"
