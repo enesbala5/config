@@ -81,6 +81,7 @@ in
           "wheel"
           "docker"
           "video"
+          "samba"
         ];
         shell = pkgs.zsh;
       };

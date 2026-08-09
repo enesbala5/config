@@ -40,6 +40,7 @@ in
 {
   # General
   # -------------------------------
+  "e-auth.age" = userConfig;
   "default-telegram.age" = userConfig;
   "rclone-conf.age" = userConfig;
 
