@@ -76,6 +76,9 @@ in
         isNormalUser = true;
         uid = data.uid;
         description = data.fullName;
+        shell = pkgs.zsh;
+        hashedPasswordFile = config.age.secrets.e-auth.path;
+
         extraGroups = [
           "networkmanager"
           "wheel"
@@ -83,7 +86,6 @@ in
           "video"
           "samba"
         ];
-        shell = pkgs.zsh;
       };
     };
 
