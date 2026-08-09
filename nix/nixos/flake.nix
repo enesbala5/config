@@ -44,11 +44,11 @@
     # Framework-13
     # ---
     vicinae = {
-      url = "github:vicinaehq/vicinae?rev=3814742ea5a4642214ab8698a3dd837dced9fe70";
+      url = "github:vicinaehq/vicinae/v0.24.0";
     };
 
     vicinae-extensions = {
-      url = "github:vicinaehq/extensions?rev=20d6a13d2a389e61619b8540b8af746705409322";
+      url = "github:vicinaehq/extensions?rev=22bc47b8ad1907a8aaeec502696a8202fac64a00";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

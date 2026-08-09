@@ -10,13 +10,22 @@
 	// "indent_guides": {
 	// 	"background_coloring": "indent_aware",
 	// },
+	"inlay_hints": {
+		"edit_debounce_ms": 0
+	},
+	"proxy": "",
+	"instrumentation": {
+		"performance_profiler": {
+			"enabled": false
+		}
+	},
 	"git": {
-  "branch_picker": {
-   "show_author_name": true
-  }
- },
- "diff_view_style": "split",
- "title_bar": {
+		"branch_picker": {
+			"show_author_name": true
+		}
+	},
+	"diff_view_style": "split",
+	"title_bar": {
 		"show_branch_status_icon": false,
 		"show_branch_name": true,
 		"show_project_items": true,
@@ -74,6 +83,8 @@
 		"file_icons": true
 	},
 	"edit_predictions": {
+		"mode": "subtle",
+		"provider": "codestral",
 		"allow_data_collection": "no"
 	},
 	"cli_default_open_behavior": "new_window",
@@ -93,6 +104,7 @@
 	},
 	"format_on_save": "off",
 	"agent": {
+		"play_sound_when_agent_done": "when_hidden",
 		"inline_assistant_model": {
 			"provider": "zed.dev",
 			"model": "gpt-5-nano",
@@ -105,9 +117,9 @@
 			"default": "allow"
 		},
 		"default_model": {
-			"enable_thinking": true,
-			"provider": "google",
-			"model": "gemini-2.5-flash-lite"
+			"enable_thinking": false,
+			"provider": "mistral",
+			"model": "ministral-14b-latest"
 		},
 		"model_parameters": []
 	},
@@ -122,6 +134,7 @@
 		"show": true
 	},
 	"terminal": {
+		"font_size": 14.0,
 		"env": {
 			"EDITOR": "\"code\""
 		},
@@ -168,6 +181,12 @@
 	"languages": {
 		"Markdown": {
 			"show_edit_predictions": false
+		},
+		"TypeScript": {
+			"language_servers": ["typescript-ls", "!vtsls", "!typescript-language-server", "..."]
+		},
+		"TSX": {
+			"language_servers": ["typescript-ls", "!vtsls", "!typescript-language-server", "..."]
 		},
 		"Nix": {
 			"language_servers": ["nixd", "!nil"],

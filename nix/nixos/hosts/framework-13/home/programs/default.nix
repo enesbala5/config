@@ -37,6 +37,7 @@ in
       insomnia # API Client
       neovim # Neovim
       vim # Vim
+      sqlite # SQLite CLI
 
       # Graphic Design & Video Editing
       # ------------------------------------------------------------------------------------------
@@ -94,6 +95,10 @@ in
   programs = {
     zen-browser.enable = true;
 
+    opencode = {
+      enable = true;
+    };
+
     obs-studio = {
       enable = true;
 
@@ -125,24 +130,20 @@ in
 
       includes = [ config.age.secrets.ssh-config.path ];
     };
-  };
-
-  services = {
-    kdeconnect.enable = true;
-
-    # Audio
-    easyeffects = {
-      enable = true;
-
-      package = pkgs.easyeffects;
-      preset = "HifiScan+EEGuide"; # Profile from framework-dsp repository - Installation guide at README
-    };
 
     vicinae = {
       # Schema: https://www.vicinae.com/schemas/config.json
       # Default Config: `vicinae config default`
+      #
+      # Use the flake HM module (settings via VICINAE_OVERRIDES). HM's built-in
+      # module is disabled in home/default.nix — it writes obsolete vicinae.json.
+      # Input-server wrapper still comes from vicinae.nixosModules.default.
 
       enable = true;
+
+      # Defaults true, but we don't use HM's firefox/chrome program modules.
+      enableFirefoxIntegration = true;
+      enableChromeIntegration = true;
 
       systemd = {
         enable = true;
@@ -207,8 +208,24 @@ in
         };
 
         providers = {
+          files = {
+            entrypoints = {
+              search = {
+                "alias" = "f";
+              };
+            };
+          };
+
           clipboard = {
             enabled = true;
+
+            entrypoints = {
+              history = {
+                preferences = {
+                  defaultAction = "copy";
+                };
+              };
+            };
 
             preferences = {
               encryption = false;
@@ -218,11 +235,27 @@ in
             };
           };
 
+          # "files": {
+          #    "preferences": {
+          #       "excludedIndexingPaths": [
+          #          "/home/e/documents"
+          #       ],
+          #       "": [
+          #          "/home/e"
+          #       ]
+          #    }
+
           files = {
             preferences = {
               autoIndexing = true;
-              excludedPaths = "";
-              paths = "${data.homeDirectory}/";
+              excludedIndexingPaths = [
+                "${data.homeDirectory}/.config/"
+                "${data.homeDirectory}/.local/"
+                "${data.homeDirectory}/.ssh/"
+                "${data.homeDirectory}/.cache/"
+                "${data.homeDirectory}/.cursor/"
+              ];
+              indexingPaths = [ "${data.homeDirectory}/" ];
               watcherPaths = "";
             };
           };
@@ -287,8 +320,8 @@ in
         };
       };
 
-      extensions = with inputs.vicinae-extensions.packages.${pkgs.stdenv.hostPlatform.system}; [
-        bluetooth
+      extensions = with inputs.vicinae-extensions.packages.${system}; [
+        # bluetooth  # removed upstream: fails node-gyp / dbus-next
         nix
         power-profile
         wifi-commander
@@ -301,7 +334,24 @@ in
         # Raycast Extensions
         # ---
         # google-fonts
+
+        ssh
+        zed-recents
+        hypr
+        agent-skills-sh
       ];
+    };
+  };
+
+  services = {
+    kdeconnect.enable = true;
+
+    # Audio
+    easyeffects = {
+      enable = true;
+
+      package = pkgs.easyeffects;
+      preset = "HifiScan+EEGuide"; # Profile from framework-dsp repository - Installation guide at README
     };
   };
 
@@ -311,18 +361,18 @@ in
       defaultApplications = {
         "inode/directory" = "thunar.desktop";
         "x-scheme-handler/http" = [
-          "zen-beta.desktop"
           "helium.desktop"
+          "zen-beta.desktop"
           "google-chrome.desktop"
         ];
         "x-scheme-handler/https" = [
-          "zen-beta.desktop"
           "helium.desktop"
+          "zen-beta.desktop"
           "google-chrome.desktop"
         ];
         "text/html" = [
-          "zen-beta.desktop"
           "helium.desktop"
+          "zen-beta.desktop"
           "google-chrome.desktop"
         ];
         "text/plain" = [
@@ -336,20 +386,20 @@ in
         ];
         "image/jpeg" = [
           "org.nomacs.ImageLounge.desktop"
-          "zen-beta.desktop"
           "helium.desktop"
+          "zen-beta.desktop"
           "google-chrome.desktop"
         ];
         "image/png" = [
           "org.nomacs.ImageLounge.desktop"
-          "zen-beta.desktop"
           "helium.desktop"
+          "zen-beta.desktop"
           "google-chrome.desktop"
         ];
         "image/svg+xml" = [
           "org.nomacs.ImageLounge.desktop"
-          "zen-beta.desktop"
           "helium.desktop"
+          "zen-beta.desktop"
           "google-chrome.desktop"
         ];
         "video/mp4" = [
@@ -358,18 +408,20 @@ in
         ];
         "video/mp3" = [
           "vlc.desktop"
-          "zen-beta.desktop"
           "helium.desktop"
+          "zen-beta.desktop"
+          "google-chrome.desktop"
         ];
         "video/webm" = [
           "vlc.desktop"
           "org.shotcut.Shotcut.desktop"
           "helium.desktop"
+          "zen-beta.desktop"
           "google-chrome.desktop"
         ];
         "application/pdf" = [
-          "zen-beta.desktop"
           "helium.desktop"
+          "zen-beta.desktop"
           "google-chrome.desktop"
         ];
       };
@@ -395,7 +447,6 @@ in
     };
 
     desktopEntries = {
-
       cursor = {
         name = "Cursor";
         genericName = "Code Editor";

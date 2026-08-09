@@ -400,4 +400,22 @@
    ]
   }
  },
+ {
+  "context": "Editor && edit_prediction",
+  "bindings": {
+   "alt-enter": "editor::AcceptEditPrediction"
+  }
+ },
+ {
+  "context": "Editor && edit_prediction",
+  "unbind": {
+   "alt-l": "editor::AcceptEditPrediction"
+  }
+ },
+ {
+  "context": "Editor && mode == full && edit_prediction",
+  "unbind": {
+   "ctrl-right": "editor::AcceptNextWordEditPrediction"
+  }
+ }
 ]

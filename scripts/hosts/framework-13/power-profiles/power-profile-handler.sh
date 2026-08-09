@@ -217,6 +217,7 @@ toggle_services() {
 
   manage_system_unit "ratbagd.service" "$action"
   manage_system_unit "cups.service" "$action"
+  # Only stop/start the triggers; leave an in-flight rclone.service alone.
   manage_system_unit "rclone.timer" "$action"
   manage_system_unit "rclone.path" "$action"
 }

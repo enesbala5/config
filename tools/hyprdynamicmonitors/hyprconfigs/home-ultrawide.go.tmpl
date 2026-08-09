@@ -2,7 +2,7 @@
 {{- $xiaomi := index .MonitorsByTag "xiaomi-34" -}}
 {{- if $xiaomi }}
 # Configure monitor
-monitor={{$xiaomi.Name}},3440x1440@50.00000,-1000x-1440,1.00000000,transform,0,vrr,0
+monitor={{$xiaomi.Name}},3440x1440@144.00000,-1000x-1440,1.00000000,transform,0,vrr,0
 
 # Assign workspaces to monitor
 workspace = 1,monitor:{{$xiaomi.Name}}

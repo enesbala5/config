@@ -12,6 +12,11 @@
 let
 in
 {
+  imports = [
+    # Input-server capability wrapper (clipboard paste, snippets, etc.)
+    inputs.vicinae.nixosModules.default
+  ];
+
   # ------------------------------------------------------------------------------------------
   # Accounts
   # -> Don't forget to set a password with 'passwd'.
@@ -288,8 +293,8 @@ in
         enable = true;
         description = "Service that connects to Google Drive";
 
-        # Ensure the service starts after the network is up
-        wantedBy = [ "multi-user.target" ];
+        # No wantedBy: started only by rclone.timer / rclone.path (or manually).
+        # Power-profile-handler starts those units outside power-saver mode.
         after = [ "network-online.target" ];
         documentation = [ "man:rclone(1)" ];
         requires = [ "network-online.target" ];
@@ -339,8 +344,8 @@ in
     # CRON Jobs Equivalents
     timers = {
       rclone = {
-        # "Rclone timer (triggers every 10 minutes)"
-        wantedBy = [ "timers.target" ];
+        # Started by power-profile-handler outside power-saver (not on boot).
+        wantedBy = [ ];
 
         timerConfig = {
           Unit = "rclone.service";
@@ -367,7 +372,8 @@ in
     # File Watcher
     paths = {
       rclone = {
-        wantedBy = [ "default.target" ];
+        # Started by power-profile-handler outside power-saver (not on boot).
+        wantedBy = [ ];
 
         pathConfig = {
           PathChanged = data.googleDriveLocalDir;
