@@ -166,7 +166,7 @@ in
           "workgroup" = "WORKGROUP";
           "server string" = "smbnix";
           "netbios name" = "smbnix";
-          
+
           "security" = "user";
           #"use sendfile" = "yes";
           #"max protocol" = "smb2";
@@ -197,6 +197,7 @@ in
           "directory mask" = "0755";
           "force user" = "username";
           "force group" = "groupname";
+          "valid users" = data.username;
         };
       };
     };
@@ -218,6 +219,17 @@ in
     };
 
     fail2ban.enable = true;
+  };
+
+  system.activationScripts = {
+    # The "init_smbpasswd" script name is arbitrary, but a useful label for tracking
+    # failed scripts in the build output. An absolute path to smbpasswd is necessary
+    # as it is not in $PATH in the activation script's environment. The password
+    # is repeated twice with newline characters as smbpasswd requires a password
+    # confirmation even in non-interactive mode where input is piped in through stdin.
+    init_smbpasswd.text = ''
+      /run/current-system/sw/bin/printf "$(/run/current-system/sw/bin/cat ${config.age.secrets.e-auth.path})\n$(/run/current-system/sw/bin/cat ${config.age.secrets.e-auth.path})\n" | /run/current-system/sw/bin/smbpasswd -sa ${data.username}
+    '';
   };
 
   systemd = {
