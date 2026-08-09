@@ -28,11 +28,11 @@
 
   fileSystems = {
     "/" = {
-      device = "/dev/disk/b/by-uuid/d8bd78ce-5675-4efd-a684-9ca2ee70c895";
+      device = "/dev/disk/by-uuid/d8bd78ce-5675-4efd-a684-9ca2ee70c895";
       fsType = "ext4";
     };
     "/mnt/hdd" = {
-	device = "/dev/disk-by-uuid/b5ffe500-98f7-4214-a27c-2db9d7e37ed1";
+	device = "/dev/disk/by-uuid/b5ffe500-98f7-4214-a27c-2db9d7e37ed1";
 	fsType = "ext4";
 	options = [ "noatime" "nodiratime" "nofail" ];
     };
