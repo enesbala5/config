@@ -163,7 +163,7 @@ in
 
     teamviewer.enable = true;
 
-    tailscale.enable = false;
+    tailscale.enable = true;
 
     upower.enable = true;
 

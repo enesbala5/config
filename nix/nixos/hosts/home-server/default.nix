@@ -164,8 +164,8 @@ in
       settings = {
         global = {
           "workgroup" = "WORKGROUP";
-          "server string" = "smbnix";
-          "netbios name" = "smbnix";
+          "server string" = "home-server";
+          "netbios name" = "home-server";
 
           "security" = "user";
           #"use sendfile" = "yes";
@@ -211,12 +211,15 @@ in
     avahi = {
       publish.enable = true;
       publish.userServices = true;
+      
       # ^^ Needed to allow samba to automatically register mDNS records (without the need for an `extraServiceFile`
       nssmdns4 = true;
       # ^^ Not one hundred percent sure if this is needed- if it aint broke, don't fix it
       enable = true;
       openFirewall = true;
     };
+
+    tailscale.enable = true;
 
     fail2ban.enable = true;
   };
