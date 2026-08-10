@@ -46,7 +46,7 @@
       options = [
         "nofail"
         "x-systemd.automount"
-              "x-systemd.idle-timeout=1min"
+        "x-systemd.idle-timeout=1min"
       ];
     };
   };
