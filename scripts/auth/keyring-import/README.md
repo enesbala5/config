@@ -32,7 +32,7 @@ nix run . -- --keyring Test /path/to/Default.keyring
 # Interactive shell with python3 + secret-tool on PATH
 nix develop
 python3 ./import-keyring.py --keyring Test /path/to/Default.keyring
-```w
+```
 
 From the repo root:
 
