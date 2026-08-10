@@ -195,8 +195,8 @@ in
           "guest ok" = "no";
           "create mask" = "0644";
           "directory mask" = "0755";
-          "force user" = "username";
-          "force group" = "groupname";
+          "force user" = data.username;
+          "force group" = "users"; # or whatever primary group user 'e' uses
           "valid users" = data.username;
         };
       };
