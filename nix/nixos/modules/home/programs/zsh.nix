@@ -102,6 +102,7 @@
 
       zed = "zeditor";
       cursor = "appimage-run ${data.homeDirectory}/programs/cursor/cursor.AppImage";
+      update-cursor = "cd ${data.configDirectory}/tools/cursor && ./update-cursor.sh";
 
       manage-secret = "cd ${data.configDirectory}/nix/secrets && EDITOR='zeditor --new --wait' agenix -e";
 
