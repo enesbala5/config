@@ -227,9 +227,18 @@ in
     # as it is not in $PATH in the activation script's environment. The password
     # is repeated twice with newline characters as smbpasswd requires a password
     # confirmation even in non-interactive mode where input is piped in through stdin.
-    init_smbpasswd.text = ''
-      /run/current-system/sw/bin/printf "$(/run/current-system/sw/bin/cat ${config.age.secrets.e-auth.path})\n$(/run/current-system/sw/bin/cat ${config.age.secrets.e-auth.path})\n" | /run/current-system/sw/bin/smbpasswd -sa ${data.username}
-    '';
+    init_smbpasswd = {
+      deps = [
+        "users"
+        "agenix"
+      ];
+      text = ''
+        SECRET_PATH="${config.age.secrets.e-auth.path}"
+        if [ -f "$SECRET_PATH" ] && id "${data.username}" &>/dev/null; then
+          /run/current-system/sw/bin/printf "$(/run/current-system/sw/bin/cat "$SECRET_PATH")\n$(/run/current-system/sw/bin/cat "$SECRET_PATH")\n" | /run/current-system/sw/bin/smbpasswd -sa ${data.username}
+        fi
+      '';
+    };
   };
 
   systemd = {
