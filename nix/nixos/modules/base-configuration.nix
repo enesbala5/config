@@ -492,6 +492,7 @@ in
       kdePackages.qtsvg # Icons (for Dolphin)
       kdePackages.kio # Network File System (Dolphin)
       kdePackages.kio-extras # Extra protocols support (sftp, fish and more)
+      kdePackages.kservice # kbuildsycoca6 — rebuild Dolphin app associations cache
 
       pkgs.croc # File Transfer tool
     ])
@@ -499,6 +500,11 @@ in
     ++ (with inputs; [
       agenix.packages.${system}.default
     ]);
+
+  # Dolphin "Open with" / file associations need an applications.menu outside Plasma.
+  # https://github.com/NixOS/nixpkgs/issues/409986
+  environment.etc."xdg/menus/applications.menu".source =
+    "${pkgs.kdePackages.plasma-workspace}/etc/xdg/menus/plasma-applications.menu";
 
   programs = {
     zsh.enable = true;
