@@ -59,7 +59,6 @@
       ssh = "kitten ssh";
       sail = "./vendor/bin/sail";
       search = "nix search nixpkgs";
-      cursor-agent = "agent";
 
       # RClone
       # ---------------
