@@ -520,6 +520,7 @@ in
       dnsmasq
       phodav
       devcontainer
+      restic
     ])
     ++ (with unstable; [
     ])
