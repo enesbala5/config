@@ -101,8 +101,6 @@
       reload-waybar = "pkill -9 waybar && hyprctl --instance 0 'dispatch exec waybar'";
 
       zed = "zeditor";
-      cursor = "appimage-run ${data.homeDirectory}/programs/cursor/cursor.AppImage";
-      update-cursor = "cd ${data.configDirectory}/tools/cursor && ./update-cursor.sh";
 
       manage-secret = "cd ${data.configDirectory}/nix/secrets && EDITOR='zeditor --new --wait' agenix -e";
 
