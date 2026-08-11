@@ -34,29 +34,41 @@
       GTK_PATH = "${pkgs.xfce.xfce4-settings}/lib/gtk-3.0";
     };
 
-    home.file = {
-      ".config/hypr/hyprlock.conf" = {
-        source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hyprlock/configuration.conf";
-      };
+    home.file =
+      let
+        pbi = pkgs.kdePackages.plasma-browser-integration;
+        chromiumHost = "${pbi}/etc/chromium/native-messaging-hosts/org.kde.plasma.browser_integration.json";
+        mozillaHost = "${pbi}/lib/mozilla/native-messaging-hosts/org.kde.plasma.browser_integration.json";
+      in
+      {
+        ".config/hypr/hyprlock.conf" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hyprlock/configuration.conf";
+        };
 
-      ".config/hypr/hypridle.conf" = {
-        source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hypridle/configuration.conf";
-      };
+        ".config/hypr/hypridle.conf" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hypridle/configuration.conf";
+        };
 
-      ".config/hypr/hyprsunset.conf" = {
-        source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hyprsunset/configuration.conf";
-      };
+        ".config/hypr/hyprsunset.conf" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hyprsunset/configuration.conf";
+        };
 
-      ".config/zed" = {
-        source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/zed";
-        recursive = true;
-      };
+        ".config/zed" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/zed";
+          recursive = true;
+        };
 
-      ".agents/skills" = {
-        source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/misc/skills";
-        recursive = true;
+        ".agents/skills" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/misc/skills";
+          recursive = true;
+        };
+
+        # Plasma Browser Integration — native hosts for browsers that don't use /etc
+        ".config/net.imput.helium/NativeMessagingHosts/org.kde.plasma.browser_integration.json".source =
+          chromiumHost;
+        ".mozilla/native-messaging-hosts/org.kde.plasma.browser_integration.json".source = mozillaHost;
+        ".zen/native-messaging-hosts/org.kde.plasma.browser_integration.json".source = mozillaHost;
       };
-    };
 
     systemd.user = {
       services = {

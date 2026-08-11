@@ -12,6 +12,7 @@ in
 {
   imports = [
     ./activitywatch.nix
+    ./plasma.nix
   ];
 
   home.packages =
