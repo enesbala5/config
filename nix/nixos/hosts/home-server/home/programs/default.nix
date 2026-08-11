@@ -35,6 +35,7 @@
     # Flakes
     # ---
     ++ (with inputs; [
+      cursor-nix.packages.${system}.cursor-cli
     ]);
 
   programs = {

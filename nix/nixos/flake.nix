@@ -83,6 +83,10 @@
       url = "github:zed-industries/zed/nightly";
     };
 
+    cursor-nix = {
+      url = "github:tomsch/cursor-nix";
+    };
+
     hyprland = {
       url = "github:hyprwm/Hyprland/v0.51.1";
 
