@@ -211,7 +211,7 @@ in
     avahi = {
       publish.enable = true;
       publish.userServices = true;
-      
+
       # ^^ Needed to allow samba to automatically register mDNS records (without the need for an `extraServiceFile`
       nssmdns4 = true;
       # ^^ Not one hundred percent sure if this is needed- if it aint broke, don't fix it
@@ -489,6 +489,113 @@ in
 
           SNAPSHOT=$(${pkgs.restic}/bin/restic snapshots --latest 1 --json \
             | ${pkgs.jq}/bin/jq -r '.[0].short_id')
+
+          echo "Done. Snapshot: $SNAPSHOT"
+        '';
+      };
+
+      db-backup-twenty-crm = {
+        enable = true;
+        description = "Backup Twenty CRM Database & File Storage to Cloudflare R2";
+        after = [
+          "network-online.target"
+          "docker.service"
+        ];
+        requires = [ "network-online.target" ];
+        serviceConfig = {
+          Type = "oneshot";
+          User = "root";
+          Group = "root";
+          WorkingDirectory = "/tmp";
+          EnvironmentFile = config.age.secrets.twenty-crm-backup-env.path;
+        };
+        script = ''
+          #! ${pkgs.bash}/bin/bash
+          set -euo pipefail
+
+          notify_failure() {
+            ${data.configDirectory}/tools/telegram/notify.sh \
+              "❌ *Twenty CRM backup failed on ${hostname}*
+          $1" || true
+          }
+
+          DATE=$(date '+%Y-%m-%d_%H-%M')
+          echo "Starting Twenty CRM backup: $DATE"
+
+          # Coolify names compose services as <service>-<random-id>
+          DB_CONTAINER=$(${pkgs.docker}/bin/docker ps --format '{{.Names}}' | grep '^db-' | head -n1)
+          SERVER_CONTAINER=$(${pkgs.docker}/bin/docker ps --format '{{.Names}}' | grep '^server-' | head -n1)
+
+          if [ -z "$DB_CONTAINER" ]; then
+            notify_failure "Twenty CRM postgres container (db-*) not found."
+            exit 1
+          fi
+
+          if [ -z "$SERVER_CONTAINER" ]; then
+            notify_failure "Twenty CRM server container (server-*) not found."
+            exit 1
+          fi
+
+          echo "Found db container: $DB_CONTAINER"
+          echo "Found server container: $SERVER_CONTAINER"
+
+          STORAGE_PATH=$(${pkgs.docker}/bin/docker inspect "$SERVER_CONTAINER" \
+            --format '{{ range .Mounts }}{{ if eq .Destination "/app/packages/twenty-server/.local-storage" }}{{ .Source }}{{ end }}{{ end }}')
+
+          DB_USER=$(${pkgs.docker}/bin/docker exec "$DB_CONTAINER" printenv POSTGRES_USER || true)
+          DB_NAME=$(${pkgs.docker}/bin/docker exec "$DB_CONTAINER" printenv POSTGRES_DB || true)
+          DB_USER="''${DB_USER:-postgres}"
+          # Official compose defaults to "default"; older docs still say "twenty"
+          DB_NAME="''${DB_NAME:-default}"
+
+          BACKUP_FILE="twenty-crm-db.sql.gz"
+
+          echo "Dumping database $DB_NAME as $DB_USER..."
+
+          if ! ${pkgs.docker}/bin/docker exec -T "$DB_CONTAINER" \
+            pg_dump -U "$DB_USER" "$DB_NAME" \
+            | ${pkgs.gzip}/bin/gzip -9c > "$BACKUP_FILE"; then
+            notify_failure "Failed to dump and compress PostgreSQL backup."
+            rm -f "$BACKUP_FILE"
+            exit 1
+          fi
+
+          BACKUP_SIZE=$(du -sh "$BACKUP_FILE" | cut -f1)
+          echo "Dump complete ($BACKUP_SIZE)"
+
+          RESTIC_PATHS=("$BACKUP_FILE")
+          if [ -n "$STORAGE_PATH" ] && [ -d "$STORAGE_PATH" ]; then
+            echo "Including file storage: $STORAGE_PATH"
+            RESTIC_PATHS+=("$STORAGE_PATH")
+          else
+            echo "Local file storage path not found; backing up database dump only."
+          fi
+
+          echo "Backing up with restic..."
+
+          if ! ${pkgs.restic}/bin/restic backup \
+            --tag twenty-crm \
+            --tag automated \
+            "''${RESTIC_PATHS[@]}"; then
+            notify_failure "restic backup command returned non-zero."
+            rm -f "$BACKUP_FILE"
+            exit 1
+          fi
+
+          if ! ${pkgs.restic}/bin/restic forget \
+            --prune \
+            --keep-daily 7 \
+            --keep-weekly 4 \
+            --keep-monthly 3; then
+            notify_failure "restic forget --prune command returned non-zero."
+            rm -f "$BACKUP_FILE"
+            exit 1
+          fi
+
+          SNAPSHOT=$(${pkgs.restic}/bin/restic snapshots --latest 1 --json \
+            | ${pkgs.jq}/bin/jq -r '.[0].short_id')
+
+          rm -f "$BACKUP_FILE"
 
           echo "Done. Snapshot: $SNAPSHOT"
         '';
@@ -807,6 +914,15 @@ in
           OnCalendar = "03:30";
           Persistent = true;
           Unit = "db-backup-uptime-kuma.service";
+        };
+      };
+
+      db-backup-twenty-crm = {
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnCalendar = "04:30";
+          Persistent = true;
+          Unit = "db-backup-twenty-crm.service";
         };
       };
 
