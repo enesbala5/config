@@ -54,6 +54,8 @@ in
   "audiobookshelf-database-backup-env.age" = rootConfig;
   "uptime-kuma-database-backup-env.age" = rootConfig;
   "twenty-crm-backup-env.age" = rootConfig;
+  "garage-backup-local-env.age" = rootConfig;
+  "garage-backup-cloud-env.age" = rootConfig;
 
   "restart-cloudflared-service-env.age" = rootConfig;
   "notify-server-boot-service-env.age" = rootConfig;

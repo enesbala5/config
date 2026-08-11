@@ -25,10 +25,10 @@ Import only the folder from the host entrypoint (`./modules/garage` → `default
 
 ## Task Checklist
 
-- [ ] **Step 1:** Create `nix/nixos/hosts/home-server/modules/garage/default.nix` (daemon + dual-disk layout + backup imports).
-- [ ] **Step 2:** Create `backup/local.nix` and `backup/cloud.nix`; add age secrets for each restic env.
-- [ ] **Step 3:** Import `./modules/garage` in `nix/nixos/hosts/home-server/default.nix` and apply via `nixos-rebuild switch`.
-- [ ] **Step 4:** Run initial Garage cluster layout assignment and key generation (`scripts/init-garage.sh`).
+- [x] **Step 1:** Create `nix/nixos/hosts/home-server/modules/garage/default.nix` (daemon + dual-disk layout + backup imports).
+- [x] **Step 2:** Create `backup/local.nix` and `backup/cloud.nix`; add age secret entries in `secrets.nix` (`.age` files still need creating with agenix).
+- [ ] **Step 3:** Create the two `.age` env files, then apply via `nixos-rebuild switch` on home-server (`./modules/garage` already imported).
+- [ ] **Step 4:** Run initial Garage cluster layout assignment and key generation (`scripts/hosts/home-server/init-garage.sh`).
 - [ ] **Step 5:** `restic init` both repos (local path + B2), then verify one manual run of each backup unit.
 
 ---
@@ -366,10 +366,20 @@ in
 
 Add to `nix/secrets/secrets.nix` (same pattern as existing `*-database-backup-env.age`):
 
-- `garage-backup-local-env.age`
-- `garage-backup-cloud-env.age`
+- [x] `garage-backup-local-env.age` (entry in `secrets.nix`; create the encrypted file with agenix)
+- [x] `garage-backup-cloud-env.age` (entry in `secrets.nix`; create the encrypted file with agenix)
 
 Wire both under `age.secrets` on the home-server host (or shared secrets map, matching existing backup env secrets).
+
+`base-configuration.nix` already maps every `secrets.nix` entry into `age.secrets`, so once the `.age` files exist under `nix/secrets/`, they are wired automatically.
+
+Create the files from the repo secrets dir, e.g.:
+
+```bash
+cd nix/secrets
+agenix -e garage-backup-local-env.age
+agenix -e garage-backup-cloud-env.age
+```
 
 ---
 
