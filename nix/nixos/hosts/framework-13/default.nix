@@ -204,10 +204,6 @@ in
     # Enable Flatpak Support
     flatpak = {
       enable = true;
-      # package = [
-      #   "app.zen_browser.zen"
-      #   "net.fasterland.converseen"
-      # ];
     };
 
     # Power management.
@@ -267,27 +263,6 @@ in
       };
 
       # display-manager.environment.XDG_CURRENT_DESKTOP = "X-NIXOS-SYSTEMD-AWARE";
-
-      cursor-update = {
-        enable = true;
-        description = "Update Cursor Application";
-        path = [
-          pkgs.bash
-          pkgs.wget
-        ];
-        unitConfig = {
-          Type = "oneshot";
-        };
-        serviceConfig = {
-          ExecStart = "${data.configDirectory}/tools/cursor/update-cursor.sh";
-          User = data.username;
-          Group = "users";
-          Environment = [
-            "HOME=${data.homeDirectory}"
-            "PATH=/run/current-system/sw/bin:/run/wrappers/bin"
-          ];
-        };
-      };
 
       rclone = {
         enable = true;
@@ -350,15 +325,6 @@ in
         timerConfig = {
           Unit = "rclone.service";
           OnCalendar = "*:0/30";
-          Persistent = true;
-        };
-      };
-      cursor-update = {
-        wantedBy = [ "timers.target" ];
-
-        timerConfig = {
-          Unit = "cursor-update.service";
-          OnCalendar = "*-*-1/2 00:00:00";
           Persistent = true;
         };
       };
@@ -502,7 +468,7 @@ in
   # List packages installed in system profile. To search, run: `nix search wget`
   environment.systemPackages =
     (with pkgs; [
-    fprintd
+      fprintd
       teamviewer
       powertop
       iw

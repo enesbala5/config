@@ -79,7 +79,6 @@ in
 
       # IDE
       vscode
-      cursor-cli
 
       # TTS
       handy
@@ -90,6 +89,8 @@ in
       affinity-nix.packages.${system}.default
       hyprshutdown.packages.${system}.default
       zed-editor.packages.${system}.default
+      cursor-nix.packages.${system}.default
+      cursor-nix.packages.${system}.cursor-cli
     ]);
 
   programs = {
@@ -447,19 +448,6 @@ in
     };
 
     desktopEntries = {
-      cursor = {
-        name = "Cursor";
-        genericName = "Code Editor";
-        icon = "${data.configDirectory}/tools/cursor/icon.png";
-        exec = "appimage-run ${data.homeDirectory}/programs/cursor/cursor.AppImage";
-        type = "Application";
-        terminal = false;
-        categories = [
-          "Utility"
-          "Development"
-        ];
-      };
-
       helium = {
         name = "Helium";
         genericName = "Web Browser";
