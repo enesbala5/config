@@ -117,9 +117,10 @@
 			"default": "allow"
 		},
 		"default_model": {
-			"enable_thinking": false,
-			"provider": "mistral",
-			"model": "ministral-14b-latest"
+			"effort": "low",
+   "enable_thinking": true,
+			"provider": "google",
+			"model": "gemini-3-flash-preview"
 		},
 		"model_parameters": []
 	},
