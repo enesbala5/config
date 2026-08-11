@@ -192,7 +192,7 @@ in
         #   "force group" = "groupname";
         # };
         "private" = {
-          "path" = "/mnt/hdd/";
+          "path" = "/mnt/hdd/nas";
           "browseable" = "yes";
           "read only" = "no";
           "guest ok" = "no";
