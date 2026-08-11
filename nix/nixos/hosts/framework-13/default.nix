@@ -487,6 +487,9 @@ in
       phodav
       devcontainer
       restic
+
+      # Native host for Plasma Browser Integration (extension still installed in-browser)
+      kdePackages.plasma-browser-integration
     ])
     ++ (with unstable; [
     ])
