@@ -5,14 +5,13 @@
   programs.plasma = {
     enable = true;
 
-    # Dolphin/KIO drop menu (Plasma 6.4+ / KF 6.14+): move on same device
-    # instead of always asking Move/Copy/Link. Cross-device still prompts.
-    # Key lives in kdeglobals [KDE], not dolphinrc.
+    # Official Plasma 6.4+ / KF 6.14+ setting (System Settings → Workspace
+    # Behavior → Drag and Drop). KIO DropJob reads this on each drop.
+    # Same device → move without menu; Shift → show menu; other device → ask.
     configFile."kdeglobals"."KDE"."DndBehavior" = "MoveIfSameDevice";
 
-    # CANARY: absurd Places sidebar icons — if you don't see huge icons after
-    # pkill dolphin && dolphin, plasma-manager / dolphinrc is not being read.
-    # Remove once confirmed.
-    configFile."dolphinrc"."PlacesPanel"."IconSize" = 256;
+    # Also on dolphinrc: DropJob uses KSharedConfig::openConfig() (app rc +
+    # kdeglobals cascade). Writing both removes cascade ambiguity.
+    configFile."dolphinrc"."KDE"."DndBehavior" = "MoveIfSameDevice";
   };
 }
