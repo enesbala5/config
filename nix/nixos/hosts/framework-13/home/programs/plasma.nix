@@ -5,7 +5,14 @@
   programs.plasma = {
     enable = true;
 
-    # Only write declared keys; leave the rest of dolphinrc alone.
-    configFile."dolphinrc"."General"."DragAndDropAction" = 4;
+    # Dolphin/KIO drop menu (Plasma 6.4+ / KF 6.14+): move on same device
+    # instead of always asking Move/Copy/Link. Cross-device still prompts.
+    # Key lives in kdeglobals [KDE], not dolphinrc.
+    configFile."kdeglobals"."KDE"."DndBehavior" = "MoveIfSameDevice";
+
+    # CANARY: absurd Places sidebar icons — if you don't see huge icons after
+    # pkill dolphin && dolphin, plasma-manager / dolphinrc is not being read.
+    # Remove once confirmed.
+    configFile."dolphinrc"."PlacesPanel"."IconSize" = 256;
   };
 }
