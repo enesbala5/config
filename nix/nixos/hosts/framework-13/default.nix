@@ -505,14 +505,6 @@ in
     dconf.enable = true;
 
     kdeconnect.enable = true;
-
-    # Registers /etc/{chromium,opt/chrome}/native-messaging-hosts for the host above.
-    # (Not a full Chromium install — only policies/NMH wiring.)
-    chromium = {
-      enable = true;
-      enablePlasmaBrowserIntegration = true;
-      plasmaBrowserIntegrationPackage = pkgs.kdePackages.plasma-browser-integration;
-    };
   };
 
   # ------------------------------------------------------------------------------------------

@@ -38,7 +38,6 @@
       let
         pbi = pkgs.kdePackages.plasma-browser-integration;
         chromiumHost = "${pbi}/etc/chromium/native-messaging-hosts/org.kde.plasma.browser_integration.json";
-        mozillaHost = "${pbi}/lib/mozilla/native-messaging-hosts/org.kde.plasma.browser_integration.json";
       in
       {
         ".config/hypr/hyprlock.conf" = {
@@ -63,11 +62,9 @@
           recursive = true;
         };
 
-        # Plasma Browser Integration — native hosts for browsers that don't use /etc
+        # Plasma Browser Integration native host (Helium)
         ".config/net.imput.helium/NativeMessagingHosts/org.kde.plasma.browser_integration.json".source =
           chromiumHost;
-        ".mozilla/native-messaging-hosts/org.kde.plasma.browser_integration.json".source = mozillaHost;
-        ".zen/native-messaging-hosts/org.kde.plasma.browser_integration.json".source = mozillaHost;
       };
 
     systemd.user = {
