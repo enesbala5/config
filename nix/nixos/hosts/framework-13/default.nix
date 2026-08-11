@@ -201,6 +201,11 @@ in
     # Enable CUPS to print documents.
     printing.enable = true;
 
+    # Enable Flatpak Support
+    flatpak = {
+      enable = true;
+    };
+
     # Power management.
     logind = {
       settings.Login.HandlePowerKey = "suspend"; # Suspend on power button press
@@ -463,7 +468,7 @@ in
   # List packages installed in system profile. To search, run: `nix search wget`
   environment.systemPackages =
     (with pkgs; [
-    fprintd
+      fprintd
       teamviewer
       powertop
       iw
