@@ -82,7 +82,7 @@ in
   power.ups = {
     enable = true;
     mode = "standalone";
-    schedulerRules = nutUpsschedConf;
+    schedulerRules = "${nutUpsschedConf}";
 
     ups."makelsan" = {
       driver = "nutdrv_qx";
