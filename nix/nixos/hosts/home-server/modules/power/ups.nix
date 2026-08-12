@@ -65,6 +65,33 @@ let
     esac
   '';
 
+  # FSD if on battery and voltage stays below 11.5 V for ~30s (empty-under-load, not fake %).
+  nutLowVoltageWatch = pkgs.writeShellScript "nut-low-voltage-watch" ''
+    set -u
+    UPSC="${pkgs.nut}/bin/upsc"
+    UPSMON="${pkgs.nut}/bin/upsmon"
+    AWK="${pkgs.gawk}/bin/awk"
+    GREP="${pkgs.gnugrep}/bin/grep"
+    SLEEP="${pkgs.coreutils}/bin/sleep"
+    below=0
+    while true; do
+      status=$($UPSC makelsan ups.status 2>/dev/null || true)
+      volt=$($UPSC makelsan battery.voltage 2>/dev/null || true)
+      if echo "$status" | $GREP -q OB \
+        && $AWK -v v="$volt" 'BEGIN { exit !(v+0 > 0 && v+0 < 11.5) }'; then
+        below=$((below + 1))
+        if [ "$below" -ge 6 ]; then
+          $UPSMON -c fsd || true
+          below=0
+          $SLEEP 30
+        fi
+      else
+        below=0
+      fi
+      $SLEEP 5
+    done
+  '';
+
   nutUpsschedConf = pkgs.writeText "upssched.conf" ''
     CMDSCRIPT ${nutTelegramNotify}
     PIPEFN /run/nut/upssched.pipe
@@ -74,8 +101,8 @@ let
     AT ONBATT * START-TIMER onbatt-notify 10
     AT ONLINE * CANCEL-TIMER onbatt-notify
     AT ONLINE * EXECUTE online-notify
-    # Voltage-based SoC sags under load (93%→50% in ~1 min). Time-box instead of ignorelb@40%.
-    AT ONBATT * START-TIMER fsd-onbatt 480
+    # Worn packs lose runtime; 7 min leaves margin for shutdown+killpower on a tired 650VA.
+    AT ONBATT * START-TIMER fsd-onbatt 420
     AT ONLINE * CANCEL-TIMER fsd-onbatt
     AT SHUTDOWN * EXECUTE shutdown-notify
     AT FSD * EXECUTE shutdown-notify
@@ -158,6 +185,20 @@ in
   # Telegram credentials for NUT notify (ONBATT / ONLINE / SHUTDOWN).
   systemd.services.upsmon.serviceConfig.EnvironmentFile =
     config.age.secrets.notify-server-boot-service-env.path;
+
+  systemd.services.ups-low-voltage-watch = {
+    description = "FSD if Makelsan battery voltage stays below 11.5V on battery";
+    after = [ "upsmon.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = nutLowVoltageWatch;
+      Restart = "always";
+      RestartSec = "10s";
+      User = config.power.ups.upsmon.user;
+      Group = config.power.ups.upsmon.group;
+    };
+  };
 
   # upssched (nutmon) must create PIPEFN/LOCKFN here; NixOS leaves /run/nut root:root 0755.
   systemd.tmpfiles.rules = [
