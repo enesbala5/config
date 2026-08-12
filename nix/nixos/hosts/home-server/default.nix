@@ -11,6 +11,9 @@
 let
 in
 {
+  imports = [
+    ./modules/power/ups.nix
+  ];
 
   # ------------------------------------------------------------------------------------------
   # Accounts
@@ -888,35 +891,6 @@ in
       # package = unstable.mesa.drivers;
       # driSupport32Bit = true;
       # package32 = unstable.pkgsi686Linux.mesa.drivers;
-    };
-  };
-
-  # ------------------------------------------------------------------------------------------
-  # Power / UPS (NUT)
-  # ------------------------------------------------------------------------------------------
-
-  power.ups = {
-    enable = true;
-    mode = "standalone";
-
-    ups."makkelsan" = {
-      driver = "nutdrv_qx";
-      port = "auto";
-      description = "MAKKELSAN Lion 650VA";
-      directives = [
-        "vendorid = 0001"
-        "productid = 0000"
-
-        # Cut UPS output after shutdown so BIOS "Restore on AC" sees a real power loss.
-        # offdelay must cover a full nixos shutdown (docker/coolify can be slow).
-        "offdelay = 90"
-        # Must be > offdelay; short gap is enough for the PSU/mobo to register disconnect.
-        "ondelay = 100"
-
-        # ~15 min runtime → 40% ≈ ~6 min left for graceful shutdown (safer than waiting on LB).
-        "lowbatt = 40"
-        "ignorelb"
-      ];
     };
   };
 
