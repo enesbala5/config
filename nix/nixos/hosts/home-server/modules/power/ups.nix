@@ -106,8 +106,14 @@ in
         # Must be > offdelay; short gap is enough for the PSU/mobo to register disconnect.
         "ondelay = 100"
 
+        # This Qx unit reports voltage (~13.7 V), not charge. Estimate SoC so ignorelb can work.
+        "default.battery.voltage.high = 13.8"
+        "default.battery.voltage.low = 11.0"
+        "override.battery.packs = 1"
+        # ~15 min class runtime at moderate load (650VA); used for guesstimated remaining time.
+        "runtimecal = 300,100,900,50"
+
         # nutdrv_qx has no `lowbatt`; ignore the UPS LB flag and trip at 40% charge instead.
-        # ~15 min runtime → 40% ≈ ~6 min left for graceful shutdown.
         "ignorelb"
         "override.battery.charge.low = 40"
       ];
