@@ -1,7 +1,6 @@
 {
   config,
   pkgs,
-  data,
   hostname,
   ...
 }:
@@ -20,29 +19,31 @@ let
     fi
 
     notify() {
-      ${data.configDirectory}/tools/telegram/notify.sh "$1" || true
-    }
-
-    ups_charge() {
-      ${pkgs.nut}/bin/upsc makelsan battery.charge 2>/dev/null || echo "?"
-    }
-
-    ups_runtime_msg() {
-      local runtime
-      runtime=$(${pkgs.nut}/bin/upsc makelsan battery.runtime 2>/dev/null || true)
-      if [[ "$runtime" =~ ^[0-9]+$ ]]; then
-        echo "~$((runtime / 60)) min remaining"
-      else
-        echo "runtime unknown"
+      local text="$1"
+      local code
+      code=$(${pkgs.curl}/bin/curl -s -o /dev/null -w "%{http_code}" -m 10 -X POST \
+        "https://api.telegram.org/bot''${TELEGRAM_BOT_TOKEN}/sendMessage" \
+        --data-urlencode "chat_id=''${TELEGRAM_CHAT_ID}" \
+        --data-urlencode "text=''${text}" \
+        --data-urlencode "parse_mode=Markdown" || true)
+      if [ "$code" != "200" ]; then
+        ${pkgs.curl}/bin/curl -s -o /dev/null -m 10 -X POST \
+          "https://api.telegram.org/bot''${TELEGRAM_BOT_TOKEN}/sendMessage" \
+          --data-urlencode "chat_id=''${TELEGRAM_CHAT_ID}" \
+          --data-urlencode "text=''${text}" || true
       fi
+    }
+
+    ups_field() {
+      ${pkgs.nut}/bin/upsc makelsan "$1" 2>/dev/null || echo "?"
     }
 
     case "''${1:-}" in
       onbatt-notify)
         notify "⚡ *Home Server on UPS power*
     🖥️ Host: ${hostname}
-    🔋 Charge: $(ups_charge)%
-    ⏱️ $(ups_runtime_msg)"
+    🔋 Battery: $(ups_field battery.voltage) V
+    🔌 Load: $(ups_field ups.load)%"
         ;;
       online-notify)
         notify "✅ *Mains power restored on ${hostname}*
@@ -51,8 +52,11 @@ let
       shutdown-notify)
         notify "🛑 *Home Server shutting down (UPS)*
     🖥️ Host: ${hostname}
-    🔋 Charge: $(ups_charge)%
+    🔋 Battery: $(ups_field battery.voltage) V
     ⏱️ Soft shutdown starting — Restore-on-AC will reboot when power returns."
+        ;;
+      fsd-onbatt)
+        ${pkgs.nut}/bin/upsmon -c fsd || true
         ;;
       *)
         echo "nut-telegram-notify: unknown event ''${1:-}" >&2
@@ -70,6 +74,9 @@ let
     AT ONBATT * START-TIMER onbatt-notify 10
     AT ONLINE * CANCEL-TIMER onbatt-notify
     AT ONLINE * EXECUTE online-notify
+    # Voltage-based SoC sags under load (93%→50% in ~1 min). Time-box instead of ignorelb@40%.
+    AT ONBATT * START-TIMER fsd-onbatt 480
+    AT ONLINE * CANCEL-TIMER fsd-onbatt
     AT SHUTDOWN * EXECUTE shutdown-notify
     AT FSD * EXECUTE shutdown-notify
   '';
@@ -106,16 +113,11 @@ in
         "offdelay = 120"
         "ondelay = 180"
 
-        # This Qx unit reports voltage (~13.7 V), not charge. Estimate SoC so ignorelb can work.
+        # Voltage→charge is display-only (sags under load). Do not use ignorelb on that number.
         "default.battery.voltage.high = 13.8"
         "default.battery.voltage.low = 11.0"
         "override.battery.packs = 1"
-        # ~15 min class runtime at moderate load (650VA); used for guesstimated remaining time.
         "runtimecal = 300,100,900,50"
-
-        # nutdrv_qx has no `lowbatt`; ignore the UPS LB flag and trip at 40% charge instead.
-        "ignorelb"
-        "override.battery.charge.low = 40"
       ];
     };
 
@@ -153,7 +155,12 @@ in
     };
   };
 
-  # Telegram credentials for NUT → notify.sh (ONBATT / ONLINE / SHUTDOWN).
+  # Telegram credentials for NUT notify (ONBATT / ONLINE / SHUTDOWN).
   systemd.services.upsmon.serviceConfig.EnvironmentFile =
     config.age.secrets.notify-server-boot-service-env.path;
+
+  # upssched (nutmon) must create PIPEFN/LOCKFN here; NixOS leaves /run/nut root:root 0755.
+  systemd.tmpfiles.rules = [
+    "d /run/nut 0770 root ${config.power.ups.upsmon.group} -"
+  ];
 }
