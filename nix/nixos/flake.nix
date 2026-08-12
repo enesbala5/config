@@ -128,6 +128,8 @@
         # Google Drive
         googleDriveRemoteName = "gdrive";
         googleDriveLocalDir = "${data.homeDirectory}/gdrive";
+        # Writable copy of agenix rclone-conf (token refresh); seeded on activation
+        rcloneGdriveConfigPath = "${data.homeDirectory}/.config/rclone/rclone.conf";
 
         schemes = {
           light = "${data.configDirectory}/misc/scheme/google-light.yaml";
