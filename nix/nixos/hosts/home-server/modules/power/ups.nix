@@ -91,6 +91,14 @@ in
       directives = [
         "vendorid = 0001"
         "productid = 0000"
+        # Empty USB strings make autodetection pick krauler and fail with "Device not supported".
+        # Working combo for Makelsan Lion 0001:0000 (NUT HCL #2991).
+        "subdriver = snr"
+        "protocol = megatec"
+        "langid_fix = 0x0409"
+        "noscanlangid"
+        "novendor"
+        "norating"
 
         # Cut UPS output after shutdown so BIOS "Restore on AC" sees a real power loss.
         # offdelay must cover a full nixos shutdown (docker/coolify can be slow).
