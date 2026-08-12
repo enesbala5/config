@@ -469,6 +469,22 @@ in
         ];
       };
 
+      # Avoid libsecret/keyring hangs after keyring resets on Hyprland.
+      discord = {
+        name = "Discord";
+        genericName = "All-in-one cross-platform voice and text chat for gamers";
+        icon = "discord";
+        exec = "Discord --password-store=basic";
+        type = "Application";
+        terminal = false;
+        mimeType = [ "x-scheme-handler/discord" ];
+        categories = [
+          "Network"
+          "InstantMessaging"
+        ];
+        settings.StartupWMClass = "discord";
+      };
+
       pencil = {
         name = "Pencil";
         genericName = "Vector Graphics Editor";
