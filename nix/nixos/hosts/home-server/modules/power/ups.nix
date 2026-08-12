@@ -92,19 +92,19 @@ in
         "vendorid = 0001"
         "productid = 0000"
         # Empty USB strings make autodetection pick krauler and fail with "Device not supported".
-        # Working combo for Makelsan Lion 0001:0000 (NUT HCL #2991).
-        "subdriver = snr"
+        # hunnox (not snr) is required for shutdown/killpower on this 0001:0000 chip (NUT HCL #2991).
+        "subdriver = hunnox"
         "protocol = megatec"
         "langid_fix = 0x0409"
         "noscanlangid"
         "novendor"
         "norating"
+        "allow_killpower"
 
-        # Cut UPS output after shutdown so BIOS "Restore on AC" sees a real power loss.
-        # offdelay must cover a full nixos shutdown (docker/coolify can be slow).
-        "offdelay = 90"
-        # Must be > offdelay; short gap is enough for the PSU/mobo to register disconnect.
-        "ondelay = 100"
+        # Megatec rounds these to 60s steps; ondelay must stay > offdelay after rounding.
+        # 120s covers a slow nixos/docker shutdown; 180s is the next step so Restore-on-AC sees a real gap.
+        "offdelay = 120"
+        "ondelay = 180"
 
         # This Qx unit reports voltage (~13.7 V), not charge. Estimate SoC so ignorelb can work.
         "default.battery.voltage.high = 13.8"
