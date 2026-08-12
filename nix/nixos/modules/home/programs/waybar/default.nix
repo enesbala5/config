@@ -49,6 +49,7 @@
           "custom/weather"
         ];
         modules-center = [
+          "custom/screen-record"
           "clock#date"
           "custom/separator"
           "clock#time"
@@ -93,6 +94,14 @@
           format = "Tirana - {}";
           interval = 900;
           max-length = 40;
+          tooltip = true;
+        };
+        "custom/screen-record" = {
+          exec = "${data.configDirectory}/scripts/utilities/screen-record.sh status";
+          return-type = "json";
+          interval = 1;
+          signal = 9;
+          hide-empty-text = true;
           tooltip = true;
         };
         "clock#date" = {
@@ -260,6 +269,13 @@
                   	padding-left: 6px;
                   	padding-right: 6px;
                     opacity: 0.5;
+                  }
+
+                  #custom-screen-record {
+                    color: #e64553;
+                    font-size: 8pt;
+                    padding-right: 3px;
+                    margin-bottom: 1px;
                   }
 
                   #custom-spotify-pause {

@@ -488,6 +488,7 @@ in
 
       kdePackages.ark # Archive Manager
       kdePackages.dolphin-plugins # Plugins for Dolphin
+      kdePackages.ffmpegthumbs # Video thumbnails / previews in Dolphin
       kdePackages.kompare # Graphical File Differences Tool
       kdePackages.qtsvg # Icons (for Dolphin)
       kdePackages.kio # Network File System (Dolphin)
