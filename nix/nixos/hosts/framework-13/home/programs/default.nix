@@ -361,7 +361,7 @@ in
     mimeApps = {
       enable = true;
       defaultApplications = {
-        "inode/directory" = "thunar.desktop";
+        "inode/directory" = "org.kde.dolphin.desktop";
         "x-scheme-handler/http" = [
           "helium.desktop"
           "zen-beta.desktop"
