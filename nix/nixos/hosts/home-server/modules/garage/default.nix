@@ -28,8 +28,8 @@ in
   #
   # Not mounted yet (do NOT add tmpfiles for these until fileSystems exist,
   # or dirs are created on the SSD root):
-  #   /mnt/hdd-256   — Seagate 256GB ST9250827AS (scratch / stream cache)
-  #   /mnt/hdd-512   — Seagate 512GB external (offline backup target, nofail)
+  #   /mnt/seagate-256-hdd   — Seagate 256GB ST9250827AS (scratch / stream cache)
+  #   /mnt/seagate-512-hdd   — Seagate 512GB external (offline backup target, nofail)
   systemd.tmpfiles.rules = [
     # --- SSD (root): Garage metadata only (small, latency-sensitive) ---
     "d /var/lib/garage/meta 0700 garage garage -"
@@ -56,16 +56,16 @@ in
     "d /mnt/hdd/cold/backups 0750 ${data.username} users -"
     "d /mnt/hdd/cold/backups/garage 0700 ${data.username} users -"
 
-    # --- Future: Seagate 256GB @ /mnt/hdd-256 (after fileSystems entry) ---
+    # --- Future: Seagate 256GB @ /mnt/seagate-256-hdd (after fileSystems entry) ---
     # Scratch + Stremio/torrent incomplete — keep write wear off SSD + 4TB
-    # "d /mnt/hdd-256/scratch 0755 ${data.username} users -"
-    # "d /mnt/hdd-256/stremio-cache 0755 ${data.username} users -"
-    # "d /mnt/hdd-256/torrent-incomplete 0755 ${data.username} users -"
+    # "d /mnt/seagate-256-hdd/scratch 0755 ${data.username} users -"
+    # "d /mnt/seagate-256-hdd/stremio-cache 0755 ${data.username} users -"
+    # "d /mnt/seagate-256-hdd/torrent-incomplete 0755 ${data.username} users -"
 
-    # --- Future: Seagate 512GB external @ /mnt/hdd-512 (nofail) ---
+    # ---  Seagate 512GB external @ /mnt/seagate-512-hdd (nofail) ---
     # Optional second local restic target once mounted:
-    # "d /mnt/hdd-512/backups 0750 ${data.username} users -"
-    # "d /mnt/hdd-512/backups/garage 0700 ${data.username} users -"
+    "d /mnt/seagate-512-hdd/backups 0750 ${data.username} users -"
+    "d /mnt/seagate-512-hdd/backups/garage 0700 ${data.username} users -"
   ];
 
   services.garage = {
@@ -103,12 +103,12 @@ in
       "local-fs.target"
     ];
     wants = [ "network-online.target" ];
-    
+
     serviceConfig = {
       DynamicUser = false;
       User = "garage";
       Group = "garage";
-      
+
       ExecStartPre = [
         "+${pkgs.writeShellScript "garage-ensure-rpc-secret" ''
           set -euo pipefail

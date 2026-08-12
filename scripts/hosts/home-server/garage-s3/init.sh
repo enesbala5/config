@@ -11,8 +11,8 @@ fi
 
 echo "Found Node ID: $NODE_ID"
 
-echo "==> Assigning capacity (4000G to 'local' zone)..."
-sudo garage layout assign "$NODE_ID" --capacity 4000G --zone local
+echo "==> Assigning capacity (1000G to 'local' zone)..."
+sudo garage layout assign "$NODE_ID" --capacity 1000G --zone local
 
 echo "==> Applying layout..."
 sudo garage layout apply --version 1

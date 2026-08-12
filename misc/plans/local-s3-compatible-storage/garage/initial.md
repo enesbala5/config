@@ -2,6 +2,9 @@
 
 This document outlines the step-by-step implementation plan and Nix code required to run Garage S3 on NixOS with a dual-drive layout (SSD for metadata, 4TB HDD for data) and dual `restic` backups:
 
+> [!important] Issue with plan
+> The plan currently outlines doing local backups on the same HDD - where instead we want the backups on the Seagate 512 GB HDD. This has been fixed during implementation.
+
 - **Local** — restic repo on the Toshiba 4TB HDD (`/mnt/hdd/cold/backups/garage`)
 - **Cloud** — restic repo on remote S3 (Backblaze B2), every 24 hours
 
@@ -28,7 +31,7 @@ Import only the folder from the host entrypoint (`./modules/garage` → `default
 - [x] **Step 1:** Create `nix/nixos/hosts/home-server/modules/garage/default.nix` (daemon + dual-disk layout + backup imports).
 - [x] **Step 2:** Create `backup/local.nix` and `backup/cloud.nix`; add age secret entries in `secrets.nix` (`.age` files still need creating with agenix).
 - [ ] **Step 3:** Create the two `.age` env files, then apply via `nixos-rebuild switch` on home-server (`./modules/garage` already imported).
-- [ ] **Step 4:** Run initial Garage cluster layout assignment and key generation (`scripts/hosts/home-server/init-garage.sh`).
+- [ ] **Step 4:** Run initial Garage cluster layout assignment and key generation (`scripts/hosts/home-server/garage-s3/init.sh`).
 - [ ] **Step 5:** `restic init` both repos (local path + B2), then verify one manual run of each backup unit.
 
 ---
@@ -64,8 +67,9 @@ Import only the folder from the host entrypoint (`./modules/garage` → `default
   #
   # Not mounted yet (do NOT add tmpfiles for these until fileSystems exist,
   # or dirs are created on the SSD root):
-  #   /mnt/hdd-256   — Seagate 256GB ST9250827AS (scratch / stream cache)
-  #   /mnt/hdd-512   — Seagate 512GB external (offline backup target, nofail)
+  #   /mnt/seagate-256-hdd   — Seagate 256GB ST9250827AS (scratch / stream cache)
+  #   /mnt/seagate-512-hdd   — Seagate 512GB external (offline backup target, nofail)
+  
   systemd.tmpfiles.rules = [
     # --- SSD (root): Garage metadata only (small, latency-sensitive) ---
     "d /var/lib/garage/meta 0700 garage garage -"
@@ -91,16 +95,16 @@ Import only the folder from the host entrypoint (`./modules/garage` → `default
     "d /mnt/hdd/cold/backups 0750 ${data.username} users -"
     "d /mnt/hdd/cold/backups/garage 0700 ${data.username} users -"
 
-    # --- Future: Seagate 256GB @ /mnt/hdd-256 (after fileSystems entry) ---
+    # --- Future: Seagate 256GB @ /mnt/seagate-256-hdd (after fileSystems entry) ---
     # Scratch + Stremio/torrent incomplete — keep write wear off SSD + 4TB
-    # "d /mnt/hdd-256/scratch 0755 ${data.username} users -"
-    # "d /mnt/hdd-256/stremio-cache 0755 ${data.username} users -"
-    # "d /mnt/hdd-256/torrent-incomplete 0755 ${data.username} users -"
+    # "d /mnt/seagate-256-hdd/scratch 0755 ${data.username} users -"
+    # "d /mnt/seagate-256-hdd/stremio-cache 0755 ${data.username} users -"
+    # "d /mnt/seagate-256-hdd/torrent-incomplete 0755 ${data.username} users -"
 
-    # --- Future: Seagate 512GB external @ /mnt/hdd-512 (nofail) ---
+    # --- Future: Seagate 512GB external @ /mnt/seagate-512-hdd (nofail) ---
     # Optional second local restic target once mounted:
-    # "d /mnt/hdd-512/backups 0750 ${data.username} users -"
-    # "d /mnt/hdd-512/backups/garage 0700 ${data.username} users -"
+    # "d /mnt/seagate-512-hdd/backups 0750 ${data.username} users -"
+    # "d /mnt/seagate-512-hdd/backups/garage 0700 ${data.username} users -"
   ];
 
   services.garage = {
@@ -138,7 +142,7 @@ Import only the folder from the host entrypoint (`./modules/garage` → `default
 
 ---
 
-## 2. Cluster Initialization Script (`scripts/init-garage.sh`)
+## 2. Cluster Initialization Script (`scripts/garage-s3/init.sh`)
 
 Create a script to run once after rebuilding NixOS to initialize the node layout and keys:
 

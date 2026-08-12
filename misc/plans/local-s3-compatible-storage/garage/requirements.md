@@ -35,23 +35,21 @@ Key should allow read/write/list/delete on that bucket (enough for `restic backu
 Both files are listed in `nix/secrets/secrets.nix` but **do not exist yet** under `nix/secrets/`. Create them from that directory:
 
 ```bash
-cd ~/config/nix/secrets
 manage-secret garage-backup-local-env.age
 manage-secret garage-backup-cloud-env.age
-# or: EDITOR='zeditor --wait' agenix -e <file>
 ```
 
 ### `garage-backup-local-env.age`
 
 ```bash
-RESTIC_REPOSITORY=/mnt/hdd/cold/backups/garage
+RESTIC_REPOSITORY=/mnt/seagate-512-hdd/backups/garage
 RESTIC_PASSWORD=<strong unique password>
 ```
 
 ### `garage-backup-cloud-env.age`
 
 ```bash
-RESTIC_REPOSITORY=s3:s3.<region>.backblazeb2.com/<bucket>/garage
+RESTIC_REPOSITORY=s3:s3.<region>.backblazeb2.com/<bucket>/garage # Ignore this as we're using rclone, backblaze already configured
 RESTIC_PASSWORD=<strong unique password>
 AWS_ACCESS_KEY_ID=<b2 application key id>
 AWS_SECRET_ACCESS_KEY=<b2 application key>
@@ -59,7 +57,7 @@ AWS_SECRET_ACCESS_KEY=<b2 application key>
 # AWS_DEFAULT_REGION=<region>
 ```
 
-Use the bucket’s real B2 region in the endpoint (plan example: `eu-central-003`).
+> Use the bucket’s real B2 region in the endpoint (plan example: `eu-central-003`).
 
 ---
 
@@ -72,7 +70,7 @@ Order matters:
 3. **Init Garage cluster** (once):
 
    ```bash
-   ~/config/scripts/hosts/home-server/init-garage.sh
+   ~/config/scripts/hosts/home-server/garage-s3/init.sh
    ```
 
    Then save S3 credentials from:
@@ -85,7 +83,7 @@ Order matters:
 
    ```bash
    # Local
-   restic init   # RESTIC_REPOSITORY=/mnt/hdd/cold/backups/garage
+   restic init   # RESTIC_REPOSITORY=/mnt/seagate-512-hdd/backups/garage
 
    # Cloud
    restic init   # RESTIC_REPOSITORY=s3:... + AWS_* set
@@ -117,14 +115,15 @@ systemctl list-timers 'backup-garage-*'
 
 ## Checklist
 
-- [ ] Strong `RESTIC_PASSWORD` for local repo (saved offline)
-- [ ] Strong `RESTIC_PASSWORD` for cloud repo (saved offline)
-- [ ] B2 bucket + region/endpoint
-- [ ] B2 application key ID + secret
-- [ ] Create `nix/secrets/garage-backup-local-env.age`
-- [ ] Create `nix/secrets/garage-backup-cloud-env.age`
+- [x] Strong `RESTIC_PASSWORD` for local repo (saved offline)
+- [x] Strong `RESTIC_PASSWORD` for cloud repo (saved offline)
+- [x] B2 bucket + region/endpoint
+- [x] B2 application key ID + secret
+- [x] Create `nix/secrets/garage-backup-local-env.age`
+- [x] Create `nix/secrets/garage-backup-cloud-env.age`
 - [ ] Deploy on home-server (`nixos-rebuild switch`)
-- [ ] Run `init-garage.sh`; store Garage `main-app-key` credentials
-- [ ] `restic init` local path
-- [ ] `restic init` B2
+- [ ] Run `garage-s3/init.sh`; store Garage `main-app-key` credentials
+- [ ] Prepare 
+	- [ ] `restic init` local path
+	- [x] `restic init` B2
 - [ ] Manual start + verify both backup units
