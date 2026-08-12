@@ -1,5 +1,6 @@
 { pkgs, data, ... }:
-
+let
+in
 {
   imports = [
     ./backup/local.nix
@@ -102,10 +103,12 @@
       "local-fs.target"
     ];
     wants = [ "network-online.target" ];
+    
     serviceConfig = {
       DynamicUser = false;
       User = "garage";
       Group = "garage";
+      
       ExecStartPre = [
         "+${pkgs.writeShellScript "garage-ensure-rpc-secret" ''
           set -euo pipefail
