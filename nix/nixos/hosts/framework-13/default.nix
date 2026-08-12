@@ -28,6 +28,17 @@ in
     ];
   };
 
+  # Seed a writable rclone.conf for gdrive bisync (OAuth token refresh).
+  # Overwritten on every activation (rebuild/boot) from the agenix secret.
+  # Other remotes (r2, b2, …) should keep using config.age.secrets.rclone-conf.path.
+  system.activationScripts.rcloneGdriveConfig = {
+    deps = [ "agenix" ];
+    text = ''
+      install -d -m 700 -o ${data.username} -g users ${data.homeDirectory}/.config/rclone
+      install -m 600 -o ${data.username} -g users ${config.age.secrets.rclone-conf.path} ${data.rcloneGdriveConfigPath}
+    '';
+  };
+
   # ------------------------------------------------------------------------------------------
   # File System
   # ------------------------------------------------------------------------------------------
@@ -288,7 +299,7 @@ in
           Group = "users";
           Environment = [
             "HOME=${data.homeDirectory}"
-            "RCLONE_CONFIG=${data.configDirectory}/tools/rclone/rclone.conf"
+            "RCLONE_CONFIG=${data.rcloneGdriveConfigPath}"
             "RCLONE_REMOTE_NAME=${data.googleDriveRemoteName}"
             "RCLONE_LOCAL_DIR=${data.googleDriveLocalDir}"
             "PATH=/run/current-system/sw/bin:/run/wrappers/bin"

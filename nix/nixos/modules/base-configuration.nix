@@ -125,7 +125,7 @@ in
     HOME = data.homeDirectory;
 
     # Rclone config (shared so both framework and home-server can use it)
-    RCLONE_CONFIG = "${data.configDirectory}/tools/rclone/rclone.conf";
+    RCLONE_CONFIG = config.age.secrets.rclone-conf.path;
 
     PATH = "/run/current-system/sw/bin:/run/wrappers/bin";
 
