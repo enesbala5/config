@@ -98,9 +98,10 @@ in
         # Must be > offdelay; short gap is enough for the PSU/mobo to register disconnect.
         "ondelay = 100"
 
-        # ~15 min runtime → 40% ≈ ~6 min left for graceful shutdown (safer than waiting on LB).
-        "lowbatt = 40"
+        # nutdrv_qx has no `lowbatt`; ignore the UPS LB flag and trip at 40% charge instead.
+        # ~15 min runtime → 40% ≈ ~6 min left for graceful shutdown.
         "ignorelb"
+        "override.battery.charge.low = 40"
       ];
     };
 
