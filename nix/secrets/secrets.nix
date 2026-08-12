@@ -56,6 +56,7 @@ in
   "twenty-crm-backup-env.age" = rootConfig;
   "garage-backup-local-env.age" = rootConfig;
   "garage-backup-cloud-env.age" = rootConfig;
+  "garage-s3-env.age" = rootConfig;
 
   "restart-cloudflared-service-env.age" = rootConfig;
   "notify-server-boot-service-env.age" = rootConfig;
