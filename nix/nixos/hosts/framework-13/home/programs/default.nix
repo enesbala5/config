@@ -44,6 +44,7 @@ in
       # ------------------------------------------------------------------------------------------
       shotcut # Video Editor
       kdePackages.kdenlive # Video Editor
+      wl-screenrec # Wayland screen recorder (region via slurp)
 
       # Tools
       # ------------------------------------------------------------------------------------------

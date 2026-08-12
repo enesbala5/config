@@ -254,11 +254,11 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1786085905,
-        "narHash": "sha256-1ukW65W3S1Uix8YQZF6xdnLrcu16YiZ6wgjyDpl/fAo=",
+        "lastModified": 1786496087,
+        "narHash": "sha256-SqnGSz0kQCh6XshctT8GJgpPyafqo7/tygPJbJW4+vw=",
         "owner": "tomsch",
         "repo": "cursor-nix",
-        "rev": "af83f1183d0ae0fc7a133daf61b59dbb4dec39c6",
+        "rev": "ea9f2afbae36a8802d81c0b61a4f57c7c3a32408",
         "type": "github"
       },
       "original": {
