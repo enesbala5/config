@@ -67,17 +67,13 @@ Order matters:
 
 1. **Commit / pull** the new `.age` files into the config repo on home-server.
 2. **`nixos-rebuild switch`** so agenix decrypts the env files and Garage + backup units exist.
-3. **Init Garage cluster** (once):
+3. **Init Garage cluster** (imports fixed key from `garage-s3-env.age`):
 
    ```bash
    ~/config/scripts/hosts/home-server/garage-s3/init.sh
    ```
 
-   Then save S3 credentials from:
-
-   ```bash
-   sudo garage key info main-app-key
-   ```
+   Credentials come from `/run/agenix/garage-s3-env` (`GARAGE_ACCESS_KEY_ID` / `GARAGE_SECRET_ACCESS_KEY`). Point apps at those same values — no need to copy from `garage key info` after each redeploy.
 
 4. **Init both restic repos** (with the matching env loaded, e.g. via the decrypted secret paths or a temporary `export` of the same vars):
 
@@ -121,8 +117,9 @@ systemctl list-timers 'backup-garage-*'
 - [x] B2 application key ID + secret
 - [x] Create `nix/secrets/garage-backup-local-env.age`
 - [x] Create `nix/secrets/garage-backup-cloud-env.age`
+- [x] Create `nix/secrets/garage-s3-env.age` (fixed `GARAGE_ACCESS_KEY_ID` / `GARAGE_SECRET_ACCESS_KEY`)
 - [ ] Deploy on home-server (`nixos-rebuild switch`)
-- [ ] Run `garage-s3/init.sh`; store Garage `main-app-key` credentials
+- [ ] Run `garage-s3/init.sh` (layout + key import)
 - [ ] Prepare 
 	- [ ] `restic init` local path
 	- [x] `restic init` B2
