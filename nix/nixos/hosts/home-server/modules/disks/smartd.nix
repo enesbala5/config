@@ -60,8 +60,8 @@ in
 
     # -a: health, attributes, error + self-test logs
     # -n standby,q: do not spin up idle HDDs just to poll SMART
-    # -m -M exec: documented smartd hook; reminder cadence is diminishing
-    defaults.monitored = "-a -n standby,q -m -M exec ${smartdTelegramNotify}";
+    # -m <nomailer> is required: otherwise -m consumes -M and "exec" is a syntax error
+    defaults.monitored = "-a -n standby,q -m <nomailer> -M exec ${smartdTelegramNotify}";
   };
 
   systemd.services.smartd = {
