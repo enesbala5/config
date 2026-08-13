@@ -40,9 +40,9 @@
         "nofail"
       ];
     };
-    # Optional USB/SATA Seagate 512GB. One-time: sudo e2label /dev/sdX1 seagate-512-hdd
+    # Optional USB/SATA Seagate 512GB.
     "/mnt/seagate-512-hdd" = {
-      device = "/dev/disk/by-label/seagate-512-hdd";
+      device = "/dev/disk/by-uuid/3cc44dee-4da9-41c3-a4f2-debf4b1ebcfd";
       fsType = "ext4";
       options = [
         "nofail"
