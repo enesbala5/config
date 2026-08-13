@@ -23,13 +23,13 @@ in
   # Directory layout for home-server drives (see drive/usecase notes).
   #
   # Current mounts (hardware-configuration.nix):
-  #   /              — Samsung 970 EVO Plus 500GB (system SSD)
-  #   /mnt/hdd       — Toshiba N300 4TB (bulk: S3, NAS, media, cold)
+  #   /                     — Samsung 970 EVO Plus 500GB (system SSD)
+  #   /mnt/hdd              — Toshiba N300 4TB (bulk: S3, NAS, media, cold)
+  #   /mnt/seagate-512-hdd   — Seagate 512GB external (offline restic dest, nofail)
   #
-  # Not mounted yet (do NOT add tmpfiles for these until fileSystems exist,
+  # Not mounted yet (do NOT add tmpfiles until fileSystems exist,
   # or dirs are created on the SSD root):
   #   /mnt/seagate-256-hdd   — Seagate 256GB ST9250827AS (scratch / stream cache)
-  #   /mnt/seagate-512-hdd   — Seagate 512GB external (offline backup target, nofail)
   systemd.tmpfiles.rules = [
     # --- SSD (root): Garage metadata only (small, latency-sensitive) ---
     "d /var/lib/garage/meta 0700 garage garage -"
@@ -61,11 +61,6 @@ in
     # "d /mnt/seagate-256-hdd/scratch 0755 ${data.username} users -"
     # "d /mnt/seagate-256-hdd/stremio-cache 0755 ${data.username} users -"
     # "d /mnt/seagate-256-hdd/torrent-incomplete 0755 ${data.username} users -"
-
-    # ---  Seagate 512GB external @ /mnt/seagate-512-hdd (nofail) ---
-    # Optional second local restic target once mounted:
-    "d /mnt/seagate-512-hdd/backups 0750 ${data.username} users -"
-    "d /mnt/seagate-512-hdd/backups/garage 0700 ${data.username} users -"
   ];
 
   services.garage = {

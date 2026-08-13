@@ -8,15 +8,19 @@
 
 let
   source = "/mnt/hdd/s3/garage/data";
+  destMount = "/mnt/seagate-512-hdd";
+  destRepo = "${destMount}/backups/garage";
 in
 {
   systemd.services.backup-garage-local = {
     enable = true;
-    description = "Backup Garage S3 data to local HDD (restic)";
+    description = "Backup Garage S3 data to Seagate 512GB (restic)";
     after = [
       "local-fs.target"
       "garage.service"
+      "mnt-seagate-512-hdd.mount"
     ];
+    unitConfig.ConditionPathIsMountPoint = destMount;
 
     serviceConfig = {
       Type = "oneshot";
@@ -25,6 +29,16 @@ in
       SupplementaryGroups = [ "garage" ];
       WorkingDirectory = data.homeDirectory;
       EnvironmentFile = config.age.secrets.garage-backup-local-env.path;
+      # Only runs when the condition passed, so this cannot mkdir on the SSD.
+      ExecStartPre = [
+        "+${pkgs.writeShellScript "ensure-garage-local-restic-dir" ''
+          set -euo pipefail
+          mkdir -p "${destRepo}"
+          chown ${data.username}:users "${destMount}/backups" "${destRepo}"
+          chmod 0750 "${destMount}/backups"
+          chmod 0700 "${destRepo}"
+        ''}"
+      ];
     };
 
     script = ''
