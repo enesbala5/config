@@ -27,7 +27,9 @@ let
       set +a
     fi
 
-    ackFile="/var/tmp/smartd-acknowledged"
+    # Persistent (not /var/tmp). Also check the old tmp path so acks
+    # written before the move still suppress notifies.
+    ackFiles="${data.homeDirectory}/.config/smartd/acknowledged /var/tmp/smartd-acknowledged"
     info="''${SMARTD_DEVICEINFO:-}"
     serial=""
     if [[ "$info" == *"S/N:"* ]]; then
@@ -45,7 +47,8 @@ let
       key="''${SMARTD_DEVICESTRING:-unknown}:''${failtype}"
     fi
 
-    if [[ -f "$ackFile" ]]; then
+    for ackFile in $ackFiles; do
+      [[ -f "$ackFile" ]] || continue
       while IFS= read -r line || [[ -n "$line" ]]; do
         [[ -z "$line" || "$line" == \#* ]] && continue
         if [[ "$line" == "$key" ]]; then
@@ -53,7 +56,7 @@ let
           exit 0
         fi
       done < "$ackFile"
-    fi
+    done
 
     if [ -z "''${TELEGRAM_BOT_TOKEN:-}" ] || [ -z "''${TELEGRAM_CHAT_ID:-}" ]; then
       echo "smartd-telegram-notify: TELEGRAM_BOT_TOKEN/CHAT_ID not set; skipping" >&2
