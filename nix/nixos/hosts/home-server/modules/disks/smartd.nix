@@ -20,11 +20,39 @@ let
     }:$PATH"
 
     envFile="${config.age.secrets.notify-server-boot-service-env.path}"
-    
+
     if [ -f "$envFile" ]; then
       set -a
       source "$envFile"
       set +a
+    fi
+
+    ackFile="/var/tmp/smartd-acknowledged"
+    info="''${SMARTD_DEVICEINFO:-}"
+    serial=""
+    if [[ "$info" == *"S/N:"* ]]; then
+      serial="''${info#*S/N:}"
+    elif [[ "$info" == *"Serial Number:"* ]]; then
+      serial="''${info#*Serial Number:}"
+    fi
+    serial="''${serial%%,*}"
+    serial="$(printf '%s' "$serial" | tr -d '[:space:]')"
+
+    failtype="''${SMARTD_FAILTYPE:-alert}"
+    if [[ -n "$serial" ]]; then
+      key="''${serial}:''${failtype}"
+    else
+      key="''${SMARTD_DEVICESTRING:-unknown}:''${failtype}"
+    fi
+
+    if [[ -f "$ackFile" ]]; then
+      while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ -z "$line" || "$line" == \#* ]] && continue
+        if [[ "$line" == "$key" ]]; then
+          echo "smartd-telegram-notify: $key acknowledged; skipping" >&2
+          exit 0
+        fi
+      done < "$ackFile"
     fi
 
     if [ -z "''${TELEGRAM_BOT_TOKEN:-}" ] || [ -z "''${TELEGRAM_CHAT_ID:-}" ]; then
@@ -33,9 +61,11 @@ let
     fi
 
     ${data.configDirectory}/tools/telegram/notify.sh -m plain \
+      --button copy "$key" \
       "⚠️ smartd on ${hostname}
 💾 Device: ''${SMARTD_DEVICESTRING:-unknown device}
-🏷️ Type: ''${SMARTD_FAILTYPE:-alert}
+🏷️ Type: ''${failtype}
+🔑 ''${key}
 
 ''${SMARTD_FULLMESSAGE:-''${SMARTD_MESSAGE:-no message}}" \
       || echo "smartd-telegram-notify: telegram send failed (non-fatal)" >&2

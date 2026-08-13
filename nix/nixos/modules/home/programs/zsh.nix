@@ -96,6 +96,7 @@
       gpr = "git pull --rebase";
 
       telegram-notify = "${data.configDirectory}/tools/telegram/notify.sh";
+      acknowledge-smartd-error = "${data.configDirectory}/scripts/hosts/home-server/smartd/acknowledge-error.sh";
 
       flush-dns = "sudo systemctl restart nscd";
       reload-waybar = "pkill -9 waybar && hyprctl --instance 0 'dispatch exec waybar'";
