@@ -91,13 +91,40 @@ in
     };
   };
 
+  # NixOS garage sets ReadWritePaths = data_dir. systemd bind-mounts that
+  # path before any ExecStartPre, so mkdir in the rpc-secret script never
+  # runs if the dir is missing (226/NAMESPACE). Create it in a separate
+  # unsandboxed oneshot first, and only on the mounted Toshiba (not SSD).
+  systemd.services.garage-prepare-data-dir = {
+    description = "Create Garage data directory on /mnt/hdd";
+    after = [ "mnt-hdd.mount" ];
+    requires = [ "mnt-hdd.mount" ];
+    before = [ "garage.service" ];
+    requiredBy = [ "garage.service" ];
+    unitConfig.ConditionPathIsMountPoint = "/mnt/hdd";
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = pkgs.writeShellScript "garage-prepare-data-dir" ''
+        set -euo pipefail
+        mkdir -p /mnt/hdd/s3/garage/data
+        chown garage:garage /mnt/hdd/s3 /mnt/hdd/s3/garage /mnt/hdd/s3/garage/data
+        chmod 0750 /mnt/hdd/s3 /mnt/hdd/s3/garage /mnt/hdd/s3/garage/data
+      '';
+    };
+  };
+
   # Service boot and network dependencies; pin static user + seed rpc secret
   systemd.services.garage = {
     after = [
       "network-online.target"
       "local-fs.target"
+      "mnt-hdd.mount"
+      "garage-prepare-data-dir.service"
     ];
     wants = [ "network-online.target" ];
+    requires = [ "mnt-hdd.mount" ];
+    unitConfig.RequiresMountsFor = "/mnt/hdd";
 
     serviceConfig = {
       DynamicUser = false;
