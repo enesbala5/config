@@ -125,7 +125,7 @@ in
     HOME = data.homeDirectory;
 
     # Rclone config (shared so both framework and home-server can use it)
-    RCLONE_CONFIG = "${data.configDirectory}/tools/rclone/rclone.conf";
+    RCLONE_CONFIG = config.age.secrets.rclone-conf.path;
 
     PATH = "/run/current-system/sw/bin:/run/wrappers/bin";
 
@@ -488,6 +488,7 @@ in
 
       kdePackages.ark # Archive Manager
       kdePackages.dolphin-plugins # Plugins for Dolphin
+      kdePackages.ffmpegthumbs # Video thumbnails / previews in Dolphin
       kdePackages.kompare # Graphical File Differences Tool
       kdePackages.qtsvg # Icons (for Dolphin)
       kdePackages.kio # Network File System (Dolphin)

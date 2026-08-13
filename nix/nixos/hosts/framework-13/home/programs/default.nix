@@ -44,6 +44,7 @@ in
       # ------------------------------------------------------------------------------------------
       shotcut # Video Editor
       kdePackages.kdenlive # Video Editor
+      wl-screenrec # Wayland screen recorder (region via slurp)
 
       # Tools
       # ------------------------------------------------------------------------------------------
@@ -361,7 +362,7 @@ in
     mimeApps = {
       enable = true;
       defaultApplications = {
-        "inode/directory" = "thunar.desktop";
+        "inode/directory" = "org.kde.dolphin.desktop";
         "x-scheme-handler/http" = [
           "helium.desktop"
           "zen-beta.desktop"
@@ -467,6 +468,22 @@ in
           "Network"
           "WebBrowser"
         ];
+      };
+
+      # Avoid libsecret/keyring hangs after keyring resets on Hyprland.
+      discord = {
+        name = "Discord";
+        genericName = "All-in-one cross-platform voice and text chat for gamers";
+        icon = "discord";
+        exec = "Discord --password-store=basic";
+        type = "Application";
+        terminal = false;
+        mimeType = [ "x-scheme-handler/discord" ];
+        categories = [
+          "Network"
+          "InstantMessaging"
+        ];
+        settings.StartupWMClass = "discord";
       };
 
       pencil = {

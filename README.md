@@ -47,32 +47,19 @@ nixos-rebuild-switch framework-13
 
 #### Rclone
 
-Rclone frequently modifies the configuration file so making the config file read-only is not possible.
-The file should be stored in `tools/rclone/rclone.conf` - as that's where existing services look for it.
+Agenix secret `rclone-conf` is the source of truth (`/run/agenix/rclone-conf`).
 
-In order to have rclone be fully functional, we need to decrypt the configuration first. If you have successfully installed the system, you can run:
+- **CLI / static remotes** (r2, backblaze-b2, …): use `RCLONE_CONFIG=/run/agenix/rclone-conf` (set in session env).
+- **Google Drive bisync** (framework-13): activation copies that secret to a writable `~/.config/rclone/rclone.conf` on every rebuild/boot so rclone can refresh OAuth tokens. The systemd unit and `rclone-resync` point at this file.
 
-```bash
-decrypt-rclone-conf
-```
-
-Otherwise, if this doesn't work, run:
+To verify after install/rebuild:
 
 ```bash
-cd ~/config/nix/secrets && agenix --decrypt rclone-conf.age > ~/config/tools/rclone/rclone.conf
+cat /run/agenix/rclone-conf
+cat ~/.config/rclone/rclone.conf
 ```
-
-To test if the config was passed correctly, run:
-
-```bash
-cat ~/config/tools/rclone/rclone.conf
-```
-
-> Rebuilding the system might be necessary in order to ensure that systemd services use the updated configuration.
 
 ##### Updating the Rclone Configuration
-
-If you need to update the rclone-configuration, run:
 
 ```bash
 manage-secret rclone-conf.age
@@ -84,7 +71,7 @@ Alternatively:
 cd ~/config/nix/secrets && EDITOR='zeditor --wait' agenix -e rclone-conf.age
 ```
 
-**After you finish updating the configuration, run `decrypt-rclone-conf` to update the local rclone configuration file.**
+Then rebuild — activation overwrites `~/.config/rclone/rclone.conf` from the updated secret.
 
 ## Hosts
 
