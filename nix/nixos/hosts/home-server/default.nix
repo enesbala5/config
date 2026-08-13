@@ -847,10 +847,11 @@ in
 
   boot = {
     loader = {
-      # efi.canTouchEfiVariables = true;
-
       grub = {
-        enable = false;
+        enable = true;
+        # BIOS/MBR (single msdos partition, no ESP). by-id pins this to the
+        # system NVMe so GRUB is not installed to the data HDD.
+        device = "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_500GB_S4EVNX1W425280F";
       };
     };
   };
