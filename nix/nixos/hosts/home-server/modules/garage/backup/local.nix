@@ -77,6 +77,18 @@ in
         | ${pkgs.jq}/bin/jq -r '.[0].short_id')
 
       echo "Done. Local snapshot: $SNAPSHOT"
+
+      # Pack check is the USB-heavy part. Only on 00:00 and 12:00 runs
+      # (once per 12h). 06:00 / 18:00 would also be AM/PM and double it.
+      hour=$(${pkgs.coreutils}/bin/date +%H)
+      if [ "$hour" = "00" ] || [ "$hour" = "12" ]; then
+        echo "Running restic check (5% pack subset)..."
+        if ! ${pkgs.restic}/bin/restic check --read-data-subset=5%; then
+          NotifyFailure "restic check --read-data-subset=5% returned non-zero."
+          exit 1
+        fi
+        echo "Local restic check passed."
+      fi
     '';
   };
 
