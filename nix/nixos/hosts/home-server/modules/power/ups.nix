@@ -135,9 +135,9 @@ in
         "norating"
         "allow_killpower"
 
-        # Megatec rounds these to 60s steps; ondelay must stay > offdelay after rounding.
-        # 120s covers a slow nixos/docker shutdown; 180s is the next step so Restore-on-AC sees a real gap.
-        "offdelay = 120"
+        # NixOS ups-killpower runs after halt, so offdelay only needs a short ACPI gap.
+        # Megatec: <60s in 6s steps, >=60s in 60s steps. ondelay is minutes; <3 min often never returns.
+        "offdelay = 30"
         "ondelay = 180"
 
         # Voltage→charge is display-only (sags under load). Do not use ignorelb on that number.
