@@ -37,7 +37,6 @@
       options = [
         "noatime"
         "nodiratime"
-        "nofail"
       ];
     };
     # Optional USB/SATA Seagate 512GB.
