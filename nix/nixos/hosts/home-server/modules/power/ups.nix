@@ -186,6 +186,17 @@ in
   systemd.services.upsmon.serviceConfig.EnvironmentFile =
     config.age.secrets.notify-server-boot-service-env.path;
 
+  # upsdrv is oneshot and otherwise fails once if the 0001:0000 HID device
+  # enumerates after the unit has already run (cable/socket swap, slow USB).
+  systemd.services.upsdrv = {
+    startLimitIntervalSec = 300;
+    startLimitBurst = 30;
+    serviceConfig = {
+      Restart = "on-failure";
+      RestartSec = "10s";
+    };
+  };
+
   systemd.services.ups-low-voltage-watch = {
     description = "FSD if Makelsan battery voltage stays below 11.5V on battery";
     after = [ "upsmon.service" ];
