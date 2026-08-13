@@ -136,9 +136,10 @@ in
         "allow_killpower"
 
         # NixOS ups-killpower runs after halt, so offdelay only needs a short ACPI gap.
-        # Megatec: <60s in 6s steps, >=60s in 60s steps. ondelay is minutes; <3 min often never returns.
+        # Megatec: <60s in 6s steps. ondelay=0 sends S.n with no R (restore when mains
+        # returns). This Lion 650 ignores timed R0003; AC-recovery restart works.
         "offdelay = 30"
-        "ondelay = 180"
+        "ondelay = 0"
 
         # Voltage→charge is display-only (sags under load). Do not use ignorelb on that number.
         "default.battery.voltage.high = 13.8"
