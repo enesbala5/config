@@ -6,11 +6,35 @@
 # Usage:
 #   ./notify.sh -c CHAT_ID "Your message here"
 #   ./notify.sh --chat-id CHAT_ID -m html "Message with <a href=\"https://x.com\">link</a>"
+#   ./notify.sh --button url "https://example.com/u/1" "👤 *New user*"
+#   ./notify.sh -m plain --button copy "5VJ994TE:CurrentPendingSector" "smartd alert"
+#
+# Buttons and text go in the same invocation: flags first (including
+# --button), then the message as the remaining argument. One Telegram
+# sendMessage is sent with both text and reply_markup.
+#
+#   telegram-notify -m plain \
+#     --button copy "$key" \
+#     "⚠️ smartd on ${hostname}
+# 💾 Device: ${SMARTD_DEVICESTRING:-unknown device}
+# 🏷️ Type: ${failtype}
+# 🔑 ${key}
+#
+# ${SMARTD_FULLMESSAGE:-${SMARTD_MESSAGE:-no message}}"
 #
 # Flags:
 #   -t, --token TOKEN          Telegram bot token (optional if TELEGRAM_BOT_TOKEN is set)
 #   -c, --chat-id ID           Telegram chat ID (optional if TELEGRAM_CHAT_ID is set)
-#   -m, --mode md|html|plain   Parse mode (default: md)
+#   -m, --mode MODE            Parse mode (default: md)
+#                              md | markdown     → Markdown
+#                              md2 | markdownv2  → MarkdownV2
+#                              html              → HTML
+#                              plain             → none
+#   --button TYPE MESSAGE      Button on the current row (repeatable)
+#                              copy → clipboard (label and payload are MESSAGE)
+#                              url  → open MESSAGE as a link (label: Open)
+#                              Combine with a trailing message to send both
+#   --new-row                  Start a new button row
 #
 # Env (fallbacks):
 #   TELEGRAM_BOT_TOKEN         Used if -t/--token not provided
@@ -26,6 +50,52 @@ TELEGRAM_CHAT_ID=""
 
 PARSE_MODE=md
 MESSAGE=
+BUTTON_ROWS=()
+CURRENT_ROW=()
+
+json_escape() {
+  local s=$1
+  s=${s//\\/\\\\}
+  s=${s//\"/\\\"}
+  s=${s//$'\n'/\\n}
+  s=${s//$'\r'/\\r}
+  s=${s//$'\t'/\\t}
+  printf '%s' "$s"
+}
+
+join_commas() {
+  local IFS=,
+  printf '%s' "$*"
+}
+
+flush_button_row() {
+  if [[ ${#CURRENT_ROW[@]} -eq 0 ]]; then
+    return 0
+  fi
+  BUTTON_ROWS+=("[$(join_commas "${CURRENT_ROW[@]}")]")
+  CURRENT_ROW=()
+}
+
+add_button() {
+  local type=$1 message=$2
+  case "$type" in
+    copy)
+      CURRENT_ROW+=("{\"text\":\"$(json_escape "$message")\",\"copy_text\":{\"text\":\"$(json_escape "$message")\"}}")
+      ;;
+    url|link)
+      CURRENT_ROW+=("{\"text\":\"Open\",\"url\":\"$(json_escape "$message")\"}")
+      ;;
+    *)
+      echo "Unknown button type: $type (use copy or url)" >&2
+      exit 1
+      ;;
+  esac
+}
+
+usage() {
+  echo "Usage: $(basename "$0") -t TOKEN -c CHAT_ID [-m md|md2|html|plain] [--button copy|url MESSAGE] [--new-row] <message>" >&2
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -t|--token)
@@ -40,6 +110,14 @@ while [[ $# -gt 0 ]]; do
       PARSE_MODE="${2:-md}"
       shift 2
       ;;
+    --button)
+      add_button "${2:?button type required (copy or url)}" "${3:?button message required}"
+      shift 3
+      ;;
+    --new-row)
+      flush_button_row
+      shift
+      ;;
     *)
       MESSAGE="$*"
       break
@@ -47,33 +125,34 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+flush_button_row
+
 # Apply env fallbacks if flags not passed
 TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-$TOKEN_FROM_ENV}"
 TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-$CHAT_ID_FROM_ENV}"
 
-# Require both token and chat ID (from flags or env)
 if [[ -z "$TELEGRAM_BOT_TOKEN" || -z "$TELEGRAM_CHAT_ID" ]]; then
-  echo "Usage: $(basename "$0") -t TOKEN -c CHAT_ID [-m md|html|plain] <message>" >&2
+  usage
   echo "Error: both bot token and chat ID are required (use -t/-c or set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID)" >&2
   exit 1
 fi
 
 if [[ -z "$MESSAGE" ]]; then
-  echo "Usage: $(basename "$0") -t TOKEN -c CHAT_ID [-m md|html|plain] <message>" >&2
+  usage
   exit 1
 fi
 
 MAX_ATTEMPTS=4
 TIMEOUT=10
 
-# Map flag to Telegram parse_mode (md → Markdown, html → HTML, plain → none)
 TELEGRAM_PARSE_MODE=
 case "$PARSE_MODE" in
-  md)     TELEGRAM_PARSE_MODE=Markdown ;;
-  html)   TELEGRAM_PARSE_MODE=HTML ;;
-  plain)  ;;
+  md|markdown)         TELEGRAM_PARSE_MODE=Markdown ;;
+  md2|markdownv2)      TELEGRAM_PARSE_MODE=MarkdownV2 ;;
+  html)                TELEGRAM_PARSE_MODE=HTML ;;
+  plain)               ;;
   *)
-    echo "Unknown mode: $PARSE_MODE (use md, html, or plain)" >&2
+    echo "Unknown mode: $PARSE_MODE (use md, md2, html, or plain)" >&2
     exit 1
     ;;
 esac
@@ -83,6 +162,11 @@ if [[ -n "$TELEGRAM_PARSE_MODE" ]]; then
   CURL_EXTRA+=(--data-urlencode "parse_mode=${TELEGRAM_PARSE_MODE}")
 fi
 
+MARKUP_EXTRA=()
+if [[ ${#BUTTON_ROWS[@]} -gt 0 ]]; then
+  MARKUP_EXTRA+=(--data-urlencode "reply_markup={\"inline_keyboard\":[$(join_commas "${BUTTON_ROWS[@]}")]}")
+fi
+
 send_message() {
   local extra=("${@}")
   curl -s -o /tmp/.tg_response -w "%{http_code}" \
@@ -90,6 +174,7 @@ send_message() {
     -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
     --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
     --data-urlencode "text=${MESSAGE}" \
+    "${MARKUP_EXTRA[@]}" \
     "${extra[@]}"
 }
 
@@ -100,9 +185,9 @@ for attempt in $(seq 1 $MAX_ATTEMPTS); do
     exit 0
   fi
 
-  # Markdown parse error — retry immediately without parse mode
+  # Parse-mode error — retry immediately as plain text (buttons stay)
   if [ "$HTTP_STATUS" = "400" ] && [ "${#CURL_EXTRA[@]}" -gt 0 ]; then
-    echo "Markdown parse rejected (400), retrying as plain text..." >&2
+    echo "Parse mode rejected (400), retrying as plain text..." >&2
     HTTP_STATUS=$(send_message)
     if [ "$HTTP_STATUS" = "200" ]; then
       exit 0
