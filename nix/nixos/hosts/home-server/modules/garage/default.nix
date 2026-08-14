@@ -71,10 +71,12 @@ in
       # Single-node cluster
       replication_factor = 1;
 
-      # Local network binding
+      # 0.0.0.0 so Coolify/Docker can reach S3 via host.docker.internal
+      # (127.0.0.1 is the container's loopback, not the host). Do not add 3900
+      # to allowedTCPPorts — LAN stays blocked; docker bridges are trusted below.
       s3_api = {
         s3_region = "garagenode";
-        api_bind_addr = "127.0.0.1:3900";
+        api_bind_addr = "0.0.0.0:3900";
         root_domain = ".s3.garage.localhost";
       };
 
@@ -90,6 +92,13 @@ in
       metadata_auto_snapshot_interval = "6h";
     };
   };
+
+  # Container → host-gateway hits INPUT on docker0 / br-*. NixOS drops that
+  # unless the interface is trusted. Coolify does not manage this list.
+  networking.firewall.trustedInterfaces = [
+    "docker0"
+    "br-*"
+  ];
 
   # NixOS garage sets ReadWritePaths = data_dir. systemd bind-mounts that
   # path before any ExecStartPre, so mkdir in the rpc-secret script never
