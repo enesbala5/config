@@ -62,6 +62,11 @@
           recursive = true;
         };
 
+        ".cursor/rules" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/misc/rules";
+          recursive = true;
+        };
+
         # Plasma Browser Integration native host (Helium)
         ".config/net.imput.helium/NativeMessagingHosts/org.kde.plasma.browser_integration.json".source =
           chromiumHost;

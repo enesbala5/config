@@ -1,0 +1,16 @@
+---
+description: Never run commands on remote hosts unless the user explicitly asks in that turn
+alwaysApply: true
+---
+
+# Ask before remote host commands
+
+Never run commands on remote machines unless the user explicitly asks in that same turn.
+
+This includes SSH, SCP, rsync, `nixos-rebuild` against a remote host, systemd/journalctl over SSH, and any other command whose target is not the local workspace machine.
+
+Covered hosts include home-server, `192.168.0.40`, and any other server, VPS, or SSH alias.
+
+A prior message such as "you can access like this" does not carry forward. Ask first, wait for a yes, then run only what was approved.
+
+Local edits in the git repo are fine. Deploying or verifying on a remote host is not, until the user says so.
