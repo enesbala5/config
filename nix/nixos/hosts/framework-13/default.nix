@@ -144,7 +144,8 @@ in
   # ------------------------------------------------------------------------------------------
 
   services = {
-    # Ensure EasyEffects is not selected automatically as the default audio sink
+    # Do not make EasyEffects the default sink. It follows the hardware default
+    # (Ryzen / headphones) and attaches via processAllOutputs.
     pipewire.wireplumber.extraConfig = {
       "52-hide-easyeffects-sink" = {
         "monitor.pipewire.rules" = [
