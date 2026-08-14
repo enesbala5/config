@@ -122,11 +122,26 @@ ACCESS_KEY="$(rclone_get "$REMOTE" access_key_id)"
 SECRET_KEY="$(rclone_get "$REMOTE" secret_access_key)"
 ENDPOINT="$(rclone_get "$REMOTE" endpoint)"
 REGION="$(rclone_get "$REMOTE" region)"
+PROVIDER="$(rclone_get "$REMOTE" provider)"
 FORCE_PATH_STYLE="$(rclone_get "$REMOTE" force_path_style)"
 
 if [[ -z "$ACCESS_KEY" || -z "$SECRET_KEY" ]]; then
   echo "Error: remote '$REMOTE' is missing access_key_id or secret_access_key" >&2
   exit 1
+fi
+
+if [[ -n "$ENDPOINT" && "$ENDPOINT" != *"://"* ]]; then
+  ENDPOINT="https://${ENDPOINT}"
+fi
+
+if [[ -z "$REGION" ]]; then
+  provider_lc="${PROVIDER,,}"
+  endpoint_lc="${ENDPOINT,,}"
+  if [[ "$provider_lc" == "cloudflare" || "$endpoint_lc" == *"r2.cloudflarestorage.com"* ]]; then
+    REGION="auto"
+  elif [[ "$ENDPOINT" =~ s3\.([a-z0-9-]+)\.backblazeb2\.com ]]; then
+    REGION="${BASH_REMATCH[1]}"
+  fi
 fi
 
 export AWS_ACCESS_KEY_ID="$ACCESS_KEY"
@@ -139,7 +154,9 @@ fi
 if [[ -n "$REGION" ]]; then
   stu_args+=(--region "$REGION")
 fi
-if [[ "${FORCE_PATH_STYLE,,}" == "true" ]]; then
+if [[ "${FORCE_PATH_STYLE,,}" == "false" ]]; then
+  stu_args+=(--path-style never)
+elif [[ "${FORCE_PATH_STYLE,,}" == "true" || "${PROVIDER,,}" != "aws" ]]; then
   stu_args+=(--path-style always)
 fi
 
