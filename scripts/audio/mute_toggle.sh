@@ -1,17 +1,11 @@
 #!/usr/bin/env bash
 
-# Toggle the mute state of the default audio sink
-# I use pipewire-pulse & pulsemixer for audio management
-# Use notify-send to show the updated state after toggling
+dir=$(cd "$(dirname "$0")" && pwd)
+"$dir/volume.sh" mute
 
-pulsemixer --toggle-mute
-
-mute_status=$(pulsemixer --get-mute)
-
-if [ "$mute_status" -eq 1 ]; then
-  status_label="Muted"
-	notify-send "🔇  $status_label Audio" --expire-time=1500
+sink=$("$dir/get_playback_sink.sh")
+if pactl get-sink-mute "$sink" | grep -q yes; then
+  notify-send "🔇  Muted Audio" --expire-time=1500
 else
-  status_label="Unmuted"
-  notify-send "🔊  $status_label Audio" --expire-time=1500
+  notify-send "🔊  Unmuted Audio" --expire-time=1500
 fi

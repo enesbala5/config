@@ -170,7 +170,8 @@
           };
           on-click = "${data.configDirectory}/scripts/audio/mute_toggle.sh";
           on-click-right = "hyprctl dispatch exec '[float;size 90% 80%;move 5% 10%;]' kitty pulsemixer";
-          # ignored-sinks = [ "" ];
+          # EasyEffects volume is virtual; show the hardware sink instead
+          ignored-sinks = [ "Easy Effects Sink" ];
           # min-length = 8;
         };
 
