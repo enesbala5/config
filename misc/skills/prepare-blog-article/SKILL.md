@@ -1,5 +1,5 @@
 ---
-name: blog-posts
+name: prepare-blog-article
 description: >-
   Write technical how-to blog posts in Enes's voice: reader situation, the
   real constraint, then a working setup with commands, configs, callouts, and
