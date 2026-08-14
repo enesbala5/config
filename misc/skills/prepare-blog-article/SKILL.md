@@ -3,9 +3,11 @@ name: prepare-blog-article
 description: >-
   Write technical how-to blog posts in Enes's voice: reader situation, the
   real constraint, then a working setup with commands, configs, callouts, and
-  named trade-offs. Use when drafting, editing, outlining, or rewriting blog
-  posts, especially Linux, NixOS, Hyprland, self-hosting, Coolify, or homelab
-  guides. Canonical sources are the Stylix polarity and Coolify home-server posts.
+  named trade-offs. When a repo, checkout, or file path is referenced, mine
+  its git history for the storyline (failed approaches, later polish). Use
+  when drafting, editing, outlining, or rewriting blog posts, especially
+  Linux, NixOS, Hyprland, self-hosting, Coolify, or homelab guides.
+  Canonical sources are the Stylix polarity and Coolify home-server posts.
 ---
 
 # Technical blog posts
@@ -33,6 +35,8 @@ Gold-standard snippets: [excerpts.md](excerpts.md)
 - New technical post, outline, or rewrite
 - Editing a draft so it sounds like him instead of generic docs/AI
 - Turning a working NixOS / homelab / self-hosting setup into a guide
+- A repo, checkout, or file path is the source — extract the storyline from
+  commits, not from a guessed walkthrough
 
 ## Before writing
 
@@ -47,8 +51,35 @@ Collect, or ask for:
 - What he skipped on purpose (upstream docs, unrelated setup)
 - Credits (people, posts, videos he adapted)
 
-If those receipts are missing, outline the skeleton and wait. Do not fabricate
-configs, keybinds, or "typical" Nix.
+If a repo or path inside one is in play, mine its git history first (see
+**Repo storyline**). If receipts are still missing after that, outline the
+skeleton and wait. Do not fabricate configs, keybinds, or "typical" Nix.
+
+## Repo storyline
+
+A referenced git repo is a receipt source, not just a link to paste.
+
+Trigger when any of these show up: a local folder that is (or sits inside) a
+git checkout, a specific file path, a GitHub/GitLab URL, or "my config" /
+public-repo link in the draft. Resolve the repo from **that path**, even if
+it is not the workspace (`git -C <path> rev-parse --show-toplevel`). Do not
+SSH to a remote host to read history.
+
+Mine **before** outlining:
+
+1. File history for every referenced path (`git log --follow`)
+2. Sibling files from those commits (`git show --stat`)
+3. Topic search only if paths are still unknown (`--grep` / path globs)
+
+Cluster commits into beats, oldest first: first landing → failed / reverted
+approach → constraint (sudo, `/tmp`, `lib.mkForce`) → required mechanism →
+later polish. Use that to fill Introduction (the painful part), Main
+Challenge, callouts, and Conclusion (polish vs required). Walkthrough stays
+on current HEAD files.
+
+Do not paste hashes, `git log`, or a changelog into the article. Do not
+narrate archaeology. Full command list and filters:
+[repo-storyline.md](repo-storyline.md)
 
 ## Article skeleton
 
@@ -146,6 +177,7 @@ you should have:`, `That is exactly what you want for …`. No "that's when it c
 - invented configs presented as his
 - emoji in prose (emoji in a `notify-send` string is fine if the real script has it)
 - the SEO/template-post marketing voice
+- generating visual assets (header/hero, thumbnail, OG image, diagrams-as-files)
 
 ## How to write each section
 
@@ -161,7 +193,9 @@ requirements the solution must hit.
 **Walkthrough.** Each step: goal in a sentence (or a `Goal:` callout), then the
 snippet, then what you should see or why a flag exists. Keep placeholders obvious:
 `[YOUR DOMAIN]`, `${data.username}`. Use his real paths when the post is "how I
-did it" (`~/config/scripts/utilities/toggle-polarity.sh`).
+did it" (`~/config/scripts/utilities/toggle-polarity.sh`). Show **HEAD** — the
+setup that works now. Git history informs *why* a flag exists and what was
+polish vs required; it does not become a changelog in the article.
 
 **Putting It Together.** Imperative checklist a reader can run.
 
@@ -231,7 +265,7 @@ Rules:
 - `tags`: only values from `src/lib/info/tags.ts` (`linux`, `self-hosting`, `dev-ops`, …)
 - `keywords`: comma-separated tools and outcomes, no duplicates
 - `date` / `updated`: `'YYYY-MM-DD'`
-- Images live under `static/images/blog/{folder}/` as `hero.svg` and `og.png` (also copied under `src/lib/assets/images/blog/` in this repo). Do not fake image binaries; note that assets are still needed.
+- Images live under `static/images/blog/{folder}/` as `hero.svg` and `og.png` (also copied under `src/lib/assets/images/blog/` in this repo). **Do not generate any assets** — no header image, thumbnail, OG/social preview, SVG, PNG, or other illustration. Point frontmatter at the expected paths and note that the user still needs to add the files.
 - `published: true` only when the user wants it live
 - Optional `imageClassNames` appears on older marketing posts — omit on technical posts
 
@@ -243,12 +277,17 @@ Slug = filename without `.md`. Keep it short and literal (`nixos-stylix-polarity
 - [ ] Names the constraint and why the obvious fix fails
 - [ ] Scopes out well-documented prerequisites
 - [ ] Walkthrough is his real files/commands, with placeholders for reader-specific values
+- [ ] If a repo or file path was in play, git history was mined and the storyline
+      (failed approach, later polish) shows up in Challenge / callouts / Conclusion
+      — not as a commit dump
 - [ ] Callouts used for warnings/scope/inspiration, not decoration
 - [ ] Messy reality is named (what does not reload, hostname already in use, `/tmp` on reboot)
 - [ ] Conclusion is a mechanism list + credits, not a pep talk
 - [ ] No banned tropes, no marketing-post voice, no invented setup
 - [ ] Frontmatter matches the contract when writing into the portfolio
+- [ ] No generated image/thumbnail/OG assets; only path placeholders in frontmatter
 
 ## Additional resources
 
 - Calibration snippets: [excerpts.md](excerpts.md)
+- Git history → storyline: [repo-storyline.md](repo-storyline.md)
