@@ -5,16 +5,19 @@ RCLONE_CONFIG="${RCLONE_CONFIG:-/run/agenix/rclone-conf}"
 
 usage() {
   cat <<EOF
-Usage: stu-rclone [REMOTE] [stu flags...]
+Usage: stu-rclone [REMOTE] [BUCKET] [stu flags...]
 
 Launch stu with AWS credentials and endpoint taken from an rclone S3 remote.
 
 REMOTE is an rclone section name (garage, r2, backblaze-b2, ...).
 If omitted and fzf is available, pick from S3 remotes interactively.
 
+R2 tokens typically cannot ListBuckets (403). Pass the bucket name.
+
 Examples:
   stu-rclone
   stu-rclone garage
+  stu-rclone r2 my-bucket
   stu-rclone r2 --bucket my-bucket
   stu-rclone backblaze-b2 --debug
 
@@ -98,7 +101,7 @@ if [[ -z "$REMOTE" ]]; then
   else
     echo "S3 remotes:" >&2
     printf '  %s\n' "${remotes[@]}" >&2
-    echo "Usage: stu-rclone <remote> [stu flags...]" >&2
+    echo "Usage: stu-rclone <remote> [bucket] [stu flags...]" >&2
     exit 1
   fi
 fi
@@ -134,18 +137,54 @@ if [[ -n "$ENDPOINT" && "$ENDPOINT" != *"://"* ]]; then
   ENDPOINT="https://${ENDPOINT}"
 fi
 
+is_r2=false
+if [[ "${PROVIDER,,}" == "cloudflare" || "${ENDPOINT,,}" == *"r2.cloudflarestorage.com"* ]]; then
+  is_r2=true
+fi
+
 if [[ -z "$REGION" ]]; then
-  provider_lc="${PROVIDER,,}"
-  endpoint_lc="${ENDPOINT,,}"
-  if [[ "$provider_lc" == "cloudflare" || "$endpoint_lc" == *"r2.cloudflarestorage.com"* ]]; then
+  if [[ "$is_r2" == true ]]; then
     REGION="auto"
   elif [[ "$ENDPOINT" =~ s3\.([a-z0-9-]+)\.backblazeb2\.com ]]; then
     REGION="${BASH_REMATCH[1]}"
   fi
 fi
 
+BUCKET=""
+if [[ -n "${1:-}" && "$1" != -* ]]; then
+  BUCKET="$1"
+  shift
+fi
+
+has_bucket_flag=false
+for arg in "$@"; do
+  case "$arg" in
+    -b|--bucket|--bucket=*) has_bucket_flag=true ;;
+  esac
+done
+
+if [[ "$has_bucket_flag" == false && -z "$BUCKET" && "$is_r2" == true ]]; then
+  if [[ -t 0 ]]; then
+    echo "Remote '${REMOTE}' cannot list buckets. Provide the bucket name manually." >&2
+    printf 'bucket> ' >&2
+    read -r BUCKET
+  fi
+  if [[ -z "$BUCKET" ]]; then
+    echo "Error: no bucket provided. Example: stu-rclone ${REMOTE} <bucket>" >&2
+    exit 1
+  fi
+fi
+
+if [[ -n "$BUCKET" && "$has_bucket_flag" == false ]]; then
+  set -- --bucket "$BUCKET" "$@"
+fi
+
 export AWS_ACCESS_KEY_ID="$ACCESS_KEY"
 export AWS_SECRET_ACCESS_KEY="$SECRET_KEY"
+if [[ -n "$REGION" ]]; then
+  export AWS_REGION="$REGION"
+  export AWS_DEFAULT_REGION="$REGION"
+fi
 
 stu_args=()
 if [[ -n "$ENDPOINT" ]]; then
