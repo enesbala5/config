@@ -483,6 +483,7 @@ in
       libnotify # Notification Daemon
       rclone # Data Syncing
       localsend # File Sharing
+      stu # S3 TUI File Browser
 
       kdePackages.dolphin # File Manager
 
