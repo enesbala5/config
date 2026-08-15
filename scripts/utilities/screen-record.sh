@@ -8,6 +8,7 @@
 DEST_DIR="$HOME/misc/media/Screen Recordings"
 STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/screen-record"
 START_FILE="$STATE_DIR/started_at"
+OUTPUT_FILE="$STATE_DIR/output"
 PAUSE_FILE="$STATE_DIR/dunst_pause_level"
 WAYBAR_SIGNAL=9
 SOUNDS="/run/current-system/sw/share/sounds/freedesktop/stereo"
@@ -71,6 +72,9 @@ emit_status() {
 }
 
 stop_recording() {
+	local output
+	output=$(cat "$OUTPUT_FILE" 2>/dev/null || true)
+
 	pkill -SIGINT wl-screenrec
 	local i
 	for i in $(seq 1 40); do
@@ -81,7 +85,12 @@ stop_recording() {
 	rm -rf "$STATE_DIR"
 	refresh_waybar
 	play_sound complete.oga
-	notify-send "Screen recording stopped" "Saved to $DEST_DIR"
+	if [[ -n "$output" ]]; then
+		printf '%s' "$output" | wl-copy
+		notify-send "Screen recording stopped" "Path copied to clipboard"
+	else
+		notify-send "Screen recording stopped" "Saved to $DEST_DIR"
+	fi
 	exit 0
 }
 
@@ -113,6 +122,7 @@ start_recording() {
 	fi
 
 	date +%s >"$START_FILE"
+	printf '%s' "$filename" >"$OUTPUT_FILE"
 	refresh_waybar
 	play_sound message-new-instant.oga
 }
