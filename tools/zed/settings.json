@@ -10,6 +10,14 @@
 	// "indent_guides": {
 	// 	"background_coloring": "indent_aware",
 	// },
+	"context_servers": {
+		"Coverlttr (Development)": {
+			"enabled": true,
+			"remote": false,
+			"command": "http://localhost:5181/",
+			"args": []
+		}
+	},
 	"inlay_hints": {
 		"edit_debounce_ms": 0
 	},
@@ -117,10 +125,10 @@
 			"default": "allow"
 		},
 		"default_model": {
-			"effort": "low",
-   "enable_thinking": true,
+			"effort": "minimal",
+			"enable_thinking": true,
 			"provider": "google",
-			"model": "gemini-3-flash-preview"
+			"model": "gemini-3.1-flash-lite"
 		},
 		"model_parameters": []
 	},
