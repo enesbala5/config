@@ -18,7 +18,7 @@ TITLE
 
 - **TITLE**: Short imperative summary of the overall change (no trailing period). Focus on why/what landed, not a file laundry list.
 - **Blank line** between TITLE and bullets.
-- **Bullets**: One concrete change per line. Start with a verb when useful (Add, Fix, Update, Remove).
+- Bullets: One concrete change per line. Start with a verb when useful (Add, Fix, Update, Remove). Only add newlines if you are utilizing bullet points; if not using bullet points, avoid adding unnecessary newlines within paragraphs.
 - Prefer 2–6 bullets; skip trivial or purely mechanical noise.
 - Do not wrap the title in quotes or prefix with `feat:` / `fix:` unless the repo already uses that convention in recent commits.
 - Pass the full message via a HEREDOC when running `git commit`.
