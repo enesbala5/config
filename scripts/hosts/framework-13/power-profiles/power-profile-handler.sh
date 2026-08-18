@@ -230,7 +230,8 @@ apply_profile() {
       log "Switching to power-saver mode"
       toggle_cpu_governor "powersave"
       toggle_hyprland "power-saver"
-      toggle_wifi_power "on"
+      # Keep Wi-Fi power save off: MT7922 firmware wedges on resume otherwise.
+      toggle_wifi_power "off"
       toggle_bluetooth_power "off"
       toggle_swap_swappiness "low"
       toggle_services "stop"
