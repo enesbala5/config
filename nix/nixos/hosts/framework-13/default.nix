@@ -97,6 +97,12 @@ in
   # ------------------------------------------------------------------------------------------
 
   networking = {
+    # Tailscale otherwise takes exclusive control of resolv.conf (only
+    # 100.100.100.100). After suspend that stub dies and every lookup is
+    # "could not resolve host" even when Wi-Fi is up.
+    networkmanager.dns = "systemd-resolved";
+    networkmanager.wifi.powersave = false;
+
     firewall = {
       allowedTCPPorts = [
         9510
@@ -176,6 +182,9 @@ in
     teamviewer.enable = true;
 
     tailscale.enable = true;
+
+    # Split DNS with NetworkManager instead of hijacking /etc/resolv.conf.
+    resolved.enable = true;
 
     upower.enable = true;
 
@@ -368,6 +377,9 @@ in
   boot = {
     kernelModules = [ "acpi_call" ];
     extraModulePackages = with config.boot.kernelPackages; [ acpi_call ];
+    extraModprobeConfig = ''
+      options mt7921e disable_aspm=1
+    '';
 
     consoleLogLevel = 0;
     plymouth.enable = true;
@@ -394,7 +406,8 @@ in
       "acpi_osi=Linux"
       "acpi_backlight=native"
       # Battery optimization
-      "mem_sleep_default=deep"
+      # AMD 7040 only supports s2idle. Forcing "deep" (S3) fails immediately
+      # then falls back to s2idle and leaves the MediaTek Wi-Fi card wedged.
       "pcie_aspm.policy=powersave"
       "amd_pstate=active"
       "amdgpu.dpm=1"
