@@ -254,11 +254,11 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1786496087,
-        "narHash": "sha256-SqnGSz0kQCh6XshctT8GJgpPyafqo7/tygPJbJW4+vw=",
+        "lastModified": 1787120582,
+        "narHash": "sha256-snsdF9n9NuldewkNERj6aQAX5vdg6vwgjuHAlAF+CQs=",
         "owner": "tomsch",
         "repo": "cursor-nix",
-        "rev": "ea9f2afbae36a8802d81c0b61a4f57c7c3a32408",
+        "rev": "4e67af7d5eaad28c9aa7d21d03d9e922d78cbefe",
         "type": "github"
       },
       "original": {
@@ -2023,11 +2023,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1786700332,
-        "narHash": "sha256-feeCPG7SU3mfLrsLLleTuBvDWP40DbGAbcJ6lAqdt34=",
+        "lastModified": 1787140563,
+        "narHash": "sha256-UIkWF+SRE7IRsY25yzr++5TC4DAzSHv0nmV+g0J80uo=",
         "owner": "zed-industries",
         "repo": "zed",
-        "rev": "24e25552b1259d56a6fdd7956a419ed9e8a1a25e",
+        "rev": "d70c45e5bb1d8b7b3926fba5a6d1c69c23bbc405",
         "type": "github"
       },
       "original": {
@@ -2047,11 +2047,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785432635,
-        "narHash": "sha256-LSb65DJoBk8ZDrg0xCfrOb3NnfsMLTC0kEAVpvlTG+Y=",
+        "lastModified": 1786643794,
+        "narHash": "sha256-/E1S2qKsFJwpE+R9UsuRMa+BDTqkBeMe1P1/IHv6CrE=",
         "owner": "0xc000022070",
         "repo": "zen-browser-flake",
-        "rev": "aaf2c248c3a75dfd99ea96261675545a308a5b64",
+        "rev": "048f33b82e77dd1fb058b1e4354a989c6c8f4caa",
         "type": "github"
       },
       "original": {
