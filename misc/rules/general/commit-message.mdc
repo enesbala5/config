@@ -1,29 +1,30 @@
 ---
-description: Commit message format — TITLE plus bullet list
+description: Commit message format — title by default, bullets only for multi-change commits
 alwaysApply: true
 ---
 
 # Commit Message Format
 
-When drafting or creating a git commit message, always use this structure:
+Default: a short imperative **title only** (no trailing period). Focus on why/what landed, not a file laundry list.
 
-```
-TITLE
-
-- bullet item summarizing a change
-- another bullet item
-```
+Use a **blank line + bullets** only when the commit includes several distinct updates that cannot be summed up in one sentence. One or two related changes that fit in the title do not need a body.
 
 ## Rules
 
-- **TITLE**: Short imperative summary of the overall change (no trailing period). Focus on why/what landed, not a file laundry list.
-- **Blank line** between TITLE and bullets.
-- Bullets: One concrete change per line. Start with a verb when useful (Add, Fix, Update, Remove). Only add newlines if you are utilizing bullet points; if not using bullet points, avoid adding unnecessary newlines within paragraphs.
-- Prefer 2–6 bullets; skip trivial or purely mechanical noise.
-- Do not wrap the title in quotes or prefix with `feat:` / `fix:` unless the repo already uses that convention in recent commits.
+- **TITLE**: Short imperative summary. Do not wrap it in quotes or prefix with `feat:` / `fix:` unless the repo already uses that convention in recent commits.
+- **Bullets** (optional): Only for truly multi-change commits. One concrete change per line; start with a verb when useful (Add, Fix, Update, Remove). Prefer 3–6 bullets; skip trivial or purely mechanical noise. Do not use bullets for 1–2 things that the title already covers.
+- If you use bullets, put a blank line between the title and the list. If you do not, do not add extra blank lines or a body paragraph.
 - Pass the full message via a HEREDOC when running `git commit`.
 
-## Example
+## Examples
+
+Title only (typical):
+
+```
+Fix LinkedIn job listing description scrape when the panel remounts
+```
+
+Bullets (several distinct updates):
 
 ```
 Add cover letter credit cost estimate API

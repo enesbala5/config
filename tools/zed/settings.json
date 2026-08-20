@@ -16,6 +16,10 @@
 			"remote": false,
 			"command": "http://localhost:5181/",
 			"args": []
+		},
+		"Polar": {
+			"enabled": true,
+			"url": "https://mcp.polar.sh/mcp/polar-mcp"
 		}
 	},
 	"inlay_hints": {

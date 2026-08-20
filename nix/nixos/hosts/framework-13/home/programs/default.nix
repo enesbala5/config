@@ -367,13 +367,13 @@ in
       defaultApplications = {
         "inode/directory" = "org.kde.dolphin.desktop";
         "x-scheme-handler/http" = [
-          "helium.desktop"
           "zen-beta.desktop"
+          "helium.desktop"
           "google-chrome.desktop"
         ];
         "x-scheme-handler/https" = [
-          "helium.desktop"
           "zen-beta.desktop"
+          "helium.desktop"
           "google-chrome.desktop"
         ];
         "text/html" = [
