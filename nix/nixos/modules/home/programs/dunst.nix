@@ -1,5 +1,7 @@
 { pkgs, ... }:
 {
+  home.packages = [ pkgs.papirus-icon-theme ];
+
   services.dunst.enable = true;
   # TODO: translate this to nix syntax w/ services.dunst.settings
   xdg.configFile."dunst/dunstrc" = {
@@ -76,7 +78,7 @@
           progress_bar_max_width = 300
 
           # Corner radius for the progress bar. 0 disables rounded corners.
-          progress_bar_corner_radius = 50
+          progress_bar_corner_radius = 7
 
           # Define which corners to round when drawing the progress bar. If progress_bar_corner_radius
           # is set to 0 this option will be ignored.
@@ -155,7 +157,7 @@
 
           # The spacing between lines.  If the height is smaller than the
           # font height, it will get raised to the font height.
-          line_height = 1.5
+          line_height = 2
 
           # Possible values are:
           # full: Allow a small subset of html markup in notifications:
@@ -229,7 +231,7 @@
           enable_recursive_icon_lookup = true
 
           # Set icon theme (only used for recursive icon lookup)
-          icon_theme = Adwaita, Papirus, Papirus-Dark
+          icon_theme = Papirus-Dark, Papirus, Adwaita
           # You can also set multiple icon themes, with the leftmost one being used first.
           # icon_theme = "Adwaita, breeze"
 
@@ -350,7 +352,7 @@
           # Otherwise the "#" and following would be interpreted as a comment.
           background = "#22222299"
           foreground = "#ffffff"
-      	highlight = "#722ae6,rgb(181, 207, 228)"
+          highlight = "#722ae6, #b5cfe4"
           timeout = 20
           # Icon for notifications with low urgency
           #default_icon = dialog-information
@@ -359,7 +361,7 @@
           background = "#22222299"
           foreground = "#ffffff"
       	frame_color = "#506986"
-      	highlight = "#722ae6,rgb(181, 182, 228)"
+          highlight = "#722ae6, #b5b6e4"
           timeout = 20
           override_pause_level = 30
           # Icon for notifications with normal urgency
