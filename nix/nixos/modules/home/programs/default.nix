@@ -36,8 +36,6 @@
       # ------------------------------------------------------------------------------------------
       zsh
       zsh-powerlevel10k
-      fzf
-      zoxide # Faster cd
       tree # display contents of a directory as a file tree
       which # find locations of executables
       bat # Text Preview

@@ -1,5 +1,15 @@
-{ pkgs, data, ... }:
+{ pkgs, data, lib, ... }:
 {
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
+  programs.zoxide = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
   programs.zsh = {
     # Hel
     enable = true;
@@ -7,11 +17,13 @@
     syntaxHighlighting.enable = true;
     autosuggestion.enable = true;
     dotDir = "${data.homeDirectory}/.config/zsh";
-    envExtra = ''
-      	    DISABLE_MAGIC_FUNCTIONS=true
-    '';
-
-    initContent = ''
+    initContent = lib.mkMerge [
+      (lib.mkOrder 500 ''
+        if [[ -r "''${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-''${(%):-%n}.zsh" ]]; then
+          source "''${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-''${(%):-%n}.zsh"
+        fi
+      '')
+      ''
       			source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
             source ${data.configDirectory}/tools/zsh/powerlevel10k/.p10k.zsh
 
@@ -28,17 +40,8 @@
             # Control + arrows
             bindkey ";5C" forward-word
             bindkey ";5D" backward-word
-    '';
-
-    oh-my-zsh = {
-      enable = true;
-
-      plugins = [
-        "git"
-        "fzf"
-        "z"
-      ];
-    };
+      ''
+    ];
 
     shellAliases = {
       # General Shortcuts
@@ -95,6 +98,9 @@
       # Git Shortcuts
       # ---------------
       gs = "git status";
+      ga = "git add";
+      gc = "git commit";
+      gp = "git push";
       gpr = "git pull --rebase";
 
       telegram-notify = "${data.configDirectory}/tools/telegram/notify.sh";
