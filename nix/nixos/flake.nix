@@ -93,6 +93,11 @@
       url = "github:tomsch/cursor-nix";
     };
 
+    antigravity-nix = {
+      url = "github:jacopone/antigravity-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     hyprland = {
       url = "github:hyprwm/Hyprland/v0.51.1";
 

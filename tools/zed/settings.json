@@ -187,10 +187,10 @@
 	"ui_font_size": 16,
 	"buffer_font_size": 13.0,
 	"theme": {
-		"mode": "system",
-		"light": "macOS Classic Light",
-		"dark": "VSCode Dark Modern"
-	},
+  "mode": "system",
+  "light": "macOS Classic Light",
+  "dark": "VSCode Dark Modern"
+ },
 	"languages": {
 		"Markdown": {
 			"show_edit_predictions": false

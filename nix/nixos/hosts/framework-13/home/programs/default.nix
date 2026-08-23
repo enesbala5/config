@@ -93,6 +93,9 @@ in
       zed-editor.packages.${system}.default
       cursor-nix.packages.${system}.default
       cursor-nix.packages.${system}.cursor-cli
+      antigravity-nix.packages.${system}.google-antigravity-no-fhs
+      antigravity-nix.packages.${system}.google-antigravity-ide-no-fhs
+      antigravity-nix.packages.${system}.google-antigravity-cli
     ]);
 
   programs = {
