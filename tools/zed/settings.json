@@ -110,7 +110,7 @@
 		}
 	},
 	"icon_theme": {
-		"mode": "dark",
+		"mode": "light",
 		"light": "Catppuccin Frappé",
 		"dark": "VSCode Icons"
 	},
@@ -187,7 +187,7 @@
 	"ui_font_size": 16,
 	"buffer_font_size": 13.0,
 	"theme": {
-  "mode": "system",
+  "mode": "light",
   "light": "macOS Classic Light",
   "dark": "VSCode Dark Modern"
  },

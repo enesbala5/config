@@ -1,15 +1,5 @@
 { pkgs, data, lib, ... }:
 {
-  programs.fzf = {
-    enable = true;
-    enableZshIntegration = true;
-  };
-
-  programs.zoxide = {
-    enable = true;
-    enableZshIntegration = true;
-  };
-
   programs.zsh = {
     # Hel
     enable = true;
@@ -31,6 +21,8 @@
       	    [ -f /run/agenix/default-telegram ] && set -a && source /run/agenix/default-telegram
 
             PATH=~/.console-ninja/.bin:$PATH
+
+            eval "$(${pkgs.zoxide}/bin/zoxide init zsh)"
 
             bindkey -e
 
