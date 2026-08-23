@@ -6,6 +6,7 @@
 #   HSP/HFP — lower-quality mono, but enables the microphone for recording
 #
 # Handy is started on demand (no autostart). First shortcut launches it hidden.
+# After recording stops or is cancelled, Handy exits after IDLE_TIMEOUT seconds.
 #
 # This script handles the profile swap transparently:
 #   Start: pauses music → switches to HSP/HFP → waits for profile to settle → starts handy
@@ -38,14 +39,40 @@ A2DP_PROFILES=(
 )
 
 STATE_FILE="/tmp/handy-bt-recording"
+IDLE_PID_FILE="/tmp/handy-bt-idle.pid"
 SWITCH_DELAY=0.05                  # seconds to wait for HSP profile to activate
 A2DP_RESTORE_DELAY=0.3             # seconds to wait for A2DP sink to reappear
 HANDY_START_TIMEOUT=15             # seconds to wait for Handy to become ready
+IDLE_TIMEOUT=240                   # quit Handy after this many idle seconds
 
 handy_running() {
     pgrep -x handy >/dev/null 2>&1 && return 0
     # Nix wraps the binary; comm is ".handy-wrapped" instead of "handy".
     pgrep -x '.handy-wrapped' >/dev/null 2>&1
+}
+
+cancel_idle_quit() {
+    local pid
+    [ -f "$IDLE_PID_FILE" ] || return 0
+    pid=$(cat "$IDLE_PID_FILE")
+    rm -f "$IDLE_PID_FILE"
+    [ -n "$pid" ] || return 0
+    kill "$pid" 2>/dev/null
+    pkill -P "$pid" 2>/dev/null
+}
+
+schedule_idle_quit() {
+    cancel_idle_quit
+    (
+        sleep "$IDLE_TIMEOUT"
+        rm -f "$IDLE_PID_FILE"
+        [ -f "$STATE_FILE" ] && exit 0
+        handy_running || exit 0
+        pkill -x handy 2>/dev/null
+        pkill -x '.handy-wrapped' 2>/dev/null
+    ) &
+    echo $! >"$IDLE_PID_FILE"
+    disown $! 2>/dev/null || disown
 }
 
 notify() {
@@ -140,6 +167,7 @@ cancel() {
     handy_running && handy --cancel
     rm -f "$STATE_FILE"
     restore_audio
+    schedule_idle_quit
 }
 
 if [ "${1}" = "--cancel" ]; then
@@ -153,8 +181,13 @@ if [ -f "$STATE_FILE" ]; then
     rm -f "$STATE_FILE"
 
     restore_audio
+    schedule_idle_quit
 else
-    ensure_handy_running || exit 1
+    cancel_idle_quit
+    ensure_handy_running || {
+        schedule_idle_quit
+        exit 1
+    }
 
     if playerctl --ignore-player=kdeconnect status 2>/dev/null | grep -q "^Playing$"; then
         touch "${STATE_FILE}.playing"
@@ -164,6 +197,7 @@ else
     if ! switch_to_hsp; then
         rm -f "$STATE_FILE" "${STATE_FILE}.playing" "${STATE_FILE}.cards"
         notify "Couldn't switch headset to call mode" critical dialog-error
+        schedule_idle_quit
         exit 1
     fi
     sleep "$SWITCH_DELAY"
