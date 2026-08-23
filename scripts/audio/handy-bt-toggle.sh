@@ -5,6 +5,8 @@
 #   A2DP  — high-quality stereo playback, no microphone input
 #   HSP/HFP — lower-quality mono, but enables the microphone for recording
 #
+# Handy is started on demand (no autostart). First shortcut launches it hidden.
+#
 # This script handles the profile swap transparently:
 #   Start: pauses music → switches to HSP/HFP → waits for profile to settle → starts handy
 #   Stop:  stops handy → switches back to A2DP → resumes music if it was playing
@@ -38,6 +40,48 @@ A2DP_PROFILES=(
 STATE_FILE="/tmp/handy-bt-recording"
 SWITCH_DELAY=0.05                  # seconds to wait for HSP profile to activate
 A2DP_RESTORE_DELAY=0.3             # seconds to wait for A2DP sink to reappear
+HANDY_START_TIMEOUT=15             # seconds to wait for Handy to become ready
+
+handy_running() {
+    pgrep -x handy >/dev/null 2>&1 && return 0
+    # Nix wraps the binary; comm is ".handy-wrapped" instead of "handy".
+    pgrep -x '.handy-wrapped' >/dev/null 2>&1
+}
+
+notify() {
+    local message=$1
+    local urgency=${2:-normal}
+    local icon=${3:-audio-input-microphone}
+    notify-send \
+        --app-name=Handy \
+        --expire-time=2500 \
+        --urgency="$urgency" \
+        --icon="$icon" \
+        --hint=string:frcolor:#F8A1C9 \
+        --hint=string:hlcolor:#F8A1C9 \
+        "Handy" "$message"
+}
+
+ensure_handy_running() {
+    handy_running && return 0
+
+    notify "Starting Handy"
+
+    handy --start-hidden >/dev/null 2>&1 &
+    disown $! 2>/dev/null || disown
+
+    local i
+    for i in $(seq 1 $((HANDY_START_TIMEOUT * 5))); do
+        if handy_running; then
+            sleep 1
+            return 0
+        fi
+        sleep 0.2
+    done
+
+    notify "Handy failed to start" critical dialog-error
+    return 1
+}
 
 connected_bt_cards() {
   local card available
@@ -62,7 +106,8 @@ set_first_working_profile() {
 switch_to_hsp() {
   local card cards=()
   mapfile -t cards < <(connected_bt_cards)
-  ((${#cards[@]})) || return 1
+  # No listed headset connected — use the default mic and still start recording.
+  ((${#cards[@]})) || return 0
   printf '%s\n' "${cards[@]}" >"${STATE_FILE}.cards"
   for card in "${cards[@]}"; do
     set_first_working_profile "$card" "${HSP_PROFILES[@]}" || return 1
@@ -92,7 +137,7 @@ restore_audio() {
 }
 
 cancel() {
-    handy --cancel
+    handy_running && handy --cancel
     rm -f "$STATE_FILE"
     restore_audio
 }
@@ -103,10 +148,14 @@ if [ "${1}" = "--cancel" ]; then
 fi
 
 if [ -f "$STATE_FILE" ]; then
-    handy --toggle-transcription
+    handy_running && handy --toggle-transcription
+
     rm -f "$STATE_FILE"
+
     restore_audio
 else
+    ensure_handy_running || exit 1
+
     if playerctl --ignore-player=kdeconnect status 2>/dev/null | grep -q "^Playing$"; then
         touch "${STATE_FILE}.playing"
     fi
@@ -114,6 +163,7 @@ else
     touch "$STATE_FILE"
     if ! switch_to_hsp; then
         rm -f "$STATE_FILE" "${STATE_FILE}.playing" "${STATE_FILE}.cards"
+        notify "Couldn't switch headset to call mode" critical dialog-error
         exit 1
     fi
     sleep "$SWITCH_DELAY"
