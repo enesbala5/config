@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 
-# Run hyprpicker 
-# hyprpicker handles copying to clipboard automatically
+# Pick a screen pixel with slurp/grim (same stack as screenshots).
+# hyprpicker overlays a layer surface and can crash Hyprland
+# ([ERR] renderSurface: PBUFFER null); bash cannot catch that.
 
-# If the color has been set, do the following:
-# -> Notify the user that the color has been copied to the clipboard
-# -> Display the color in the notification as well
-
-# If the color has not been set, do the following:
-# -> Notify the user that no color has been set
-
-COLOR=$(timeout 30 hyprpicker -a 2>/dev/null | grep -oE '#[0-9a-fA-F]{6}')
-EXIT_CODE=$?
-
-if [ $EXIT_CODE -eq 124 ]; then
-    notify-send "Color picker timed out"
-elif [ $EXIT_CODE -ne 0 ] || [ -z "$COLOR" ]; then
-    notify-send "No color selected"
-else
-    notify-send "Color has been copied: $COLOR"
+SELECTION=$(slurp -p 2>/dev/null)
+if [ $? -ne 0 ] || [ -z "$SELECTION" ]; then
+    notify-send "No color selected" || true
+    exit 0
 fi
+
+# grim PPM is P6 with maxval 255; last 3 bytes are the pixel RGB.
+RGB=$(grim -g "$SELECTION" -t ppm - 2>/dev/null | tail -c 3 | od -An -tx1 | tr -d ' \n')
+if [ ${#RGB} -ne 6 ]; then
+    notify-send "Color picker failed" || true
+    exit 0
+fi
+
+COLOR="#${RGB^^}"
+printf '%s' "$COLOR" | wl-copy 2>/dev/null || true
+notify-send "Color has been copied: $COLOR" || true

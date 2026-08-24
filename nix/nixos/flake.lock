@@ -2078,11 +2078,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1787140563,
-        "narHash": "sha256-UIkWF+SRE7IRsY25yzr++5TC4DAzSHv0nmV+g0J80uo=",
+        "lastModified": 1787602467,
+        "narHash": "sha256-jRgF+AWMHb39fnQvKrI6vPrBB15ojBuHp36kF0lx8Nw=",
         "owner": "zed-industries",
         "repo": "zed",
-        "rev": "d70c45e5bb1d8b7b3926fba5a6d1c69c23bbc405",
+        "rev": "ff7b061dc2fb88a05420f713a525f8223e5ae332",
         "type": "github"
       },
       "original": {
@@ -2102,11 +2102,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786643794,
-        "narHash": "sha256-/E1S2qKsFJwpE+R9UsuRMa+BDTqkBeMe1P1/IHv6CrE=",
+        "lastModified": 1787430507,
+        "narHash": "sha256-suOYXVn7PadruX8SlCji40gnmKUqQOSQRLtja/E60Vw=",
         "owner": "0xc000022070",
         "repo": "zen-browser-flake",
-        "rev": "048f33b82e77dd1fb058b1e4354a989c6c8f4caa",
+        "rev": "b49e5b7b3f925b78b2af9ca21e81e8c0d1a4711e",
         "type": "github"
       },
       "original": {

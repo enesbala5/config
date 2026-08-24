@@ -49,7 +49,6 @@
 
       # User Interface
       # ------------------------------------------------------------------------------------------
-      hyprpicker # Color Picker
       hyprcursor # Cursor Manager
       # hyprshade # Display Hue
 
