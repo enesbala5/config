@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Svelte `$state` Typing
 
-Do not pass a type argument to `$state`. Annotate the variable instead.
+Never pass a type argument to `$state` / `$state.raw`. Annotate the variable, and declare it with `const`.
 
 ```typescript
 // ❌ BAD
