@@ -89,6 +89,14 @@
     # want to update the value, then make sure to first check the Home Manager
     # release notes.
     stateVersion = "23.11"; # Please read the comment before changing.
+
+    # Keep the polarity toggle in sync with the generation that actually
+    # activated (rebuild always applies default dark; specialisations write
+    # their own polarity). Do not use /tmp — it is cleaned on boot.
+    activation.stylixPolarityState = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      mkdir -p "${config.xdg.stateHome}/stylix"
+      printf '%s\n' '${config.stylix.polarity}' > "${config.xdg.stateHome}/stylix/polarity"
+    '';
   };
 
   gtk = {
