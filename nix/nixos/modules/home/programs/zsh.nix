@@ -1,4 +1,9 @@
-{ pkgs, data, lib, ... }:
+{
+  pkgs,
+  data,
+  lib,
+  ...
+}:
 {
   programs.zsh = {
     # Hel
@@ -14,24 +19,24 @@
         fi
       '')
       ''
-      			source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
-            source ${data.configDirectory}/tools/zsh/powerlevel10k/.p10k.zsh
+        			source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
+              source ${data.configDirectory}/tools/zsh/powerlevel10k/.p10k.zsh
 
-            # Source Telegram credentials - Needed for `telegram-notify` script
-      	    [ -f /run/agenix/default-telegram ] && set -a && source /run/agenix/default-telegram
+              # Source Telegram credentials - Needed for `telegram-notify` script
+        	    [ -f /run/agenix/default-telegram ] && set -a && source /run/agenix/default-telegram
 
-            PATH=~/.console-ninja/.bin:$PATH
+              PATH=~/.console-ninja/.bin:$PATH
 
-            eval "$(${pkgs.zoxide}/bin/zoxide init zsh)"
+              eval "$(${pkgs.zoxide}/bin/zoxide init zsh)"
 
-            bindkey -e
+              bindkey -e
 
-            # Control + backspace
-            bindkey '^H' backward-kill-word
+              # Control + backspace
+              bindkey '^H' backward-kill-word
 
-            # Control + arrows
-            bindkey ";5C" forward-word
-            bindkey ";5D" backward-word
+              # Control + arrows
+              bindkey ";5C" forward-word
+              bindkey ";5D" backward-word
       ''
     ];
 
