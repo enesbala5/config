@@ -12,6 +12,7 @@ in
 {
   imports = [
     ./activitywatch.nix
+    ./piper-tts.nix
     ./plasma.nix
   ];
 

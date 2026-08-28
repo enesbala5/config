@@ -164,6 +164,7 @@ restore_audio() {
 }
 
 cancel() {
+    "$(dirname "$0")/hypr-piper-speak.sh" stop
     handy_running && handy --cancel
     rm -f "$STATE_FILE"
     restore_audio
