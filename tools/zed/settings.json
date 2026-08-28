@@ -96,7 +96,7 @@
 	},
 	"edit_predictions": {
 		"mode": "subtle",
-		"provider": "codestral",
+		"provider": "zed",
 		"allow_data_collection": "no"
 	},
 	"cli_default_open_behavior": "new_window",
@@ -111,7 +111,7 @@
 	},
 	"icon_theme": {
 		"mode": "light",
-		"light": "Catppuccin Frappé",
+		"light": "VSCode Icons",
 		"dark": "VSCode Icons"
 	},
 	"format_on_save": "off",
