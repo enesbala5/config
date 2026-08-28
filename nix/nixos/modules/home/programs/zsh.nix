@@ -19,24 +19,25 @@
         fi
       '')
       ''
-        			source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
-              source ${data.configDirectory}/tools/zsh/powerlevel10k/.p10k.zsh
 
-              # Source Telegram credentials - Needed for `telegram-notify` script
-        	    [ -f /run/agenix/default-telegram ] && set -a && source /run/agenix/default-telegram
+      source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
+      source ${data.configDirectory}/tools/zsh/powerlevel10k/.p10k.zsh
 
-              PATH=~/.console-ninja/.bin:$PATH
+      # Source Telegram credentials - Needed for `telegram-notify` script
+      [ -f /run/agenix/default-telegram ] && set -a && source /run/agenix/default-telegram
 
-              eval "$(${pkgs.zoxide}/bin/zoxide init zsh)"
+      PATH=~/.console-ninja/.bin:$PATH
 
-              bindkey -e
+      eval "$(${pkgs.zoxide}/bin/zoxide init zsh)"
 
-              # Control + backspace
-              bindkey '^H' backward-kill-word
+      bindkey -e
 
-              # Control + arrows
-              bindkey ";5C" forward-word
-              bindkey ";5D" backward-word
+      # Control + backspace
+      bindkey '^H' backward-kill-word
+
+      # Control + arrows
+      bindkey ";5C" forward-word
+      bindkey ";5D" backward-word
       ''
     ];
 
@@ -49,10 +50,23 @@
       sl = "ls";
       f = "xdg-open";
 
+      zed = "zeditor";
+
+      telegram-notify = "${data.configDirectory}/tools/telegram/notify.sh";
+      keyring-import = "nix run ${data.configDirectory}/scripts/auth/keyring-import --";
+      fix-history = "${data.configDirectory}/tools/zsh/scripts/fix-history.sh";
+
+      # Hyprland / DE
+      # ---------------
       reload-hyprlock = "${data.configDirectory}/scripts/utilities/reload-hyprlock.sh";
       clear-monitor-config = "${data.configDirectory}/scripts/utilities/clear-monitor-config.sh";
+      reload-waybar = "pkill -9 waybar && hyprctl --instance 0 'dispatch exec waybar'";
       toggle-polarity = "${data.configDirectory}/scripts/utilities/toggle-polarity.sh";
-      fix-history = "${data.configDirectory}/tools/zsh/scripts/fix-history.sh";
+
+      # DevOps / Config
+      # ---------------
+      manage-secret = "cd ${data.configDirectory}/nix/secrets && EDITOR='zeditor --new --wait' agenix -e";
+      acknowledge-smartd-error = "${data.configDirectory}/scripts/hosts/home-server/smartd/acknowledge-error.sh";
 
       # Development Shortcuts
       # ---------------
@@ -67,8 +81,14 @@
       rclone-start = "echo 'Starting rclone service' && sudo systemctl start rclone.timer rclone.path rclone.service && (systemctl is-active --quiet rclone.service && echo 'Service started.' || echo 'Service did not start.') && echo 'Run rclone-logs or rclone-status for more information.'";
       rclone-stop = "sudo systemctl stop rclone.timer rclone.path rclone.service && sleep 1 && (! systemctl is-active --quiet rclone.service && echo 'Service stopped.' || echo 'Service did not stop.') && echo 'Run rclone-logs or rclone-status for more information.'";
       rclone-resync = "echo 'Stopping rclone service' && rclone-stop && if ! systemctl is-active --quiet rclone.service; then printf 'WARNING: This will perform a full resync. Continue? (y/N): ' && read REPLY && if [ \"$REPLY\" = \"y\" ] || [ \"$REPLY\" = \"Y\" ]; then RCLONE_CONFIG=${data.rcloneGdriveConfigPath} RCLONE_REMOTE_NAME=${data.googleDriveRemoteName} RCLONE_LOCAL_DIR=${data.googleDriveLocalDir} ${data.configDirectory}/tools/rclone/scripts/rclone-bisync.sh --resync && rclone-start; else echo 'Resync cancelled. Restarting service...' && rclone-start; fi; else echo 'Service is still running. Cannot proceed with resync.'; fi";
+
+      # Storage
+      # ---------------
       stu-rclone = "${data.configDirectory}/scripts/utilities/stu-rclone.sh";
-      keyring-import = "nix run ${data.configDirectory}/scripts/auth/keyring-import --";
+      
+      # Network
+      # ---------------
+      flush-dns = "sudo systemctl restart nscd";
 
       # NixOS Shortcuts
       # ---------------
@@ -92,6 +112,11 @@
       power-profile-logs = "echo '=== Power Profile Handler Log ===' && tail -n 50 /tmp/power-profile-handler.log 2>/dev/null || echo 'Handler log not found'";
       power-profile-monitor-logs = "echo '=== Power Profile Monitor Log ===' && tail -n 50 /tmp/power-profile-monitor.log 2>/dev/null || echo 'Monitor log not found'";
 
+      # Audio
+      # ---------------
+      stt = "${data.configDirectory}/scripts/audio/handy-bt-toggle.sh";
+      tts = "${data.configDirectory}/scripts/audio/hypr-piper-speak.sh";
+
       # Git Shortcuts
       # ---------------
       gs = "git status";
@@ -99,16 +124,6 @@
       gc = "git commit";
       gp = "git push";
       gpr = "git pull --rebase";
-
-      telegram-notify = "${data.configDirectory}/tools/telegram/notify.sh";
-      acknowledge-smartd-error = "${data.configDirectory}/scripts/hosts/home-server/smartd/acknowledge-error.sh";
-
-      flush-dns = "sudo systemctl restart nscd";
-      reload-waybar = "pkill -9 waybar && hyprctl --instance 0 'dispatch exec waybar'";
-
-      zed = "zeditor";
-
-      manage-secret = "cd ${data.configDirectory}/nix/secrets && EDITOR='zeditor --new --wait' agenix -e";
     };
   };
 }
