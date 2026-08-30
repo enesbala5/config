@@ -32,14 +32,34 @@
 
       bindkey -e
 
+      # Ctrl-R: fzf history (after emacs keymap so ^R is not reset)
+      eval "$(${pkgs.fzf}/bin/fzf --zsh)"
+
       # Control + backspace
       bindkey '^H' backward-kill-word
 
-      # Control + arrows
-      bindkey ";5C" forward-word
-      bindkey ";5D" backward-word
+      # Control + arrows (kitty/xterm: CSI 1;5C / 1;5D)
+      bindkey '^[[1;5C' forward-word
+      bindkey '^[[1;5D' backward-word
+      bindkey '^[[5C' forward-word
+      bindkey '^[[5D' backward-word
+      if [[ -n "''${terminfo[kRIT5]}" ]]; then
+        bindkey "''${terminfo[kRIT5]}" forward-word
+      fi
+      if [[ -n "''${terminfo[kLFT5]}" ]]; then
+        bindkey "''${terminfo[kLFT5]}" backward-word
+      fi
+
+      setopt AUTO_CD
       ''
     ];
+
+    shellGlobalAliases = {
+      "..." = "../..";
+      "...." = "../../..";
+      "....." = "../../../..";
+      "......" = "../../../../..";
+    };
 
     shellAliases = {
       # General Shortcuts

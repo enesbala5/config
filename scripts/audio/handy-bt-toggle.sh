@@ -19,12 +19,9 @@
 # Tune SWITCH_DELAY if the first syllable of a recording is clipped (increase it),
 # or if there's a noticeable lag before recording starts (decrease it).
 
-# Supported Bluetooth cards — add/remove entries as needed.
+# Cards that expose HSP/HFP but should not be switched (car kit, speakerphone).
 # Names are PipeWire/Pulse card names (MAC with colons → underscores).
-BT_CARDS=(
-  "bluez_card.00_A4_1C_0C_C8_53"  # WH-CH720N
-  "bluez_card.80_9F_F5_71_73_8D"  # Galaxy Buds Live
-  "bluez_card.2C_BE_EE_2E_61_E8"  # CMF Buds 2 Plus
+BT_CARD_BLOCKLIST=(
 )
 
 # Tried in order; first success wins. mSBC is preferred over CVSD.
@@ -110,12 +107,44 @@ ensure_handy_running() {
     return 1
 }
 
-connected_bt_cards() {
-  local card available
-  available=$(pactl list cards short | awk '{print $2}')
-  for card in "${BT_CARDS[@]}"; do
-    printf '%s\n' "$available" | grep -qxF "$card" && printf '%s\n' "$card"
+card_is_blocked() {
+  local card=$1 b
+  for b in "${BT_CARD_BLOCKLIST[@]}"; do
+    [ "$card" = "$b" ] && return 0
   done
+  return 1
+}
+
+# Connected bluez cards that advertise an available HSP/HFP profile.
+connected_bt_cards() {
+  local card
+  while IFS= read -r card; do
+    [ -n "$card" ] || continue
+    card_is_blocked "$card" && continue
+    printf '%s\n' "$card"
+  done < <(
+    pactl list cards | awk '
+      function flush() {
+        if (name ~ /^bluez_card\./ && has_hsp) print name
+      }
+      /^[[:space:]]*Name:[[:space:]]+/ {
+        flush()
+        name = $2
+        in_profiles = 0
+        has_hsp = 0
+        next
+      }
+      /^[[:space:]]*Profiles:/ { in_profiles = 1; next }
+      /^[[:space:]]*Active Profile:/ { in_profiles = 0; next }
+      in_profiles && /available: no/ { next }
+      in_profiles {
+        split($1, a, ":")
+        if (a[1] == "headset-head-unit" || a[1] == "headset-head-unit-cvsd")
+          has_hsp = 1
+      }
+      END { flush() }
+    '
+  )
 }
 
 set_first_working_profile() {
@@ -133,7 +162,7 @@ set_first_working_profile() {
 switch_to_hsp() {
   local card cards=()
   mapfile -t cards < <(connected_bt_cards)
-  # No listed headset connected — use the default mic and still start recording.
+  # No headset with HSP/HFP connected — use the default mic and still start recording.
   ((${#cards[@]})) || return 0
   printf '%s\n' "${cards[@]}" >"${STATE_FILE}.cards"
   for card in "${cards[@]}"; do
