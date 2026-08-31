@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 # Record a screen region with wl-screenrec + slurp.
-# Re-run to stop an active recording.
+# Re-run to stop an active recording (keeps the file).
+# `cancel` / `--cancel` aborts and discards the file.
 # `status` prints JSON for the waybar indicator (signal 9).
 # Saves to ~/misc/media/Screen Recordings/
 
@@ -71,19 +72,33 @@ emit_status() {
 	printf '{"text":"●","class":"recording","tooltip":"%s"}\n' "$tooltip"
 }
 
+recording_active() {
+	pgrep -x wl-screenrec >/dev/null || [[ -f "$START_FILE" ]]
+}
+
+kill_recorder() {
+	local sig=${1:-INT}
+	pkill -"$sig" wl-screenrec 2>/dev/null || true
+	local i
+	for i in $(seq 1 40); do
+		pgrep -x wl-screenrec >/dev/null || return 0
+		sleep 0.05
+	done
+	pkill -KILL wl-screenrec 2>/dev/null || true
+}
+
+cleanup_state() {
+	restore_notifications
+	rm -rf "$STATE_DIR"
+	refresh_waybar
+}
+
 stop_recording() {
 	local output
 	output=$(cat "$OUTPUT_FILE" 2>/dev/null || true)
 
-	pkill -SIGINT wl-screenrec
-	local i
-	for i in $(seq 1 40); do
-		pgrep -x wl-screenrec >/dev/null || break
-		sleep 0.05
-	done
-	restore_notifications
-	rm -rf "$STATE_DIR"
-	refresh_waybar
+	kill_recorder INT
+	cleanup_state
 	play_sound complete.oga
 	if [[ -n "$output" ]]; then
 		printf '%s' "$output" | wl-copy
@@ -92,6 +107,16 @@ stop_recording() {
 		notify-send "Screen recording stopped" "Saved to $DEST_DIR"
 	fi
 	exit 0
+}
+
+cancel_recording() {
+	local output
+	output=$(cat "$OUTPUT_FILE" 2>/dev/null || true)
+
+	kill_recorder TERM
+	[[ -n "$output" ]] && rm -f "$output"
+	cleanup_state
+	notify-send "Screen recording cancelled" "Discarded"
 }
 
 start_recording() {
@@ -129,6 +154,11 @@ start_recording() {
 
 if [[ "${1:-}" == "status" ]]; then
 	emit_status
+	exit 0
+fi
+
+if [[ "${1:-}" == "cancel" || "${1:-}" == "--cancel" ]]; then
+	recording_active && cancel_recording
 	exit 0
 fi
 

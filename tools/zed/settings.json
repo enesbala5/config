@@ -12,13 +12,13 @@
 	// },
 	"context_servers": {
 		"Coverlttr (Development)": {
-			"enabled": true,
+   "enabled": true,
 			"remote": false,
 			"command": "http://localhost:5181/",
 			"args": []
 		},
 		"Polar": {
-			"enabled": true,
+   "enabled": true,
 			"url": "https://mcp.polar.sh/mcp/polar-mcp"
 		}
 	},

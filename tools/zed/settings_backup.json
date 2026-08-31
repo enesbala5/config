@@ -16,6 +16,10 @@
 			"remote": false,
 			"command": "http://localhost:5181/",
 			"args": []
+		},
+		"Polar": {
+			"enabled": true,
+			"url": "https://mcp.polar.sh/mcp/polar-mcp"
 		}
 	},
 	"inlay_hints": {
@@ -92,7 +96,7 @@
 	},
 	"edit_predictions": {
 		"mode": "subtle",
-		"provider": "codestral",
+		"provider": "zed",
 		"allow_data_collection": "no"
 	},
 	"cli_default_open_behavior": "new_window",
@@ -107,7 +111,7 @@
 	},
 	"icon_theme": {
 		"mode": "dark",
-		"light": "Catppuccin Frappé",
+		"light": "VSCode Icons",
 		"dark": "VSCode Icons"
 	},
 	"format_on_save": "off",
@@ -183,10 +187,10 @@
 	"ui_font_size": 16,
 	"buffer_font_size": 13.0,
 	"theme": {
-		"mode": "system",
-		"light": "macOS Classic Light",
-		"dark": "VSCode Dark Modern"
-	},
+  "mode": "dark",
+  "light": "macOS Classic Light",
+  "dark": "VSCode Dark Modern"
+ },
 	"languages": {
 		"Markdown": {
 			"show_edit_predictions": false
