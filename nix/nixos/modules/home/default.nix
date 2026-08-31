@@ -5,6 +5,7 @@
   data,
   lib,
   pkgs,
+  osConfig,
   ...
 }:
 {
@@ -45,6 +46,10 @@
     file = {
       ".config/hypr/hyprland.conf" = {
         source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hyprland/configuration.conf";
+      };
+
+      ".config/hypr/host.conf" = {
+        source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hyprland/hosts/${osConfig.networking.hostName}.conf";
       };
 
       ".config/hyprdynamicmonitors/" = {
