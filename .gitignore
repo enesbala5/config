@@ -4,6 +4,6 @@ nix/nixos/nixos-switch.log
 .cursor
 .env
 .vscode
-tools/rclone/**.conf
+tools/F/**.conf
 kitty/kitty.conf.bak
 *.bak

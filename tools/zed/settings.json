@@ -10,15 +10,16 @@
 	// "indent_guides": {
 	// 	"background_coloring": "indent_aware",
 	// },
+	"disable_ai": false,
 	"context_servers": {
 		"Coverlttr (Development)": {
-   "enabled": true,
+			"enabled": true,
 			"remote": false,
 			"command": "http://localhost:5181/",
 			"args": []
 		},
 		"Polar": {
-   "enabled": true,
+			"enabled": true,
 			"url": "https://mcp.polar.sh/mcp/polar-mcp"
 		}
 	},
@@ -129,10 +130,10 @@
 			"default": "allow"
 		},
 		"default_model": {
-			"effort": "minimal",
+			"effort": "MEDIUM",
 			"enable_thinking": true,
-			"provider": "google",
-			"model": "gemini-3.1-flash-lite"
+			"provider": "zed.dev",
+			"model": "gemini-3.5-flash"
 		},
 		"model_parameters": []
 	},
@@ -187,10 +188,10 @@
 	"ui_font_size": 16,
 	"buffer_font_size": 13.0,
 	"theme": {
-  "mode": "dark",
-  "light": "macOS Classic Light",
-  "dark": "VSCode Dark Modern"
- },
+		"mode": "dark",
+		"light": "macOS Classic Light",
+		"dark": "VSCode Dark Modern"
+	},
 	"languages": {
 		"Markdown": {
 			"show_edit_predictions": false

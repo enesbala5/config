@@ -417,5 +417,65 @@
   "unbind": {
    "ctrl-right": "editor::AcceptNextWordEditPrediction"
   }
+ },
+ {
+  "context": "AcpThread > Editor",
+  "bindings": {
+   "ctrl-?": "agent::CycleThinkingEffort"
+  }
+ },
+ {
+  "context": "AcpThread > Editor",
+  "unbind": {
+   "ctrl-'": "agent::CycleThinkingEffort"
+  }
+ },
+ {
+  "context": "AcpThread > Editor",
+  "bindings": {
+   "ctrl-alt-?": "agent::ToggleThinkingMode"
+  }
+ },
+ {
+  "context": "AcpThread > Editor",
+  "unbind": {
+   "ctrl-alt-k": "agent::ToggleThinkingMode"
+  }
+ },
+ {
+  "context": "InlineAssistant > Editor",
+  "bindings": {
+   "ctrl-c": "editor::Cancel"
+  }
+ },
+ {
+  "context": "InlineAssistant > Editor",
+  "unbind": {
+   "ctrl-shift-backspace": "editor::Cancel"
+  }
+ },
+ {
+  "context": "AgentPanel || MessageEditor > Editor",
+  "bindings": {
+   "ctrl-c": "editor::Cancel"
+  }
+ },
+ {
+  "context": "AgentPanel || MessageEditor > Editor",
+  "unbind": {
+   "ctrl-shift-backspace": "editor::Cancel"
+  }
+ },
+ {
+  "context": "Editor",
+  "bindings": {
+   "ctrl-shift-c": "editor::Copy"
+  }
+ },
+ {
+  "context": "Editor",
+  "unbind": {
+   "copy": "editor::Copy"
+  }
  }
 ]
