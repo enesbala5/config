@@ -117,7 +117,27 @@
 	},
 	"format_on_save": "off",
 	"agent": {
-		"play_sound_when_agent_done": "when_hidden",
+		"sandbox_permissions": {
+   "write_paths": [
+    {
+     "requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/merre",
+     "resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/merre"
+    },
+    {
+     "requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/coverlttr",
+     "resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/coverlttr"
+    },
+    {
+     "requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/audiobookshelf",
+     "resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/audiobookshelf"
+    },
+    {
+     "requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/uptime-kuma",
+     "resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/uptime-kuma"
+    }
+   ]
+  },
+  "play_sound_when_agent_done": "when_hidden",
 		"inline_assistant_model": {
 			"provider": "zed.dev",
 			"model": "gpt-5-nano",
