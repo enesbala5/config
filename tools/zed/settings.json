@@ -111,13 +111,14 @@
 		}
 	},
 	"icon_theme": {
-		"mode": "dark",
+		"mode": "light",
 		"light": "VSCode Icons",
 		"dark": "VSCode Icons"
 	},
 	"format_on_save": "off",
 	"agent": {
 		"sandbox_permissions": {
+   "allow_unsandboxed": true,
    "write_paths": [
     {
      "requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/merre",
@@ -150,10 +151,9 @@
 			"default": "allow"
 		},
 		"default_model": {
-			"effort": "MEDIUM",
-			"enable_thinking": true,
+			"enable_thinking": false,
 			"provider": "zed.dev",
-			"model": "gemini-3.5-flash"
+			"model": "gpt-5-mini"
 		},
 		"model_parameters": []
 	},
@@ -208,7 +208,7 @@
 	"ui_font_size": 16,
 	"buffer_font_size": 13.0,
 	"theme": {
-		"mode": "dark",
+		"mode": "light",
 		"light": "macOS Classic Light",
 		"dark": "VSCode Dark Modern"
 	},
