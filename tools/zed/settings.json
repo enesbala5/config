@@ -21,6 +21,15 @@
 		"Polar": {
 			"enabled": true,
 			"url": "https://mcp.polar.sh/mcp/polar-mcp"
+		},
+		"twenty": {
+			"url": "https://twenty.enesbala.com/mcp",
+			"headers": {
+				"Authorization": "Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjYwNjhkZGEyLTkxZTAtNDQzZS1iNDIzLWU1ZTliMzJiYWI1NCJ9.eyJzdWIiOiJkYTgzYWEwYi1hOTcwLTRiZGQtYTU1Yi04MWIwYmUyNGE3MjgiLCJ0eXBlIjoiQVBJX0tFWSIsIndvcmtzcGFjZUlkIjoiZGE4M2FhMGItYTk3MC00YmRkLWE1NWItODFiMGJlMjRhNzI4IiwiaWF0IjoxNzg2NDE3MDI4LCJleHAiOjQ5NDAwMTcwMjcsImp0aSI6ImMyMTQ4MzAyLTdiMDUtNDhlYi04ODliLWJjYmY3MDQ1NjQzMCJ9.-RIlLWX_sbKc8NYLwnZlxNfBumbWMS0N3gS7ogyzWnhkiRIJzrAu5MRj1vJnF8za-MGRTqv5wlxMKou80lPJwA"
+			}
+		},
+		"Figma": {
+			"url": "https://mcp.figma.com/mcp"
 		}
 	},
 	"inlay_hints": {
@@ -37,7 +46,7 @@
 			"show_author_name": true
 		}
 	},
-	"diff_view_style": "split",
+	"diff_view_style": "unified",
 	"title_bar": {
 		"show_branch_status_icon": false,
 		"show_branch_name": true,
@@ -96,7 +105,7 @@
 		"file_icons": true
 	},
 	"edit_predictions": {
-		"mode": "subtle",
+		"mode": "eager",
 		"provider": "zed",
 		"allow_data_collection": "no"
 	},
@@ -111,34 +120,34 @@
 		}
 	},
 	"icon_theme": {
-		"mode": "light",
+		"mode": "dark",
 		"light": "VSCode Icons",
 		"dark": "VSCode Icons"
 	},
 	"format_on_save": "off",
 	"agent": {
 		"sandbox_permissions": {
-   "allow_unsandboxed": true,
-   "write_paths": [
-    {
-     "requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/merre",
-     "resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/merre"
-    },
-    {
-     "requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/coverlttr",
-     "resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/coverlttr"
-    },
-    {
-     "requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/audiobookshelf",
-     "resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/audiobookshelf"
-    },
-    {
-     "requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/uptime-kuma",
-     "resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/uptime-kuma"
-    }
-   ]
-  },
-  "play_sound_when_agent_done": "when_hidden",
+			"allow_unsandboxed": true,
+			"write_paths": [
+				{
+					"requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/merre",
+					"resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/merre"
+				},
+				{
+					"requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/coverlttr",
+					"resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/coverlttr"
+				},
+				{
+					"requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/audiobookshelf",
+					"resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/audiobookshelf"
+				},
+				{
+					"requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/uptime-kuma",
+					"resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/uptime-kuma"
+				}
+			]
+		},
+		"play_sound_when_agent_done": "when_hidden",
 		"inline_assistant_model": {
 			"provider": "zed.dev",
 			"model": "gpt-5-nano",
@@ -151,9 +160,10 @@
 			"default": "allow"
 		},
 		"default_model": {
-			"enable_thinking": false,
+			"effort": "high",
+   "enable_thinking": true,
 			"provider": "zed.dev",
-			"model": "gpt-5-mini"
+			"model": "claude-sonnet-4-6"
 		},
 		"model_parameters": []
 	},
@@ -208,7 +218,7 @@
 	"ui_font_size": 16,
 	"buffer_font_size": 13.0,
 	"theme": {
-		"mode": "light",
+		"mode": "dark",
 		"light": "macOS Classic Light",
 		"dark": "VSCode Dark Modern"
 	},

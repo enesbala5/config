@@ -477,5 +477,41 @@
   "unbind": {
    "copy": "editor::Copy"
   }
+ },
+ {
+  "context": "!Terminal",
+  "bindings": {
+   "ctrl-alt-shift-c": "collab_panel::ToggleFocus"
+  }
+ },
+ {
+  "context": "!Terminal",
+  "unbind": {
+   "ctrl-shift-c": "collab_panel::ToggleFocus"
+  }
+ },
+ {
+  "context": "Workspace",
+  "bindings": {
+   "ctrl-k ctrl-t": "theme::ToggleMode"
+  }
+ },
+ {
+  "context": "Workspace",
+  "unbind": {
+   "ctrl-k ctrl-shift-t": "theme::ToggleMode"
+  }
+ },
+ {
+  "context": "Workspace",
+  "bindings": {
+   "ctrl-k ctrl-shift-t": "theme_selector::Toggle"
+  }
+ },
+ {
+  "context": "Workspace",
+  "unbind": {
+   "ctrl-k ctrl-t": "theme_selector::Toggle"
+  }
  }
 ]
