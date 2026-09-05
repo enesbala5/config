@@ -15,6 +15,12 @@ workspace = 8,monitor:{{$xiaomi.Name}}
 
 exec = hyprctl keyword animation workspaces, 1, 0.8, default
 
+# Adjust transparency for specific apps
+windowrule = opacity 0.98 override 0.90 override 0.98 override, class:(code)$
+windowrule = opacity 0.98 override 0.90 override 0.98 override, title:.*Cursor.*
+windowrule = opacity 0.98 override 0.90 override 0.98 override, class:(dev.zed.Zed-Nightly)$
+windowrule = opacity 0.98 override 0.90 override 0.98 override, class:(obsidian)$
+
 {{ end }}
 
 {{- $dell := index .MonitorsByTag "dell-24" -}}
