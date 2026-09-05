@@ -638,6 +638,26 @@
         "type": "gitlab"
       }
     },
+    "grok-bot": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1788594340,
+        "narHash": "sha256-1CZe2QRXOZGENhlkgVP6hSRDhiASqW9HbDtW7bAunrI=",
+        "owner": "jordangarrison",
+        "repo": "grok-bot-flake",
+        "rev": "0bda4f7b78b5d20fe39b7fe1b4ddfd78174cb06e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jordangarrison",
+        "repo": "grok-bot-flake",
+        "type": "github"
+      }
+    },
     "helium-browser": {
       "inputs": {
         "nixpkgs": [
@@ -1584,6 +1604,7 @@
         "antigravity-nix": "antigravity-nix",
         "aw-watcher-window-hyprland": "aw-watcher-window-hyprland",
         "cursor-nix": "cursor-nix",
+        "grok-bot": "grok-bot",
         "helium-browser": "helium-browser",
         "home-manager": "home-manager_2",
         "hyprdynamicmonitors": "hyprdynamicmonitors",
