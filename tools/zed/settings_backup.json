@@ -16,34 +16,37 @@
 			"enabled": true,
 			"remote": false,
 			"command": "http://localhost:5181/",
-			"args": [],
+			"args": []
 		},
 		"Polar": {
 			"enabled": true,
-			"url": "https://mcp.polar.sh/mcp/polar-mcp",
+			"url": "https://mcp.polar.sh/mcp/polar-mcp"
 		},
 		"twenty": {
 			"url": "https://twenty.enesbala.com/mcp",
 			"headers": {
-				"Authorization": "Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjYwNjhkZGEyLTkxZTAtNDQzZS1iNDIzLWU1ZTliMzJiYWI1NCJ9.eyJzdWIiOiJkYTgzYWEwYi1hOTcwLTRiZGQtYTU1Yi04MWIwYmUyNGE3MjgiLCJ0eXBlIjoiQVBJX0tFWSIsIndvcmtzcGFjZUlkIjoiZGE4M2FhMGItYTk3MC00YmRkLWE1NWItODFiMGJlMjRhNzI4IiwiaWF0IjoxNzg2NDE3MDI4LCJleHAiOjQ5NDAwMTcwMjcsImp0aSI6ImMyMTQ4MzAyLTdiMDUtNDhlYi04ODliLWJjYmY3MDQ1NjQzMCJ9.-RIlLWX_sbKc8NYLwnZlxNfBumbWMS0N3gS7ogyzWnhkiRIJzrAu5MRj1vJnF8za-MGRTqv5wlxMKou80lPJwA",
-			},
+				"Authorization": "Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjYwNjhkZGEyLTkxZTAtNDQzZS1iNDIzLWU1ZTliMzJiYWI1NCJ9.eyJzdWIiOiJkYTgzYWEwYi1hOTcwLTRiZGQtYTU1Yi04MWIwYmUyNGE3MjgiLCJ0eXBlIjoiQVBJX0tFWSIsIndvcmtzcGFjZUlkIjoiZGE4M2FhMGItYTk3MC00YmRkLWE1NWItODFiMGJlMjRhNzI4IiwiaWF0IjoxNzg2NDE3MDI4LCJleHAiOjQ5NDAwMTcwMjcsImp0aSI6ImMyMTQ4MzAyLTdiMDUtNDhlYi04ODliLWJjYmY3MDQ1NjQzMCJ9.-RIlLWX_sbKc8NYLwnZlxNfBumbWMS0N3gS7ogyzWnhkiRIJzrAu5MRj1vJnF8za-MGRTqv5wlxMKou80lPJwA"
+			}
 		},
+		"Figma": {
+			"url": "https://mcp.figma.com/mcp"
+		}
 	},
 	"inlay_hints": {
-		"edit_debounce_ms": 0,
+		"edit_debounce_ms": 0
 	},
 	"proxy": "",
 	"instrumentation": {
 		"performance_profiler": {
-			"enabled": false,
-		},
+			"enabled": false
+		}
 	},
 	"git": {
 		"branch_picker": {
-			"show_author_name": true,
-		},
+			"show_author_name": true
+		}
 	},
-	"diff_view_style": "split",
+	"diff_view_style": "unified",
 	"title_bar": {
 		"show_branch_status_icon": false,
 		"show_branch_name": true,
@@ -52,7 +55,7 @@
 		"show_user_menu": true,
 		"show_user_picture": true,
 		"show_menus": false,
-		"button_layout": "platform_default",
+		"button_layout": "platform_default"
 	},
 	// "theme_overrides": {
 	// 	"VSCode Dark Modern": {
@@ -95,31 +98,31 @@
 	"use_system_prompts": true,
 	"use_system_path_prompts": true,
 	"prettier": {
-		"allowed": true,
+		"allowed": true
 	},
 	"outline_panel": {
 		"button": true,
-		"file_icons": true,
+		"file_icons": true
 	},
 	"edit_predictions": {
-		"mode": "subtle",
+		"mode": "eager",
 		"provider": "zed",
-		"allow_data_collection": "no",
+		"allow_data_collection": "no"
 	},
 	"cli_default_open_behavior": "new_window",
 	"git_panel": {
 		"folder_icons": true,
-		"dock": "left",
+		"dock": "left"
 	},
 	"agent_servers": {
 		"cursor": {
-			"type": "registry",
-		},
+			"type": "registry"
+		}
 	},
 	"icon_theme": {
 		"mode": "dark",
 		"light": "VSCode Icons",
-		"dark": "VSCode Icons",
+		"dark": "VSCode Icons"
 	},
 	"format_on_save": "off",
 	"agent": {
@@ -128,83 +131,83 @@
 			"write_paths": [
 				{
 					"requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/merre",
-					"resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/merre",
+					"resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/merre"
 				},
 				{
 					"requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/coverlttr",
-					"resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/coverlttr",
+					"resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/coverlttr"
 				},
 				{
 					"requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/audiobookshelf",
-					"resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/audiobookshelf",
+					"resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/audiobookshelf"
 				},
 				{
 					"requested": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/uptime-kuma",
-					"resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/uptime-kuma",
-				},
-			],
+					"resolved": "/home/e/config/nix/nixos/hosts/home-server/modules/backups/uptime-kuma"
+				}
+			]
 		},
 		"play_sound_when_agent_done": "when_hidden",
 		"inline_assistant_model": {
 			"provider": "zed.dev",
 			"model": "gpt-5-nano",
-			"enable_thinking": false,
+			"enable_thinking": false
 		},
 		"default_profile": "write",
 		"profiles": {},
 		"dock": "right",
 		"tool_permissions": {
-			"default": "allow",
+			"default": "allow"
 		},
 		"default_model": {
-			"effort": "medium",
-			"enable_thinking": true,
+			"effort": "low",
+   "enable_thinking": true,
 			"provider": "zed.dev",
-			"model": "claude-sonnet-4-6",
+			"model": "claude-sonnet-4-6"
 		},
-		"model_parameters": [],
+		"model_parameters": []
 	},
 	"preview_tabs": {
-		"enabled": true,
+		"enabled": true
 	},
 	"tabs": {
 		"file_icons": true,
-		"git_status": true,
+		"git_status": true
 	},
 	"tab_bar": {
-		"show": true,
+		"show": true
 	},
 	"terminal": {
 		"font_size": 14.0,
 		"env": {
-			"EDITOR": "\"code\"",
+			"EDITOR": "\"code\""
 		},
-		"font_family": "MesloLGS NF",
+		"font_family": "MesloLGS NF"
 	},
 	"telemetry": {
 		"diagnostics": false,
-		"metrics": false,
+		"metrics": false
 	},
 	"project_panel": {
 		"dock": "left",
-		"auto_fold_dirs": false,
+		"auto_fold_dirs": false
 	},
 	"base_keymap": "Cursor",
 	"minimap": {
-		"show": "auto",
+		"show": "auto"
 	},
 	"cursor_blink": true,
 	"autosave": {
 		"after_delay": {
-			"milliseconds": 500,
-		},
+			"milliseconds": 500
+		}
 	},
 	"confirm_quit": true,
 	"buffer_font_fallbacks": ["Fira Code"],
 	"buffer_font_family": "Fira Code Retina",
 	"file_types": {
 		"tailwindcss": ["*.css"],
-		"typescriptreact": ["*.tsx"],
+		"typescriptreact": ["*.tsx"]
 	},
 	"linked_edits": true,
 	"show_edit_predictions": true,
@@ -217,45 +220,45 @@
 	"theme": {
 		"mode": "dark",
 		"light": "macOS Classic Light",
-		"dark": "VSCode Dark Modern",
+		"dark": "VSCode Dark Modern"
 	},
 	"languages": {
 		"Markdown": {
-			"show_edit_predictions": false,
+			"show_edit_predictions": false
 		},
 		"TypeScript": {
-			"language_servers": ["typescript-ls", "!vtsls", "!typescript-language-server", "..."],
+			"language_servers": ["typescript-ls", "!vtsls", "!typescript-language-server", "..."]
 		},
 		"TSX": {
-			"language_servers": ["typescript-ls", "!vtsls", "!typescript-language-server", "..."],
+			"language_servers": ["typescript-ls", "!vtsls", "!typescript-language-server", "..."]
 		},
 		"Nix": {
 			"language_servers": ["nixd", "!nil"],
 			"formatter": {
 				"external": {
-					"command": "nixfmt",
-				},
-			},
-		},
+					"command": "nixfmt"
+				}
+			}
+		}
 	},
 	"lsp": {
 		"activitywatch": {
 			"settings": {
 				"host": "127.0.0.1",
-				"port": 5600,
-			},
+				"port": 5600
+			}
 		},
 		"nixd": {
 			"initialization_options": {
 				"formatting": {
-					"command": ["nixfmt"],
-				},
+					"command": ["nixfmt"]
+				}
 			},
 			"settings": {
 				"diagnostic": {
-					"suppress": ["sema-extra-with"],
-				},
-			},
-		},
-	},
+					"suppress": ["sema-extra-with"]
+				}
+			}
+		}
+	}
 }

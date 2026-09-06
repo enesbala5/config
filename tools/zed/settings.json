@@ -13,23 +13,23 @@
 	"disable_ai": false,
 	"context_servers": {
 		"Coverlttr (Development)": {
-			"enabled": true,
+   "enabled": true,
 			"remote": false,
 			"command": "http://localhost:5181/",
 			"args": []
 		},
 		"Polar": {
-			"enabled": true,
+   "enabled": true,
 			"url": "https://mcp.polar.sh/mcp/polar-mcp"
 		},
 		"twenty": {
-			"url": "https://twenty.enesbala.com/mcp",
+   "url": "https://twenty.enesbala.com/mcp",
 			"headers": {
 				"Authorization": "Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjYwNjhkZGEyLTkxZTAtNDQzZS1iNDIzLWU1ZTliMzJiYWI1NCJ9.eyJzdWIiOiJkYTgzYWEwYi1hOTcwLTRiZGQtYTU1Yi04MWIwYmUyNGE3MjgiLCJ0eXBlIjoiQVBJX0tFWSIsIndvcmtzcGFjZUlkIjoiZGE4M2FhMGItYTk3MC00YmRkLWE1NWItODFiMGJlMjRhNzI4IiwiaWF0IjoxNzg2NDE3MDI4LCJleHAiOjQ5NDAwMTcwMjcsImp0aSI6ImMyMTQ4MzAyLTdiMDUtNDhlYi04ODliLWJjYmY3MDQ1NjQzMCJ9.-RIlLWX_sbKc8NYLwnZlxNfBumbWMS0N3gS7ogyzWnhkiRIJzrAu5MRj1vJnF8za-MGRTqv5wlxMKou80lPJwA"
 			}
 		},
 		"Figma": {
-			"url": "https://mcp.figma.com/mcp"
+   "url": "https://mcp.figma.com/mcp"
 		}
 	},
 	"inlay_hints": {
@@ -160,7 +160,7 @@
 			"default": "allow"
 		},
 		"default_model": {
-			"effort": "high",
+			"effort": "low",
    "enable_thinking": true,
 			"provider": "zed.dev",
 			"model": "claude-sonnet-4-6"

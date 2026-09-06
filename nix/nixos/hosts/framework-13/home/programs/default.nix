@@ -97,6 +97,7 @@ in
       antigravity-nix.packages.${system}.google-antigravity-no-fhs
       antigravity-nix.packages.${system}.google-antigravity-ide-no-fhs
       antigravity-nix.packages.${system}.google-antigravity-cli
+      inputs.grok-bot.packages.${pkgs.system}.default
     ]);
 
   programs = {
@@ -493,11 +494,11 @@ in
         settings.StartupWMClass = "discord";
       };
 
-      pencil = {
-        name = "Pencil";
+      pen = {
+        name = "Pen";
         genericName = "Vector Graphics Editor";
-        icon = "${data.configDirectory}/tools/pencil/icon.png";
-        exec = "appimage-run ${data.homeDirectory}/programs/pencil/pencil.AppImage";
+        icon = "${data.configDirectory}/tools/pen/icon.png";
+        exec = "appimage-run ${data.homeDirectory}/programs/pen/pen.AppImage";
         type = "Application";
         terminal = false;
         categories = [
