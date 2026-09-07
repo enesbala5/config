@@ -1,5 +1,7 @@
 # Implementation Plan: Declarative Cursor Agent Incus Worker with Telegram Alerts
 
+> **Historical / Cursor-oriented plan.** The primary path is now the BYOK persistent VM + chat delegation plan: [`byok-chat-delegation.md`](./byok-chat-delegation.md) ([issue #31](https://github.com/enesbala5/config/issues/31)). Keep this file for reference; do not treat it as the active implementation guide.
+
 ## **Objective**
 
 Set up a declarative Incus profile and VM deployment workflow on NixOS to run Cursor Self-Hosted Agent workers in an isolated environment. The worker will consume decrypted secrets (.age) and use the host's existing notify.sh script to send Telegram updates when tasks start, succeed, or fail.
