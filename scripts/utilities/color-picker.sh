@@ -10,6 +10,9 @@ if [ $? -ne 0 ] || [ -z "$SELECTION" ]; then
     exit 0
 fi
 
+# slurp's overlay can still be composited for a frame; wait for it to unmap.
+sleep 0.05
+
 # grim PPM is P6 with maxval 255; last 3 bytes are the pixel RGB.
 RGB=$(grim -g "$SELECTION" -t ppm - 2>/dev/null | tail -c 3 | od -An -tx1 | tr -d ' \n')
 if [ ${#RGB} -ne 6 ]; then

@@ -9,7 +9,8 @@
 # After recording stops or is cancelled, Handy exits after IDLE_TIMEOUT seconds.
 #
 # This script handles the profile swap transparently:
-#   Start: pauses music → switches to HSP/HFP → waits for profile to settle → starts handy
+#   Start: pauses music (any sink/mic) → switches BT to HSP/HFP if needed
+#          → waits for profile to settle → starts handy
 #   Stop:  stops handy → switches back to A2DP → resumes music if it was playing
 #
 # Usage:
@@ -221,6 +222,7 @@ else
 
     if playerctl --ignore-player=kdeconnect status 2>/dev/null | grep -q "^Playing$"; then
         touch "${STATE_FILE}.playing"
+        playerctl --ignore-player=kdeconnect pause 2>/dev/null
     fi
 
     touch "$STATE_FILE"
