@@ -6,6 +6,7 @@
 # `status` prints JSON for the waybar indicator (signal 9).
 # Saves to ~/misc/media/Screen Recordings/
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEST_DIR="$HOME/misc/media/Screen Recordings"
 STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/screen-record"
 START_FILE="$STATE_DIR/started_at"
@@ -26,15 +27,18 @@ refresh_waybar() {
 
 pause_notifications() {
 	mkdir -p "$STATE_DIR"
+	# Save pre-recording DND level so restore_notifications knows whether to undo it.
 	dunstctl get-pause-level >"$PAUSE_FILE" 2>/dev/null || echo 0 >"$PAUSE_FILE"
-	dunstctl close-all >/dev/null 2>&1 || true
-	dunstctl set-paused true >/dev/null 2>&1 || true
+	"$SCRIPT_DIR/dnd-toggle.sh" on
 }
 
 restore_notifications() {
 	local level=0
 	[[ -f "$PAUSE_FILE" ]] && level=$(cat "$PAUSE_FILE")
-	dunstctl set-pause-level "$level" >/dev/null 2>&1 || dunstctl set-paused false >/dev/null 2>&1 || true
+	# Only disable DND if it was off before recording started.
+	if [[ "$level" -eq 0 ]]; then
+		"$SCRIPT_DIR/dnd-toggle.sh" off
+	fi
 }
 
 format_duration() {

@@ -82,6 +82,7 @@
       clear-monitor-config = "${data.configDirectory}/scripts/utilities/clear-monitor-config.sh";
       reload-waybar = "pkill -9 waybar && hyprctl --instance 0 'dispatch exec waybar'";
       toggle-polarity = "${data.configDirectory}/scripts/utilities/toggle-polarity.sh";
+      toggle-dnd = "${data.configDirectory}/scripts/utilities/dnd-toggle.sh";
 
       # DevOps / Config
       # ---------------

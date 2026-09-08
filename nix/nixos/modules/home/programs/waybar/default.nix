@@ -50,6 +50,7 @@
         ];
         modules-center = [
           "custom/screen-record"
+          "custom/dnd"
           "clock#date"
           "custom/separator"
           "clock#time"
@@ -94,6 +95,14 @@
           format = "Tirana - {}";
           interval = 900;
           max-length = 40;
+          tooltip = true;
+        };
+        "custom/dnd" = {
+          exec = "${data.configDirectory}/scripts/utilities/dnd-toggle.sh status";
+          on-click = "${data.configDirectory}/scripts/utilities/dnd-toggle.sh";
+          return-type = "json";
+          interval = 60;
+          signal = 10;
           tooltip = true;
         };
         "custom/screen-record" = {
@@ -270,6 +279,23 @@
                   	padding-left: 6px;
                   	padding-right: 6px;
                     opacity: 0.5;
+                  }
+
+                  #custom-dnd {
+                    font-size: 10pt;
+                    padding-right: 2px;
+                    margin-bottom: 1px;
+                    color: inherit;
+                  }
+
+                  #custom-dnd.dnd-off {
+                    opacity: 0.35;
+                  }
+
+                  #custom-dnd.dnd-on {
+	                  font-size: 9pt;
+	                  margin-top: 3px;
+	                  opacity: 0.7;
                   }
 
                   #custom-screen-record {
