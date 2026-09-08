@@ -71,6 +71,8 @@ in
 
       proton-pass
       dua # CLI File Tree
+
+      handbrake # Video Encoder
     ])
     # Unstable packages
     # ---

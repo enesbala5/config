@@ -131,8 +131,15 @@ start_recording() {
 		exit 1
 	fi
 
+	# Prefer the desktop audio monitor (system sounds + apps); fall back to default source.
+	local audio_device
+	audio_device=$(pactl get-default-sink 2>/dev/null)
+	if [[ -n "$audio_device" ]]; then
+		audio_device="${audio_device}.monitor"
+	fi
+
 	pause_notifications
-	wl-screenrec -g "$selection" -f "$filename" &
+	wl-screenrec -g "$selection" -f "$filename" --audio ${audio_device:+--audio-device "$audio_device"} &
 
 	local i
 	for i in $(seq 1 25); do
