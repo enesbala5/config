@@ -11,9 +11,10 @@ let
 in
 {
   imports = [
-    ./activitywatch.nix
-    ./piper-tts.nix
-    ./plasma.nix
+    ./activitywatch
+    ./piper-tts
+    ./plasma
+    ./playwright
   ];
 
   home.packages =
@@ -69,7 +70,7 @@ in
       wtype # Needed for Text Insertion in Waybar (for Handy TTS)
 
       proton-pass
-
+      dua # CLI File Tree
     ])
     # Unstable packages
     # ---
@@ -462,7 +463,12 @@ in
         name = "Helium";
         genericName = "Web Browser";
         icon = "helium";
-        exec = "hyprctl dispatch exec ${inputs.helium-browser.packages.${system}.default}/bin/helium";
+        # Becomes ~/.nix-profile and /etc/profiles/per-user/e/share/applications/helium.desktop
+        exec =
+          let
+            heliumBin = "${inputs.helium-browser.packages.${system}.default}/bin/helium";
+          in
+          "hyprctl dispatch exec \"${heliumBin} --remote-debugging-port=9222 --remote-debugging-address=127.0.0.1 --remote-allow-origins=*\"";
         type = "Application";
         terminal = false;
         mimeType = [
