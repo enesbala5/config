@@ -103,6 +103,7 @@
           return-type = "json";
           interval = 60;
           signal = 10;
+          hide-empty-text = true;
           tooltip = true;
         };
         "custom/screen-record" = {

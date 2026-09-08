@@ -13,6 +13,7 @@ START_FILE="$STATE_DIR/started_at"
 OUTPUT_FILE="$STATE_DIR/output"
 PAUSE_FILE="$STATE_DIR/dunst_pause_level"
 WAYBAR_SIGNAL=9
+DND_WAYBAR_SIGNAL=10
 SOUNDS="/run/current-system/sw/share/sounds/freedesktop/stereo"
 
 play_sound() {
@@ -23,6 +24,7 @@ play_sound() {
 
 refresh_waybar() {
 	pkill -RTMIN+"$WAYBAR_SIGNAL" waybar 2>/dev/null || true
+	pkill -RTMIN+"$DND_WAYBAR_SIGNAL" waybar 2>/dev/null || true
 }
 
 pause_notifications() {
