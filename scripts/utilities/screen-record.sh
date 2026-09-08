@@ -11,7 +11,7 @@ DEST_DIR="$HOME/misc/media/Screen Recordings"
 STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/screen-record"
 START_FILE="$STATE_DIR/started_at"
 OUTPUT_FILE="$STATE_DIR/output"
-PAUSE_FILE="$STATE_DIR/dunst_pause_level"
+PAUSE_FILE="$STATE_DIR/dnd_was_active"
 WAYBAR_SIGNAL=9
 DND_WAYBAR_SIGNAL=10
 SOUNDS="/run/current-system/sw/share/sounds/freedesktop/stereo"
@@ -29,16 +29,16 @@ refresh_waybar() {
 
 pause_notifications() {
 	mkdir -p "$STATE_DIR"
-	# Save pre-recording DND level so restore_notifications knows whether to undo it.
-	dunstctl get-pause-level >"$PAUSE_FILE" 2>/dev/null || echo 0 >"$PAUSE_FILE"
+	# Save pre-recording DND state so restore_notifications knows whether to undo it.
+	dunstctl is-paused >"$PAUSE_FILE" 2>/dev/null || echo "false" >"$PAUSE_FILE"
 	"$SCRIPT_DIR/dnd-toggle.sh" on
 }
 
 restore_notifications() {
-	local level=0
-	[[ -f "$PAUSE_FILE" ]] && level=$(cat "$PAUSE_FILE")
+	local was_paused="false"
+	[[ -f "$PAUSE_FILE" ]] && was_paused=$(cat "$PAUSE_FILE")
 	# Only disable DND if it was off before recording started.
-	if [[ "$level" -eq 0 ]]; then
+	if [[ "$was_paused" != "true" ]]; then
 		"$SCRIPT_DIR/dnd-toggle.sh" off
 	fi
 }
