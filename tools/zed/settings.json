@@ -160,7 +160,7 @@
 			"default": "allow"
 		},
 		"default_model": {
-			"effort": "low",
+			"effort": "medium",
    "enable_thinking": true,
 			"provider": "zed.dev",
 			"model": "claude-sonnet-4-6"
