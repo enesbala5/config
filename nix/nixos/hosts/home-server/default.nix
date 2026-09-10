@@ -20,7 +20,7 @@ in
   ];
 
   # Flip on after `manage-secret incus-ai-agent-secrets.age` and first apply.
-  # homeServer.incusAiAgent.enable = true;
+  homeServer.incusAiAgent.enable = true;
 
   # ------------------------------------------------------------------------------------------
   # Accounts

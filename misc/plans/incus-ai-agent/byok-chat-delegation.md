@@ -408,7 +408,7 @@ Pivot from Cursor self-hosted worker to a persistent BYOK agent VM on home-serve
 Plan: `misc/plans/incus-ai-agent/byok-chat-delegation.md` (historical Cursor plan: `initial.md`).
 
 - [x] Prepare plan
-- [ ] Apply NixOS module + host scripts
+- [x] Apply NixOS module + host scripts
 - [ ] Encrypt secrets + smoke test + golden snapshot
 - [ ] (Later) Wire Grok Bot / chat coordinator to `tools/incus/run-agent-task.sh`
 ```
