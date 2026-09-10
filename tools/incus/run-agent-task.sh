@@ -2,8 +2,17 @@
 # Host entrypoint for the persistent BYOK Incus AI agent VM.
 #
 # Usage:
-#   run-agent-task.sh --prompt "Fix flaky test in auth" [--repo URL] [--model ID]
-#   run-agent-task.sh --prompt-file ./task.md [--repo URL] [--model ID]
+#   run-agent-task.sh --prompt "Fix flaky test in auth" [--repo https://github.com/org/repo.git] [--model ...]
+#   run-agent-task.sh --prompt-file ./task.md [--repo ...] [--model ...]
+#
+# Env overrides:
+#   VM_NAME       default: byok-agent
+#   PROFILE       default: byok-agent
+#   IMAGE         default: images:ubuntu/24.04/cloud (must include cloud-init)
+#   SECRETS_PATH  default: /run/agenix/incus-ai-agent-secrets
+#
+# Chat coordinators should call this script; do not bake secrets into prompts.
+
 set -euo pipefail
 
 VM_NAME="${VM_NAME:-byok-agent}"
