@@ -1,20 +1,14 @@
 #!/usr/bin/env bash
 # Host entrypoint for the persistent BYOK Incus AI agent VM.
-# Uses the Incus REST unix socket — no `incus` CLI.
 #
 # Usage:
 #   run-agent-task.sh --prompt "Fix flaky test in auth" [--repo URL] [--model ID]
 #   run-agent-task.sh --prompt-file ./task.md [--repo URL] [--model ID]
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck disable=SC1091
-source "${SCRIPT_DIR}/incus-rest.sh"
-
 VM_NAME="${VM_NAME:-byok-agent}"
 PROFILE="${PROFILE:-byok-agent}"
-IMAGE="${IMAGE:-ubuntu/24.04/cloud}"
-IMAGE="${IMAGE#images:}"
+IMAGE="${IMAGE:-images:ubuntu/24.04/cloud}"
 SECRETS_PATH="${SECRETS_PATH:-/run/agenix/incus-ai-agent-secrets}"
 
 PROMPT=""
@@ -83,7 +77,7 @@ wait_for_agent() {
   local i
   echo "==> Waiting for Incus agent on ${VM_NAME}..."
   for i in $(seq 1 90); do
-    if incus_instance_exec "$VM_NAME" true >/dev/null 2>&1; then
+    if incus exec "$VM_NAME" -- true >/dev/null 2>&1; then
       return 0
     fi
     sleep 2
@@ -93,31 +87,34 @@ wait_for_agent() {
 }
 
 echo "==> Ensuring Incus VM ${VM_NAME} exists..."
-if ! incus_instance_exists "$VM_NAME"; then
-  incus_instance_create "$VM_NAME" "$IMAGE" "$PROFILE"
-  incus_instance_start "$VM_NAME"
+if ! incus info "$VM_NAME" >/dev/null 2>&1; then
+  incus launch "$IMAGE" "$VM_NAME" \
+    --profile default \
+    --profile "$PROFILE" \
+    --vm
 else
-  status="$(incus_instance_status "$VM_NAME" 2>/dev/null || echo Stopped)"
-  if [[ "$status" != "Running" ]]; then
+  status="$(incus list "$VM_NAME" --format csv -c s 2>/dev/null || true)"
+  if [[ "$status" != "RUNNING" ]]; then
     echo "==> Starting ${VM_NAME}..."
-    incus_instance_start "$VM_NAME"
+    incus start "$VM_NAME" || true
   fi
 fi
 
 wait_for_agent
 
 echo "==> Waiting for cloud-init..."
-if ! incus_instance_exec "$VM_NAME" /usr/bin/cloud-init status --wait; then
+if ! incus exec "$VM_NAME" -- /usr/bin/cloud-init status --wait; then
   echo "Error: cloud-init failed on ${VM_NAME}" >&2
-  incus_instance_exec "$VM_NAME" /usr/bin/cloud-init status --long || true
-  incus_instance_exec "$VM_NAME" tail -n 120 /var/log/cloud-init-output.log || true
+  incus exec "$VM_NAME" -- /usr/bin/cloud-init status --long || true
+  incus exec "$VM_NAME" -- tail -n 120 /var/log/cloud-init-output.log || true
   exit 1
 fi
 
 echo "==> Pushing secrets to guest /etc/agent-env (mode 0600)..."
-incus_file_push "$VM_NAME" "$SECRETS_PATH" "/etc/agent-env" "0600" 0 0
+incus file push "$SECRETS_PATH" "${VM_NAME}/etc/agent-env" \
+  -p --mode 0600 --uid 0 --gid 0
 
-GUEST_ARGS=(/usr/local/bin/guest-run-agent-task.sh --prompt "$PROMPT")
+GUEST_ARGS=(--prompt "$PROMPT")
 if [[ -n "$REPO" ]]; then
   GUEST_ARGS+=(--repo "$REPO")
 fi
@@ -126,4 +123,4 @@ if [[ -n "$MODEL" ]]; then
 fi
 
 echo "==> Running guest-run-agent-task.sh..."
-incus_instance_exec "$VM_NAME" "${GUEST_ARGS[@]}"
+incus exec "$VM_NAME" -- /usr/local/bin/guest-run-agent-task.sh "${GUEST_ARGS[@]}"
