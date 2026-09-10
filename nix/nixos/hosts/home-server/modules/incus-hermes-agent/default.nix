@@ -40,15 +40,14 @@ let
   seedSoul = ''
     You run on a dedicated Incus VM (hermes-agent) on home-server.
 
-    Coding work that needs a sandboxed toolchain should go through the
-    coding-bridge MCP tool (`trigger_coding_task`) rather than being done
-    in this VM. This VM holds memory, skills, Telegram, and scheduling.
+    Coding work goes over HTTP to the OpenHands VM, not via Incus exec:
+    POST http://byok-agent.incus:8090/tasks
+    { "prompt": "...", "repo": "https://github.com/org/repo.git" }
 
-    Repo conventions for enesbala5/config:
-    - NixOS + agenix. Secrets live in nix/secrets and are created with manage-secret.
-    - Never paste tokens into chat. Never write secrets into ~/.hermes memory.
-    - Host notify uses OPS_TELEGRAM_* ; your own channel uses TELEGRAM_BOT_TOKEN.
-    - Keep working copies in /var/lib/hermes/scratch, not in secret-bearing trees.
+    This VM holds memory, skills, Telegram, and scheduling.
+
+    Never paste tokens into chat. Never write secrets into ~/.hermes memory.
+    Host notify uses OPS_TELEGRAM_* ; your channel uses TELEGRAM_BOT_TOKEN.
   '';
 
   cloudInitUserData = lib.concatStringsSep "\n" [
@@ -100,26 +99,21 @@ in
     vmName = lib.mkOption {
       type = lib.types.str;
       default = "hermes-agent";
-      description = "Persistent Incus VM instance name";
     };
 
     profileName = lib.mkOption {
       type = lib.types.str;
       default = "hermes-agent";
-      description = "Incus profile name providing cloud-init + limits";
     };
 
     limits = {
       cpu = lib.mkOption {
         type = lib.types.str;
         default = "2";
-        description = "Incus limits.cpu for the Hermes profile";
       };
-
       memory = lib.mkOption {
         type = lib.types.str;
         default = "4GiB";
-        description = "Incus limits.memory for the Hermes profile";
       };
     };
 
@@ -130,23 +124,26 @@ in
       onCalendar = lib.mkOption {
         type = lib.types.str;
         default = "daily";
-        description = "systemd OnCalendar for hermes-backup.timer";
       };
     };
 
     bridge = {
-      enable = lib.mkEnableOption "host MCP bridge from Hermes to byok-agent (incusbr0 only)";
+      enable = lib.mkEnableOption "host HTTP proxy from Hermes to OpenHands on byok-agent";
 
       bindAddr = lib.mkOption {
         type = lib.types.str;
         default = "10.0.100.1";
-        description = "Address to bind the coding-task bridge (incusbr0 host IP)";
       };
 
       port = lib.mkOption {
         type = lib.types.port;
         default = 8420;
-        description = "TCP port for the coding-task bridge";
+      };
+
+      openHandsUrl = lib.mkOption {
+        type = lib.types.str;
+        default = "http://byok-agent.incus:8090";
+        description = "OpenHands task API on the byok-agent VM";
       };
     };
   };
@@ -183,6 +180,7 @@ in
         pkgs.restic
         pkgs.gnutar
         pkgs.coreutils
+        pkgs.incus
       ];
       script = ''
         ${data.configDirectory}/tools/incus/hermes-backup.sh
@@ -199,7 +197,7 @@ in
     };
 
     systemd.services.hermes-coding-bridge = lib.mkIf cfg.bridge.enable {
-      description = "Hermes to byok-agent coding-task bridge";
+      description = "Hermes HTTP proxy to OpenHands on byok-agent";
       after = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
@@ -210,17 +208,14 @@ in
         Environment = [
           "BRIDGE_BIND_ADDR=${cfg.bridge.bindAddr}"
           "BRIDGE_PORT=${toString cfg.bridge.port}"
-          "RUN_AGENT_TASK_SCRIPT=${data.configDirectory}/tools/incus/run-agent-task.sh"
+          "OPENHANDS_URL=${cfg.bridge.openHandsUrl}"
         ];
         Restart = "on-failure";
         RestartSec = "10s";
       };
       path = [
-        pkgs.bash
         pkgs.curl
-        pkgs.jq
         pkgs.python3
-        pkgs.coreutils
       ];
       script = ''
         exec ${pkgs.python3}/bin/python3 ${data.configDirectory}/tools/incus/coding-task-bridge/server.py
