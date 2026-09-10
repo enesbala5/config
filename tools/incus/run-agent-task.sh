@@ -123,7 +123,7 @@ fi
 
 echo "==> Pushing secrets to guest /etc/agent-env (mode 0600)..."
 incus file push "$SECRETS_PATH" "${VM_NAME}/etc/agent-env" \
-  -p 0600 --uid 0 --gid 0
+  -p --mode 0600 --uid 0 --gid 0
 
 GUEST_ARGS=(--prompt "$PROMPT")
 if [[ -n "$REPO" ]]; then

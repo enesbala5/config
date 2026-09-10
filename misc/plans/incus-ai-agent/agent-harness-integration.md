@@ -4,16 +4,8 @@ This implementation plan details the setup for **Hermes Agent** and **OpenHands*
 
 | Component | Host Environment | Lifecycle & Behavior |
 | --- | --- | --- |
-| **Hermes Agent** | `hermes-agent` VM
-
- | Always-on background daemon listening continuously on Telegram. Manages state, memories, and task orchestration.
-
- |
-| **OpenHands Runtime** | `byok-agent` VM
-
- | Continuous warm VM holding git clones and dependencies in `/var/lib/ai-agent/workspace`. Executes headless tasks on demand.
-
- |
+| **Hermes Agent** | `hermes-agent` VM | Always-on background daemon listening continuously on Telegram. Manages state, memories, and task orchestration. |
+| **OpenHands Runtime** | `byok-agent` VM | Continuous warm VM holding git clones and dependencies in `/var/lib/ai-agent/workspace`. Executes headless tasks on demand. | 
 | **OpenHands Web UI** | `byok-agent` Docker Container | Scales to zero when idle. Managed on-demand by Sablier via host Caddy requests. |
 | **Caddy + Sablier** | `home-server` Host | Reverse proxy handling HTTPS at `agent.enesbala.com`, intercepting requests to start/stop the UI container. |
 
@@ -40,7 +32,6 @@ services:
       - "sablier.enable=true"
       - "sablier.group=openhands-ui"
       - "sablier.ready-on-start=true"
-
 ```
 
 ---
