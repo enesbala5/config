@@ -60,6 +60,7 @@ in
 
   "restart-cloudflared-service-env.age" = rootConfig;
   "notify-server-boot-service-env.age" = rootConfig;
+  "incus-ai-agent-secrets.age" = rootConfig;
 
   # SSH
   # -------------------------------

@@ -16,7 +16,11 @@ in
     ./modules/disks/smartd.nix
     ./modules/power/ups.nix
     ./modules/backups
+    ./modules/incus-ai-agent
   ];
+
+  # Flip on after `manage-secret incus-ai-agent-secrets.age` and first apply.
+  # homeServer.incusAiAgent.enable = true;
 
   # ------------------------------------------------------------------------------------------
   # Accounts
