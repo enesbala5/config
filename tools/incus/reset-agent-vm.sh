@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
 # Restore the BYOK agent VM from its golden snapshot.
+# 
+# After first successful provision + harness smoke test:
+#   incus snapshot create byok-agent golden
+#
+# Use this when the guest toolchain is trashed, disk is full of junk, or the
+# agent left the VM in a bad state. Prefer restore over ad-hoc repair for v1.
+#
+# Secrets are not in the snapshot — re-push via run-agent-task.sh before the
+# next job (it pushes /etc/agent-env each run).
+#
+# Env overrides:
+#   VM_NAME          default: byok-agent
+#   SNAPSHOT_NAME    default: golden
+
 set -euo pipefail
 
 VM_NAME="${VM_NAME:-byok-agent}"
