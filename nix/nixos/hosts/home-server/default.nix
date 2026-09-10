@@ -17,10 +17,14 @@ in
     ./modules/power/ups.nix
     ./modules/backups
     ./modules/incus-ai-agent
+    ./modules/incus-hermes-agent
   ];
 
   # Flip on after `manage-secret incus-ai-agent-secrets.age` and first apply.
   homeServer.incusAiAgent.enable = true;
+
+  # Flip on after `manage-secret hermes-agent-secrets.age`.
+  homeServer.incusHermesAgent.enable = false;
 
   # ------------------------------------------------------------------------------------------
   # Accounts
@@ -198,6 +202,7 @@ in
         #   "force user" = "username";
         #   "force group" = "groupname";
         # };
+
         "private" = {
           "path" = "/mnt/hdd/nas";
           "browseable" = "yes";

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Restore the BYOK agent VM from its golden snapshot.
-#
+# 
 # After first successful provision + harness smoke test:
 #   incus snapshot create byok-agent golden
 #
@@ -13,6 +13,7 @@
 # Env overrides:
 #   VM_NAME          default: byok-agent
 #   SNAPSHOT_NAME    default: golden
+
 set -euo pipefail
 
 VM_NAME="${VM_NAME:-byok-agent}"

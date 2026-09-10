@@ -9,9 +9,8 @@ let
   cfg = config.homeServer.incusAiAgent;
 
   telegramScriptContent = builtins.readFile "${data.configDirectory}/tools/telegram/notify.sh";
+  ohStartScriptContent = builtins.readFile "${data.configDirectory}/tools/incus/oh-start.sh";
 
-  # Indent every line for a YAML `|` block (avoids Nix '' indent-strip
-  # mangling multi-line interpolations).
   yamlIndent =
     n: text:
     let
@@ -19,137 +18,26 @@ let
     in
     lib.concatMapStringsSep "\n" (line: pad + line) (lib.splitString "\n" text);
 
-  guestRunAgentTaskScript = ''
-    #!/usr/bin/env bash
-    set -euo pipefail
+  agentServerUnit = ''
+    [Unit]
+    Description=OpenHands Agent Server (conversation runtime)
+    After=network-online.target docker.service
+    Wants=network-online.target
 
-    # Guest task runner for the BYOK Incus agent VM (OpenHands).
-    # Args:
-    #   --repo URL          optional; clone or update under WORKSPACE_DIR/<name>
-    #   --prompt TEXT       required task text
-    #   --model ID          optional override of DEFAULT_MODEL
-    #   --workdir PATH      optional existing directory (used when --repo omitted)
+    [Service]
+    Type=simple
+    EnvironmentFile=-/etc/agent-env
+    Environment=HOME=/root
+    Environment=PATH=/opt/oh-agent-server/bin:/usr/local/bin:/root/.local/bin:/usr/bin
+    WorkingDirectory=/var/lib/ai-agent
+    ExecStart=/opt/oh-agent-server/bin/python -m openhands.agent_server --host 0.0.0.0 --port 8000
+    Restart=on-failure
+    RestartSec=5
 
-    REPO=""
-    PROMPT=""
-    MODEL=""
-    WORKDIR=""
-
-    while [[ $# -gt 0 ]]; do
-      case "$1" in
-        --repo)
-          REPO="''${2:?--repo requires a URL}"
-          shift 2
-          ;;
-        --prompt)
-          PROMPT="''${2:?--prompt requires text}"
-          shift 2
-          ;;
-        --model)
-          MODEL="''${2:?--model requires an id}"
-          shift 2
-          ;;
-        --workdir)
-          WORKDIR="''${2:?--workdir requires a path}"
-          shift 2
-          ;;
-        *)
-          echo "Unknown argument: $1" >&2
-          exit 1
-          ;;
-      esac
-    done
-
-    if [[ -z "$PROMPT" ]]; then
-      echo "Error: --prompt is required" >&2
-      exit 1
-    fi
-
-    if [[ ! -f /etc/agent-env ]]; then
-      echo "Error: /etc/agent-env missing (host must push secrets before tasks)" >&2
-      exit 1
-    fi
-
-    set -o allexport
-    # shellcheck disable=SC1091
-    source /etc/agent-env
-    set +o allexport
-
-    export PATH="/usr/local/bin:/root/.local/bin:''${PATH}"
-
-    WORKSPACE_DIR="''${WORKSPACE_DIR:-/var/lib/ai-agent/workspace}"
-    LOG_DIR="''${LOG_DIR:-/var/lib/ai-agent/logs}"
-    CACHE_DIR="''${CACHE_DIR:-/var/lib/ai-agent/cache}"
-    MODEL="''${MODEL:-''${DEFAULT_MODEL:-deepseek/deepseek-chat}}"
-
-    mkdir -p "$WORKSPACE_DIR" "$LOG_DIR" "$CACHE_DIR"
-    LOG_FILE="$LOG_DIR/$(date +%Y%m%d-%H%M%S).log"
-    touch "$LOG_FILE"
-    chmod 0600 "$LOG_FILE"
-
-    # Git HTTPS auth from fine-grained PAT (never echo the token).
-    if [[ -n "''${GITHUB_TOKEN:-}" ]]; then
-      git config --global url."https://x-access-token:''${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
-    fi
-
-    REPO_LABEL="''${REPO:-none}"
-    HOST_LABEL="$(hostname)"
-
-    /usr/local/bin/notify.sh -m md "🤖 *BYOK Agent Task Started*
-    🖥️ Host: \`''${HOST_LABEL}\`
-    📦 Repo: \`''${REPO_LABEL}\`
-    🧠 Model: \`''${MODEL}\`" || true
-
-    cd "$WORKSPACE_DIR"
-    if [[ -n "$REPO" ]]; then
-      REPO_NAME="$(basename "$REPO" .git)"
-      if [[ -d "$REPO_NAME/.git" ]]; then
-        cd "$REPO_NAME"
-        git fetch --all || true
-        git pull --ff-only || true
-      else
-        git clone "$REPO" "$REPO_NAME"
-        cd "$REPO_NAME"
-      fi
-    elif [[ -n "$WORKDIR" ]]; then
-      cd "$WORKDIR"
-    fi
-
-    # Map DeepSeek BYOK into OpenHands env names (never log values).
-    export DEEPSEEK_API_KEY="''${DEEPSEEK_API_KEY:-}"
-    export LLM_API_KEY="''${LLM_API_KEY:-''${DEEPSEEK_API_KEY:-}}"
-    export LLM_MODEL="''${LLM_MODEL:-$MODEL}"
-    export LLM_BASE_URL="''${LLM_BASE_URL:-https://api.deepseek.com}"
-    export OPENHANDS_SUPPRESS_BANNER=1
-
-    EXIT_CODE=0
-    set +e
-    if command -v openhands >/dev/null 2>&1; then
-      openhands --headless --override-with-envs --always-approve --exit-without-confirmation -t "$PROMPT" > >(tee -a "$LOG_FILE") 2>&1
-      EXIT_CODE=$?
-    else
-      echo "Error: openhands not found in PATH" | tee -a "$LOG_FILE" >&2
-      EXIT_CODE=127
-    fi
-    set -e
-
-    if [[ "$EXIT_CODE" -eq 0 ]]; then
-      /usr/local/bin/notify.sh -m md "✅ *BYOK Agent Task Finished*
-    🖥️ Host: \`''${HOST_LABEL}\`
-    📦 Repo: \`''${REPO_LABEL}\`
-    🧠 Model: \`''${MODEL}\`" || true
-    else
-      /usr/local/bin/notify.sh -m md "❌ *BYOK Agent Task Failed*
-    🖥️ Host: \`''${HOST_LABEL}\`
-    📦 Repo: \`''${REPO_LABEL}\`
-    🧠 Model: \`''${MODEL}\`
-    🔢 Exit: \`''${EXIT_CODE}\`" || true
-    fi
-
-    exit "$EXIT_CODE"
+    [Install]
+    WantedBy=multi-user.target
   '';
 
-  # Built as a list so interpolated scripts do not fight Nix '' indent stripping.
   cloudInitUserData = lib.concatStringsSep "\n" [
     "#cloud-config"
     "package_update: true"
@@ -171,23 +59,37 @@ let
     "    content: |"
     (yamlIndent 6 telegramScriptContent)
     ""
-    "  - path: /usr/local/bin/guest-run-agent-task.sh"
+    "  - path: /usr/local/bin/oh-start.sh"
     "    permissions: '0755'"
     "    owner: root:root"
     "    content: |"
-    (yamlIndent 6 guestRunAgentTaskScript)
+    (yamlIndent 6 ohStartScriptContent)
+    ""
+    "  - path: /etc/systemd/system/openhands-agent-server.service"
+    "    permissions: '0644'"
+    "    owner: root:root"
+    "    content: |"
+    (yamlIndent 6 agentServerUnit)
+    ""
+    "  - path: /etc/profile.d/uv.sh"
+    "    permissions: '0644'"
+    "    owner: root:root"
+    "    content: |"
+    "      export PATH=\"/usr/local/bin:/root/.local/bin:$PATH\""
     ""
     "runcmd:"
-    "  - mkdir -p /var/lib/ai-agent/workspace /var/lib/ai-agent/cache /var/lib/ai-agent/logs"
+    "  - mkdir -p /var/lib/ai-agent/workspace /var/lib/ai-agent/cache /var/lib/ai-agent/logs /opt/oh-agent-server"
     "  - chmod 700 /var/lib/ai-agent"
     "  - chmod 755 /var/lib/ai-agent/workspace /var/lib/ai-agent/cache /var/lib/ai-agent/logs"
     "  - systemctl enable --now docker || true"
-    # Quote the pipe: unquoted `|` is a YAML literal-block indicator and
-    # can make cloud-init parse/run this runcmd incorrectly.
-    # Official OpenHands CLI binary first; uv tool install as fallback.
-    "  - \"curl -fsSL https://install.openhands.dev/install.sh | sh\""
-    "  - ln -sfn /root/.local/bin/openhands /usr/local/bin/openhands || true"
-    "  - \"command -v openhands || (curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=/root/.local/bin:$PATH && uv tool install openhands --python 3.12 && ln -sfn /root/.local/bin/openhands /usr/local/bin/openhands)\""
+    "  - \"curl -LsSf https://astral.sh/uv/install.sh | sh\""
+    "  - ln -sfn /root/.local/bin/uv /usr/local/bin/uv || true"
+    "  - ln -sfn /root/.local/bin/uvx /usr/local/bin/uvx || true"
+    "  - \"grep -q /usr/local/bin /etc/environment || echo PATH=\"/usr/local/bin:/root/.local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin\" >> /etc/environment\""
+    "  - \"uv venv /opt/oh-agent-server --python 3.12\""
+    "  - \"/root/.local/bin/uv pip install --python /opt/oh-agent-server/bin/python -U openhands-sdk openhands-tools openhands-workspace openhands-agent-server\""
+    "  - systemctl daemon-reload"
+    "  - systemctl enable --now openhands-agent-server.service"
   ];
 in
 {
@@ -212,7 +114,6 @@ in
         default = "4";
         description = "Incus limits.cpu for the agent profile";
       };
-
       memory = lib.mkOption {
         type = lib.types.str;
         default = "8GiB";
@@ -222,13 +123,8 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Interactive user can run incus (root already has incus-admin on this host).
     users.users.${data.username}.extraGroups = [ "incus-admin" ];
 
-    # Append alongside the existing default profile — do not replace it.
-    # Workspace lives on the VM root disk under /var/lib/ai-agent (default
-    # profile root is already ≥35GiB on this host). Extra HDD bind mounts
-    # can be added later if clones should survive golden restores.
     virtualisation.incus.preseed.profiles = [
       {
         name = cfg.profileName;

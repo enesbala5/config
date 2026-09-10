@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 # Host entrypoint for the persistent BYOK Incus AI agent VM.
 #
+# Starts (or reuses) the VM, pushes secrets, then runs the guest start
+# client against OpenHands Agent Server :8000. Not an orchestrator.
+#
 # Usage:
-#   run-agent-task.sh --prompt "Fix flaky test in auth" [--repo https://github.com/org/repo.git] [--model ...]
+#   run-agent-task.sh --prompt "Fix flaky test in auth" [--repo URL] [--model ID]
 #   run-agent-task.sh --prompt-file ./task.md [--repo ...] [--model ...]
 #
 # Env overrides:
 #   VM_NAME       default: byok-agent
 #   PROFILE       default: byok-agent
-#   IMAGE         default: images:ubuntu/24.04/cloud (must include cloud-init)
+#   IMAGE         default: images:ubuntu/24.04/cloud
 #   SECRETS_PATH  default: /run/agenix/incus-ai-agent-secrets
-#
-# Chat coordinators should call this script; do not bake secrets into prompts.
+
 set -euo pipefail
 
 VM_NAME="${VM_NAME:-byok-agent}"
@@ -94,6 +96,20 @@ wait_for_agent() {
   return 1
 }
 
+wait_for_agent_server() {
+  local i
+  echo "==> Waiting for OpenHands Agent Server on ${VM_NAME}:8000..."
+  for i in $(seq 1 90); do
+    if incus exec "$VM_NAME" -- curl -fsS http://127.0.0.1:8000/health >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 2
+  done
+  echo "Error: timed out waiting for Agent Server :8000" >&2
+  incus exec "$VM_NAME" -- systemctl status openhands-agent-server --no-pager || true
+  return 1
+}
+
 echo "==> Ensuring Incus VM ${VM_NAME} exists..."
 if ! incus info "$VM_NAME" >/dev/null 2>&1; then
   incus launch "$IMAGE" "$VM_NAME" \
@@ -110,9 +126,6 @@ fi
 
 wait_for_agent
 
-# First boot blocks until cloud-init finishes; later boots return quickly.
-# A failed first boot leaves status=error forever — dump logs instead of
-# exiting with only "status: error".
 echo "==> Waiting for cloud-init..."
 if ! incus exec "$VM_NAME" -- /usr/bin/cloud-init status --wait; then
   echo "Error: cloud-init failed on ${VM_NAME}" >&2
@@ -125,13 +138,16 @@ echo "==> Pushing secrets to guest /etc/agent-env (mode 0600)..."
 incus file push "$SECRETS_PATH" "${VM_NAME}/etc/agent-env" \
   -p --mode 0600 --uid 0 --gid 0
 
-GUEST_ARGS=(--prompt "$PROMPT")
+incus exec "$VM_NAME" -- systemctl restart openhands-agent-server || true
+wait_for_agent_server
+
+args=(--prompt "$PROMPT")
 if [[ -n "$REPO" ]]; then
-  GUEST_ARGS+=(--repo "$REPO")
+  args+=(--repo "$REPO")
 fi
 if [[ -n "$MODEL" ]]; then
-  GUEST_ARGS+=(--model "$MODEL")
+  args+=(--model "$MODEL")
 fi
 
-echo "==> Running guest-run-agent-task.sh..."
-incus exec "$VM_NAME" -- /usr/local/bin/guest-run-agent-task.sh "${GUEST_ARGS[@]}"
+echo "==> Creating OpenHands conversation via guest oh-start.sh..."
+incus exec "$VM_NAME" -- /usr/local/bin/oh-start.sh "${args[@]}"
