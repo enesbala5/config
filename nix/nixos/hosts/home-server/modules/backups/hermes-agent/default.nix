@@ -16,7 +16,7 @@ lib.mkIf config.homeServer.incusHermesAgent.enable {
       Type = "oneshot";
       User = "root";
       Group = "root";
-      EnvironmentFile = config.age.secrets.hermes-agent-secrets.path;
+      EnvironmentFile = config.age.secrets.hermes-agent-backup-secrets.path;
     };
     path = [
       pkgs.bash

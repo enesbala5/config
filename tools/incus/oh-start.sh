@@ -32,6 +32,7 @@ if [[ -f /etc/agent-env ]]; then
 else
   AGENT_SERVER="${OPENHANDS_AGENT_SERVER_URL:-http://byok-agent.incus:8000}"
 fi
+
 AGENT_SERVER="${AGENT_SERVER%/}"
 UI_BASE="${OPENHANDS_UI_URL:-https://agent.enesbala.com}"
 UI_BASE="${UI_BASE%/}"
