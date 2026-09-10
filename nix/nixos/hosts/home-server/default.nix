@@ -16,7 +16,13 @@ in
     ./modules/disks/smartd.nix
     ./modules/power/ups.nix
     ./modules/backups
+    ./modules/ai
   ];
+
+  homeServer.ai = {
+    enable = true;
+    model = "qwen";
+  };
 
   # ------------------------------------------------------------------------------------------
   # Accounts
