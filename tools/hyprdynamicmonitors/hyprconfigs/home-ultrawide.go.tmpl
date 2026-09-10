@@ -18,6 +18,19 @@ general {
 	gaps_out = 5, 660, 120, 660
 }
 
+# DevTools: float in the right reserved gap (outside the tiled safe area)
+# 20px from the tiled window, 20px from the right edge, 5px from the top,
+# 120px from the bottom (same as gaps_out). Width: 660-20-20=620.
+windowrule = float, title:(Developer Tools)
+windowrule = size 620 1282, title:(Developer Tools)
+windowrule = move 100%-640 8, title:(Developer Tools)
+windowrule = animation slide right, title:(Developer Tools)
+
+windowrule = float, title:(DevTools)
+windowrule = size 620 1282, title:(DevTools)
+windowrule = move 100%-640 8, title:(DevTools)
+windowrule = animation slide right, title:(DevTools)
+
 {{ end }}
 
 # Configure laptop screen

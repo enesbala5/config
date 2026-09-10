@@ -1518,6 +1518,22 @@
         "type": "github"
       }
     },
+    "omacut": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "path": "./hosts/framework-13/home/programs/omacut",
+        "type": "path"
+      },
+      "original": {
+        "path": "./hosts/framework-13/home/programs/omacut",
+        "type": "path"
+      },
+      "parent": []
+    },
     "on-linux": {
       "flake": false,
       "locked": {
@@ -1613,6 +1629,7 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_8",
         "nixpkgs-unstable": "nixpkgs-unstable",
+        "omacut": "omacut",
         "plasma-manager": "plasma-manager",
         "stylix": "stylix",
         "vicinae": "vicinae",

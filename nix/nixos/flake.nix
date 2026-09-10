@@ -103,6 +103,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    omacut = {
+      url = "path:./hosts/framework-13/home/programs/omacut";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     hyprland = {
       url = "github:hyprwm/Hyprland/v0.51.1";
 

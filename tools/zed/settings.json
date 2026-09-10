@@ -160,7 +160,7 @@
 			"default": "allow"
 		},
 		"default_model": {
-			"effort": "medium",
+			"effort": "low",
    "enable_thinking": true,
 			"provider": "zed.dev",
 			"model": "claude-sonnet-4-6"
@@ -218,7 +218,7 @@
 	"ui_font_size": 16,
 	"buffer_font_size": 13.0,
 	"theme": {
-		"mode": "dark",
+		"mode": "system",
 		"light": "macOS Classic Light",
 		"dark": "VSCode Dark Modern"
 	},
