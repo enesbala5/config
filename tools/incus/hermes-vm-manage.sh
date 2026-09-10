@@ -6,12 +6,32 @@ VM_NAME="${VM_NAME:-hermes-agent}"
 PROFILE="${PROFILE:-hermes-agent}"
 IMAGE="${IMAGE:-images:ubuntu/24.04/cloud}"
 SECRETS_PATH="${SECRETS_PATH:-/run/agenix/hermes-agent-secrets}"
+USER_DATA_FILE="${USER_DATA_FILE:-/etc/incus-profiles/${PROFILE}/user-data}"
+PROFILE_CPU="${PROFILE_CPU:-2}"
+PROFILE_MEMORY="${PROFILE_MEMORY:-4GiB}"
 
 usage() {
   cat >&2 <<'EOF'
 Usage:
   hermes-vm-manage.sh start|stop|status|logs|push-secrets|launch
 EOF
+}
+
+ensure_profile() {
+  if incus profile show "$PROFILE" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  echo "==> Incus profile ${PROFILE} missing; creating it..."
+  incus profile create "$PROFILE"
+  incus profile set "$PROFILE" limits.cpu "$PROFILE_CPU"
+  incus profile set "$PROFILE" limits.memory "$PROFILE_MEMORY"
+  if [[ -f "$USER_DATA_FILE" ]]; then
+    incus profile set "$PROFILE" cloud-init.user-data - < "$USER_DATA_FILE"
+    incus profile set "$PROFILE" user.user-data - < "$USER_DATA_FILE"
+  else
+    echo "Warning: ${USER_DATA_FILE} not found; launched VM will not get cloud-init seeding until the host oneshot runs." >&2
+  fi
 }
 
 wait_for_agent() {
@@ -28,16 +48,23 @@ wait_for_agent() {
 }
 
 push_secrets() {
-  if [[ ! -f "$SECRETS_PATH" ]]; then
+  if [[ ! -e "$SECRETS_PATH" ]]; then
     echo "Error: secret file $SECRETS_PATH not found. Encrypt with manage-secret and apply agenix first." >&2
     exit 1
   fi
   echo "==> Pushing secrets to guest /etc/hermes-env (mode 0600)..."
-  incus file push "$SECRETS_PATH" "${VM_NAME}/etc/hermes-env" \
-    -p --mode 0600 --uid 0 --gid 0
+  # agenix decrypts as root:0400; incus file push must not open the path as the caller.
+  if [[ -r "$SECRETS_PATH" ]]; then
+    incus file push "$SECRETS_PATH" "${VM_NAME}/etc/hermes-env" \
+      -p --mode 0600 --uid 0 --gid 0
+  else
+    sudo cat "$SECRETS_PATH" | incus file push - "${VM_NAME}/etc/hermes-env" \
+      -p --mode 0600 --uid 0 --gid 0
+  fi
 }
 
 cmd_launch() {
+  ensure_profile
   if incus info "$VM_NAME" >/dev/null 2>&1; then
     echo "==> ${VM_NAME} already exists"
     return 0
