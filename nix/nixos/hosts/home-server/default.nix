@@ -20,11 +20,9 @@ in
     ./modules/incus-hermes-agent
   ];
 
-  # Flip on after `manage-secret incus-ai-agent-secrets.age` and first apply.
+  # Enable VMs for OpenHands AI and Hermes agents
   homeServer.incusAiAgent.enable = true;
-
-  # Flip on after `manage-secret hermes-agent-secrets.age`.
-  homeServer.incusHermesAgent.enable = false;
+  homeServer.incusHermesAgent.enable = true;
 
   # ------------------------------------------------------------------------------------------
   # Accounts
