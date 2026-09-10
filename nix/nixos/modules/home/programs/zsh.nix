@@ -145,6 +145,7 @@
       gc = "git commit";
       gp = "git push";
       gpr = "git pull --rebase";
+      chunk-and-commit = "cursor-agent --model auto /chunk-and-commit";
     };
   };
 }
