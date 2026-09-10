@@ -23,7 +23,7 @@ let
     #!/usr/bin/env bash
     set -euo pipefail
 
-    # Guest task runner for the BYOK Incus agent VM.
+    # Guest task runner for the BYOK Incus agent VM (OpenHands).
     # Args:
     #   --repo URL          optional; clone or update under WORKSPACE_DIR/<name>
     #   --prompt TEXT       required task text
@@ -75,6 +75,8 @@ let
     source /etc/agent-env
     set +o allexport
 
+    export PATH="/usr/local/bin:/root/.local/bin:''${PATH}"
+
     WORKSPACE_DIR="''${WORKSPACE_DIR:-/var/lib/ai-agent/workspace}"
     LOG_DIR="''${LOG_DIR:-/var/lib/ai-agent/logs}"
     CACHE_DIR="''${CACHE_DIR:-/var/lib/ai-agent/cache}"
@@ -113,22 +115,20 @@ let
       cd "$WORKDIR"
     fi
 
-    # Map DeepSeek BYOK into common harness env names (never log values).
+    # Map DeepSeek BYOK into OpenHands env names (never log values).
     export DEEPSEEK_API_KEY="''${DEEPSEEK_API_KEY:-}"
     export LLM_API_KEY="''${LLM_API_KEY:-''${DEEPSEEK_API_KEY:-}}"
     export LLM_MODEL="''${LLM_MODEL:-$MODEL}"
     export LLM_BASE_URL="''${LLM_BASE_URL:-https://api.deepseek.com}"
+    export OPENHANDS_SUPPRESS_BANNER=1
 
     EXIT_CODE=0
     set +e
-    if command -v opencode >/dev/null 2>&1; then
-      opencode run -m "$MODEL" --dangerously-skip-permissions "$PROMPT" > >(tee -a "$LOG_FILE") 2>&1
-      EXIT_CODE=$?
-    elif command -v openhands >/dev/null 2>&1; then
-      openhands --headless --override-with-envs -t "$PROMPT" > >(tee -a "$LOG_FILE") 2>&1
+    if command -v openhands >/dev/null 2>&1; then
+      openhands --headless --override-with-envs --always-approve --exit-without-confirmation -t "$PROMPT" > >(tee -a "$LOG_FILE") 2>&1
       EXIT_CODE=$?
     else
-      echo "Error: neither opencode nor openhands found in PATH" | tee -a "$LOG_FILE" >&2
+      echo "Error: openhands not found in PATH" | tee -a "$LOG_FILE" >&2
       EXIT_CODE=127
     fi
     set -e
@@ -159,6 +159,9 @@ let
     "  - jq"
     "  - ca-certificates"
     "  - build-essential"
+    "  - python3"
+    "  - python3-venv"
+    "  - python3-pip"
     "  - docker.io"
     ""
     "write_files:"
@@ -181,7 +184,10 @@ let
     "  - systemctl enable --now docker || true"
     # Quote the pipe: unquoted `|` is a YAML literal-block indicator and
     # can make cloud-init parse/run this runcmd incorrectly.
-    "  - \"curl -fsSL https://opencode.ai/install | bash\""
+    # Official OpenHands CLI binary first; uv tool install as fallback.
+    "  - \"curl -fsSL https://install.openhands.dev/install.sh | sh\""
+    "  - ln -sfn /root/.local/bin/openhands /usr/local/bin/openhands || true"
+    "  - \"command -v openhands || (curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=/root/.local/bin:$PATH && uv tool install openhands --python 3.12 && ln -sfn /root/.local/bin/openhands /usr/local/bin/openhands)\""
   ];
 in
 {

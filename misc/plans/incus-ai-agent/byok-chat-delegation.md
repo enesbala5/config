@@ -6,7 +6,7 @@
 
 ## **Objective**
 
-Run a **persistent, warm** Incus VM on `home-server` that hosts a **BYOK coding-agent harness** (OpenHands and/or OpenCode — not Cursor `agent worker` as the primary design). Tasks are triggered from a thin host interface that a chat coordinator (e.g. Grok Bot) can call later: “open a task from chat → run on the home-server Incus VM.”
+Run a **persistent, warm** Incus VM on `home-server` that hosts a **BYOK coding-agent harness** ([OpenHands](https://docs.openhands.dev) CLI — not Cursor `agent worker` as the primary design). Tasks are triggered from a thin host interface that a chat coordinator (e.g. Grok Bot) can call later: “open a task from chat → run on the home-server Incus VM.”
 
 LLM usage is billed to **DeepSeek** (and optional Grok/xAI / OpenRouter) API keys stored in age secrets — not the Cursor credit pool. Useful pieces from `initial.md` are retained: Telegram notify via host `tools/telegram/notify.sh`, GitHub token for clone/PR work, Incus profile/limits, and host→guest secrets injection.
 
@@ -173,20 +173,20 @@ When `enable = false`, the module contributes **nothing** (no profile, no side e
 
 Profile goals:
 
-- CPU/memory limits (defaults above; nesting on if Docker-in-guest is used for OpenHands runtime).
+- CPU/memory limits (defaults above; nesting on because OpenHands may use a Docker runtime).
 - `user.user-data` cloud-init that installs base packages once and writes guest helper scripts.
 - **Disk:** use the instance root disk (from `default` profile / launch) sized for warm caches — prefer ≥35GiB already used by home-server default profile, or attach an extra disk/device later if workspace should live on HDD. Document choice in module comments; v1 can keep workspace on the VM root under `/var/lib/ai-agent`.
 
 Cloud-init packages (minimum):
 
 - `git`, `curl`, `jq`, `ca-certificates`, `build-essential` (or `gcc`/`g++`/`make` on the guest distro)
-- `docker.io` **if** OpenHands is installed via Docker runtime (security.nesting = true)
-- Node / Python only as required by the chosen harness install path (prefer official install scripts in `runcmd`, not baking every toolchain into packages unless needed)
+- `python3`, `python3-venv`, `python3-pip` (needed for the `uv tool install openhands` fallback)
+- `docker.io` (OpenHands optional Docker runtime; `security.nesting = true`)
 
 Injected files via cloud-init `write_files`:
 
 1. `/usr/local/bin/notify.sh` — content from host `tools/telegram/notify.sh` (same pattern as `initial.md`).
-2. `/usr/local/bin/guest-run-agent-task.sh` — loads `/etc/agent-env`, configures git HTTPS with `GITHUB_TOKEN`, Telegram start/finish/fail, invokes harness (see Step 4).
+2. `/usr/local/bin/guest-run-agent-task.sh` — loads `/etc/agent-env`, configures git HTTPS with `GITHUB_TOKEN`, Telegram start/finish/fail, invokes OpenHands (see Step 4).
 3. Ensure `/var/lib/ai-agent/{workspace,cache,logs}` exist (`runcmd` mkdir + permissions).
 
 **Persistence model:** the VM instance `byok-agent` is created once and left running (or stopped but disk retained). Host script starts it if needed; it does **not** `incus delete` between tasks. Clones under `/var/lib/ai-agent/workspace` and package caches survive.
@@ -206,36 +206,33 @@ Guest scripts `source` `/etc/agent-env` with `set -o allexport`. Never echo secr
 
 ---
 
-## **Step 3: Agent harness on the VM (OpenHands and/or OpenCode)**
+## **Step 3: Agent harness on the VM (OpenHands)**
 
 ### 3.1 Recommendation (v1)
 
-**Primary:** [OpenCode](https://opencode.ai) — lightweight CLI, good BYOK fit, headless `opencode run`.
+**Primary (only harness for v1):** [OpenHands](https://docs.openhands.dev) CLI — headless `openhands --headless --override-with-envs -t "..."`.
 
-**Alternative / parallel:** [OpenHands](https://github.com/OpenHands/OpenHands) CLI — `openhands --headless -t "..."`; heavier if using Docker runtime.
-
-Implementers may install **one** for v1 (prefer OpenCode if choosing a single harness) and leave a module option `harness = "opencode" | "openhands"` for later.
+OpenCode is **not** installed or invoked on the primary path. Do not keep a dual-harness fallback in `guest-run-agent-task.sh`.
 
 ### 3.2 Model routing
 
-- **Default:** DeepSeek Flash / chat-tier model (`DEFAULT_MODEL`, e.g. `deepseek/deepseek-chat` or current Flash id — pin a concrete id at implement time against provider docs).
+- **Default:** DeepSeek chat-tier model (`DEFAULT_MODEL`, e.g. `deepseek/deepseek-chat` — pin a concrete id at apply time against provider docs).
 - **Escalate later:** `ESCALATE_MODEL` or a `--model` flag on the host script; v1 can pass through `MODEL` env without auto-routing logic.
-- Map `DEEPSEEK_API_KEY` into whatever env the harness expects (`DEEPSEEK_API_KEY`, and/or `LLM_API_KEY` + `LLM_MODEL` + `LLM_BASE_URL=https://api.deepseek.com` for OpenHands).
+- Map `DEEPSEEK_API_KEY` into OpenHands env: `LLM_API_KEY` + `LLM_MODEL` + `LLM_BASE_URL=https://api.deepseek.com`. Pass `--override-with-envs` so a missing `~/.openhands/settings.json` does not hang first-run setup.
 
 ### 3.3 Install (cloud-init `runcmd` or first-boot script)
 
-Sketch (adjust to current upstream install docs when implementing):
-
 ```bash
-# OpenCode (example — verify URL/flags at apply time)
-curl -fsSL https://opencode.ai/install | bash
+# Official OpenHands CLI binary (verify URL/flags at apply time)
+curl -fsSL https://install.openhands.dev/install.sh | sh
+ln -sfn /root/.local/bin/openhands /usr/local/bin/openhands || true
 
-# OR OpenHands CLI (example)
-# pipx / uv / official install — prefer non-interactive
-# Ensure docker available if runtime=docker
+# Fallback if the binary installer is missing from PATH:
+#   curl -LsSf https://astral.sh/uv/install.sh | sh
+#   uv tool install openhands --python 3.12
 ```
 
-Pin versions where practical; re-run install only on golden rebuild, not every task.
+Pin versions where practical; re-run install only on golden rebuild, not every task. Cloud-init `runcmd` runs on first boot only — an already-launched OpenCode VM needs `incus delete` + relaunch, or `reset-agent-vm.sh` after a new golden snapshot.
 
 ### 3.4 Headless job invocation (guest)
 
@@ -253,9 +250,8 @@ source /etc/agent-env
 notify start (no secrets in message)
 prepare git auth from GITHUB_TOKEN
 cd workspace; clone/update repo if --repo
-export harness env from DEEPSEEK_API_KEY / DEFAULT_MODEL
-opencode run -m "$MODEL" --dangerously-skip-permissions "$PROMPT"
-# OR: openhands --headless --override-with-envs -t "$PROMPT"
+export LLM_API_KEY / LLM_MODEL / LLM_BASE_URL from DEEPSEEK_API_KEY / DEFAULT_MODEL
+openhands --headless --override-with-envs --always-approve --exit-without-confirmation -t "$PROMPT"
 notify success/failure with exit code + short summary (repo name, model id — never keys)
 ```
 
@@ -362,7 +358,7 @@ Optional later: publish workspace to a host bind-mount on `/mnt/hdd/...` so rest
 | GitHub token + git insteadOf HTTPS | `agent worker start` as primary entrypoint |
 | Incus profile + limits + cloud-init inject | Ephemeral “spawn worker” mental model |
 | Host push of decrypted age secrets | Naming: `cursor-worker`, `spawn-cursor-worker.sh` |
-| `manage-secret` manual encrypt flow | |
+| `manage-secret` manual encrypt flow | OpenCode as primary harness |
 
 **Optional appendix (future, not v1):** a second profile or script path that installs Cursor CLI and runs `agent worker start` for Cursor self-hosted experiments. If added, gate behind `homeServer.incusAiAgent.cursorWorker.enable` and keep BYOK harness as default. Do not block the primary path on Cursor worker support.
 
@@ -386,8 +382,8 @@ Optional later: publish workspace to a host bind-mount on `/mnt/hdd/...` so rest
 
 > 1. **Decrypt check:** `sudo cat /run/agenix/incus-ai-agent-secrets` on home-server shows expected keys (mode 0400/0600); no plaintext in git.
 > 2. **Module off/on:** With `homeServer.incusAiAgent.enable = false`, `incus profile show byok-agent` is absent/unchanged by module; with `true`, profile exists and `user.user-data` renders without Nix interpolation errors.
-> 3. **Profile check:** `incus profile show byok-agent` includes limits, nesting (if needed), and cloud-init packages/scripts.
-> 4. **First boot:** `tools/incus/run-agent-task.sh --prompt "Respond with: pong"` creates/starts VM, pushes secrets, harness runs, exit 0.
+> 3. **Profile check:** `incus profile show byok-agent` includes limits, nesting (if needed), and cloud-init packages/scripts. Cloud-init installs OpenHands, not OpenCode.
+> 4. **First boot:** `tools/incus/run-agent-task.sh --prompt "Respond with: pong"` creates/starts VM, pushes secrets, OpenHands runs headless, exit 0.
 > 5. **Warm persistence:** Second run does not reinstall the harness from scratch; a prior clone under `/var/lib/ai-agent/workspace` still exists (`incus exec byok-agent -- ls ...`).
 > 6. **Telegram:** Start + success/failure messages arrive; messages contain no API keys.
 > 7. **GitHub (optional in smoke):** `--repo` clone works with `GITHUB_TOKEN`; push/PR only if PAT scoped and explicitly tested.
@@ -403,7 +399,7 @@ Optional later: publish workspace to a host bind-mount on `/mnt/hdd/...` so rest
 **Body sketch:**
 
 ```markdown
-Pivot from Cursor self-hosted worker to a persistent BYOK agent VM on home-server Incus.
+Pivot from Cursor self-hosted worker to a persistent BYOK OpenHands agent VM on home-server Incus.
 
 Plan: `misc/plans/incus-ai-agent/byok-chat-delegation.md` (historical Cursor plan: `initial.md`).
 
