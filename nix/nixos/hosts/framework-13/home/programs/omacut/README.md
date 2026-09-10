@@ -9,7 +9,7 @@ To use, add it to the relevant NixOS configuration flake inputs:
 ```nix
 inputs = {
   # ...
-  omacut.url = "github:OWNER/omacut-nix";
+  omacut.url = "github:enesbala5/omacut-nix";
 
   # optional, but recommended if you closely follow NixOS unstable so it shares
   # system libraries (especially Qt)
@@ -18,8 +18,6 @@ inputs = {
   # ...
 };
 ```
-
-Replace `OWNER/omacut-nix` with the published repository path.
 
 ## Packages
 
@@ -40,13 +38,13 @@ An `apps.default` entry is also provided so you can run it with `nix run`.
 The easiest way is to use the CLI imperatively:
 
 ```sh
-nix profile install github:OWNER/omacut-nix
+nix profile install github:enesbala5/omacut-nix
 ```
 
 Or try it without installing:
 
 ```sh
-nix run github:OWNER/omacut-nix
+nix run github:enesbala5/omacut-nix
 ```
 
 If you're on NixOS and/or home-manager, you should install it in your system or home configuration.
