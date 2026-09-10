@@ -47,6 +47,12 @@
       url = "github:fiffeek/hyprdynamicmonitors?rev=10a993e2e13fc5be4d3057f9331f91c335d24d30";
     };
 
+    # Touchscreen/trackpad gesture plugin (4-finger taps etc). Pinned for Hyprland v0.51.1.
+    hyprgrass = {
+      url = "github:horriblename/hyprgrass?rev=ad51f4649a1c054d788fb6ce2a2bfcdfac28d524";
+      inputs.hyprland.follows = "hyprland";
+    };
+
     # Framework-13
     # ---
     vicinae = {
@@ -124,106 +130,28 @@
       nixpkgs-unstable,
       nixos-hardware,
       home-manager,
+      plasma-manager,
       agenix,
+      stylix,
+      hyprland,
+      hyprgrass,
+      hyprdynamicmonitors,
+      vicinae,
+      vicinae-extensions,
+      affinity-nix,
+      zen-browser,
+      helium-browser,
+      hyprshutdown,
+      aw-watcher-window-hyprland,
+      zed-editor,
+      cursor-nix,
+      grok-bot,
+      antigravity-nix,
+      omacut,
       ...
-    }:
-    let
-      lib = nixpkgs.lib;
-
-      data = {
-        username = "e";
-        uid = 1000;
-        fullName = "Enes Bala";
-        email = "contact@enesbala.com";
-
-        # Directories
-        homeDirectory = "/home/${data.username}";
-        configDirectory = "${data.homeDirectory}/config";
-
-        # Google Drive
-        googleDriveRemoteName = "gdrive";
-        googleDriveLocalDir = "${data.homeDirectory}/gdrive";
-        # Writable copy of agenix rclone-conf (token refresh); seeded on activation
-        rcloneGdriveConfigPath = "${data.homeDirectory}/.config/rclone/rclone.conf";
-
-        schemes = {
-          light = "${data.configDirectory}/misc/scheme/google-light.yaml";
-          dark = "${data.configDirectory}/misc/scheme/circus.yaml";
-        };
-      };
-
-      system = "x86_64-linux";
-
-      pkgs = import nixpkgs {
-        system = system;
-        config.allowUnfree = true;
-        overlays = [
-          # Fix thunar-archive-plugin not finding xarchiver.tap
-          # https://github.com/NixOS/nixpkgs/issues/248192
-          (final: prev: {
-            xfce = prev.xfce.overrideScope (
-              xfinal: xprev: {
-                thunar-archive-plugin = xprev.thunar-archive-plugin.overrideAttrs (old: {
-                  postInstall = (old.postInstall or "") + ''
-                    cp ${final.xarchiver}/libexec/thunar-archive-plugin/* $out/libexec/thunar-archive-plugin/
-                  '';
-                });
-              }
-            );
-          })
-        ];
-      };
-
-      unstable = import nixpkgs-unstable {
-        system = system;
-        config.allowUnfree = true;
-      };
-    in
-    {
-      nixosConfigurations = {
-
-        framework-13 = lib.nixosSystem {
-          inherit pkgs;
-
-          specialArgs = {
-            hostname = "framework-13";
-
-            inherit inputs;
-            inherit data;
-            inherit system;
-            inherit unstable;
-          };
-
-          modules = [
-            nixos-hardware.nixosModules.framework-13-7040-amd
-            home-manager.nixosModules.default
-            ./modules/base-configuration.nix
-            ./hosts/framework-13/hardware-configuration.nix
-            ./hosts/framework-13/default.nix
-            agenix.nixosModules.default
-          ];
-        };
-
-        home-server = lib.nixosSystem {
-          inherit pkgs;
-
-          specialArgs = {
-            hostname = "home-server";
-
-            inherit inputs;
-            inherit data;
-            inherit system;
-            inherit unstable;
-          };
-
-          modules = [
-            home-manager.nixosModules.default
-            ./modules/base-configuration.nix
-            ./hosts/home-server/hardware-configuration.nix
-            ./hosts/home-server/default.nix
-            agenix.nixosModules.default
-          ];
-        };
-      };
-    };
+    }@{
+      inherit self;
+      ...
+    }: {}
+  };
 }
