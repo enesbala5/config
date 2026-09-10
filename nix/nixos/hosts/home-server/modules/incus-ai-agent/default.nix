@@ -9,9 +9,8 @@ let
   cfg = config.homeServer.incusAiAgent;
 
   telegramScriptContent = builtins.readFile "${data.configDirectory}/tools/telegram/notify.sh";
+  taskApiScriptContent = builtins.readFile "${data.configDirectory}/tools/incus/openhands-task-api.py";
 
-  # Indent every line for a YAML `|` block (avoids Nix '' indent-strip
-  # mangling multi-line interpolations).
   yamlIndent =
     n: text:
     let
@@ -22,13 +21,6 @@ let
   guestRunAgentTaskScript = ''
     #!/usr/bin/env bash
     set -euo pipefail
-
-    # Guest task runner for the BYOK Incus agent VM (OpenHands).
-    # Args:
-    #   --repo URL          optional; clone or update under WORKSPACE_DIR/<name>
-    #   --prompt TEXT       required task text
-    #   --model ID          optional override of DEFAULT_MODEL
-    #   --workdir PATH      optional existing directory (used when --repo omitted)
 
     REPO=""
     PROMPT=""
@@ -87,7 +79,6 @@ let
     touch "$LOG_FILE"
     chmod 0600 "$LOG_FILE"
 
-    # Git HTTPS auth from fine-grained PAT (never echo the token).
     if [[ -n "''${GITHUB_TOKEN:-}" ]]; then
       git config --global url."https://x-access-token:''${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
     fi
@@ -95,10 +86,7 @@ let
     REPO_LABEL="''${REPO:-none}"
     HOST_LABEL="$(hostname)"
 
-    /usr/local/bin/notify.sh -m md "🤖 *BYOK Agent Task Started*
-    🖥️ Host: \`''${HOST_LABEL}\`
-    📦 Repo: \`''${REPO_LABEL}\`
-    🧠 Model: \`''${MODEL}\`" || true
+    /usr/local/bin/notify.sh -m md "BYOK Agent Task Started\nHost: ''${HOST_LABEL}\nRepo: ''${REPO_LABEL}\nModel: ''${MODEL}" || true
 
     cd "$WORKSPACE_DIR"
     if [[ -n "$REPO" ]]; then
@@ -115,7 +103,6 @@ let
       cd "$WORKDIR"
     fi
 
-    # Map DeepSeek BYOK into OpenHands env names (never log values).
     export DEEPSEEK_API_KEY="''${DEEPSEEK_API_KEY:-}"
     export LLM_API_KEY="''${LLM_API_KEY:-''${DEEPSEEK_API_KEY:-}}"
     export LLM_MODEL="''${LLM_MODEL:-$MODEL}"
@@ -134,22 +121,33 @@ let
     set -e
 
     if [[ "$EXIT_CODE" -eq 0 ]]; then
-      /usr/local/bin/notify.sh -m md "✅ *BYOK Agent Task Finished*
-    🖥️ Host: \`''${HOST_LABEL}\`
-    📦 Repo: \`''${REPO_LABEL}\`
-    🧠 Model: \`''${MODEL}\`" || true
+      /usr/local/bin/notify.sh -m md "BYOK Agent Task Finished\nHost: ''${HOST_LABEL}\nRepo: ''${REPO_LABEL}\nModel: ''${MODEL}" || true
     else
-      /usr/local/bin/notify.sh -m md "❌ *BYOK Agent Task Failed*
-    🖥️ Host: \`''${HOST_LABEL}\`
-    📦 Repo: \`''${REPO_LABEL}\`
-    🧠 Model: \`''${MODEL}\`
-    🔢 Exit: \`''${EXIT_CODE}\`" || true
+      /usr/local/bin/notify.sh -m md "BYOK Agent Task Failed\nHost: ''${HOST_LABEL}\nRepo: ''${REPO_LABEL}\nModel: ''${MODEL}\nExit: ''${EXIT_CODE}" || true
     fi
 
     exit "$EXIT_CODE"
   '';
 
-  # Built as a list so interpolated scripts do not fight Nix '' indent stripping.
+  taskApiUnit = ''
+    [Unit]
+    Description=OpenHands REST task API for Hermes
+    After=network-online.target
+    Wants=network-online.target
+
+    [Service]
+    Type=simple
+    EnvironmentFile=-/etc/agent-env
+    Environment=HOME=/root
+    Environment=PATH=/usr/local/bin:/root/.local/bin:/usr/bin
+    ExecStart=/usr/bin/python3 /usr/local/bin/openhands-task-api.py
+    Restart=on-failure
+    RestartSec=5
+
+    [Install]
+    WantedBy=multi-user.target
+  '';
+
   cloudInitUserData = lib.concatStringsSep "\n" [
     "#cloud-config"
     "package_update: true"
@@ -177,17 +175,38 @@ let
     "    content: |"
     (yamlIndent 6 guestRunAgentTaskScript)
     ""
+    "  - path: /usr/local/bin/openhands-task-api.py"
+    "    permissions: '0755'"
+    "    owner: root:root"
+    "    content: |"
+    (yamlIndent 6 taskApiScriptContent)
+    ""
+    "  - path: /etc/systemd/system/openhands-task-api.service"
+    "    permissions: '0644'"
+    "    owner: root:root"
+    "    content: |"
+    (yamlIndent 6 taskApiUnit)
+    ""
+    "  - path: /etc/profile.d/uv.sh"
+    "    permissions: '0644'"
+    "    owner: root:root"
+    "    content: |"
+    "      export PATH=\"/usr/local/bin:/root/.local/bin:$PATH\""
+    ""
     "runcmd:"
     "  - mkdir -p /var/lib/ai-agent/workspace /var/lib/ai-agent/cache /var/lib/ai-agent/logs"
     "  - chmod 700 /var/lib/ai-agent"
     "  - chmod 755 /var/lib/ai-agent/workspace /var/lib/ai-agent/cache /var/lib/ai-agent/logs"
     "  - systemctl enable --now docker || true"
-    # Quote the pipe: unquoted `|` is a YAML literal-block indicator and
-    # can make cloud-init parse/run this runcmd incorrectly.
-    # Official OpenHands CLI binary first; uv tool install as fallback.
+    "  - \"curl -LsSf https://astral.sh/uv/install.sh | sh\""
+    "  - ln -sfn /root/.local/bin/uv /usr/local/bin/uv || true"
+    "  - ln -sfn /root/.local/bin/uvx /usr/local/bin/uvx || true"
+    "  - \"grep -q /usr/local/bin /etc/environment || echo PATH=\"/usr/local/bin:/root/.local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin\" >> /etc/environment\""
     "  - \"curl -fsSL https://install.openhands.dev/install.sh | sh\""
     "  - ln -sfn /root/.local/bin/openhands /usr/local/bin/openhands || true"
-    "  - \"command -v openhands || (curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=/root/.local/bin:$PATH && uv tool install openhands --python 3.12 && ln -sfn /root/.local/bin/openhands /usr/local/bin/openhands)\""
+    "  - \"command -v openhands || (export PATH=/usr/local/bin:/root/.local/bin:$PATH && uv tool install openhands --python 3.12 && ln -sfn /root/.local/bin/openhands /usr/local/bin/openhands)\""
+    "  - systemctl daemon-reload"
+    "  - systemctl enable --now openhands-task-api.service"
   ];
 in
 {
@@ -197,45 +216,34 @@ in
     vmName = lib.mkOption {
       type = lib.types.str;
       default = "byok-agent";
-      description = "Persistent Incus VM instance name";
     };
 
     profileName = lib.mkOption {
       type = lib.types.str;
       default = "byok-agent";
-      description = "Incus profile name providing cloud-init + limits";
     };
 
     limits = {
       cpu = lib.mkOption {
         type = lib.types.str;
         default = "4";
-        description = "Incus limits.cpu for the agent profile";
       };
-
       memory = lib.mkOption {
         type = lib.types.str;
         default = "8GiB";
-        description = "Incus limits.memory for the agent profile";
       };
     };
   };
 
   config = lib.mkIf cfg.enable {
-    # Interactive user can run incus (root already has incus-admin on this host).
     users.users.${data.username}.extraGroups = [ "incus-admin" ];
 
-    # Append alongside the existing default profile — do not replace it.
-    # Workspace lives on the VM root disk under /var/lib/ai-agent (default
-    # profile root is already ≥35GiB on this host). Extra HDD bind mounts
-    # can be added later if clones should survive golden restores.
     virtualisation.incus.preseed.profiles = [
       {
         name = cfg.profileName;
         config = {
           "limits.cpu" = cfg.limits.cpu;
           "limits.memory" = cfg.limits.memory;
-          # OpenHands (and optional Docker runtime) need nesting.
           "security.nesting" = "true";
           "user.user-data" = cloudInitUserData;
           "cloud-init.user-data" = cloudInitUserData;
