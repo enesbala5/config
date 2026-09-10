@@ -1,114 +1,91 @@
 #!/usr/bin/env python3
-"""Host-side HTTP bridge for Hermes -> byok-agent.
-
-Binds only to the Incus bridge address. Fire-and-forget: returns a job_id
-immediately and shells out to tools/incus/run-agent-task.sh in the background.
-
-Auth: Authorization: Bearer $BRIDGE_TOKEN
-"""
+"""Host REST proxy: Hermes -> OpenHands task API on byok-agent."""
 
 from __future__ import annotations
 
 import json
 import os
 import secrets
-import subprocess
 import sys
-import threading
-import uuid
+import urllib.error
+import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 from urllib.parse import urlparse
 
 BIND_ADDR = os.environ.get("BRIDGE_BIND_ADDR", "10.0.100.1")
 BIND_PORT = int(os.environ.get("BRIDGE_PORT", "8420"))
 BRIDGE_TOKEN = os.environ.get("BRIDGE_TOKEN", "")
-RUN_SCRIPT = os.environ.get(
-    "RUN_AGENT_TASK_SCRIPT",
-    str(Path(__file__).resolve().parent.parent / "run-agent-task.sh"),
-)
-
-JOBS: dict[str, dict] = {}
-JOBS_LOCK = threading.Lock()
+OPENHANDS_URL = os.environ.get("OPENHANDS_URL", "http://byok-agent.incus:8090").rstrip("/")
+SESSION_KEY = os.environ.get("OPENHANDS_SESSION_API_KEY", "")
 
 
-def json_bytes(payload: dict, code: int = 200) -> tuple[int, bytes]:
+def json_bytes(payload, code=200):
     return code, json.dumps(payload).encode("utf-8")
 
 
-def authorized(handler: BaseHTTPRequestHandler) -> bool:
+def authorized(handler):
     if not BRIDGE_TOKEN:
         return False
     header = handler.headers.get("Authorization", "")
-    if header.startswith("Bearer "):
-        got = header[len("Bearer ") :]
-    else:
-        got = handler.headers.get("X-Bridge-Token", "")
+    got = header[len("Bearer "):] if header.startswith("Bearer ") else handler.headers.get("X-Bridge-Token", "")
     return secrets.compare_digest(got, BRIDGE_TOKEN)
 
 
-def start_job(repo: str, prompt: str, model: str | None) -> str:
-    job_id = uuid.uuid4().hex[:12]
-    with JOBS_LOCK:
-        JOBS[job_id] = {"status": "queued", "repo": repo, "model": model}
-
-    def worker() -> None:
-        cmd = [RUN_SCRIPT, "--prompt", prompt]
-        if repo:
-            cmd.extend(["--repo", repo])
-        if model:
-            cmd.extend(["--model", model])
-        with JOBS_LOCK:
-            JOBS[job_id]["status"] = "running"
+def forward(method, path, payload=None):
+    url = f"{OPENHANDS_URL}{path}"
+    data = None if payload is None else json.dumps(payload).encode("utf-8")
+    headers = {"Content-Type": "application/json"}
+    if SESSION_KEY:
+        headers["X-Session-API-Key"] = SESSION_KEY
+        headers["Authorization"] = f"Bearer {SESSION_KEY}"
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            body = resp.read().decode("utf-8") or "{}"
+            return resp.status, json.loads(body)
+    except urllib.error.HTTPError as exc:
+        raw = exc.read().decode("utf-8") if exc.fp else ""
         try:
-            result = subprocess.run(cmd, check=False)
-            with JOBS_LOCK:
-                JOBS[job_id]["status"] = "ok" if result.returncode == 0 else "failed"
-                JOBS[job_id]["exit_code"] = result.returncode
-        except Exception as exc:  # noqa: BLE001
-            with JOBS_LOCK:
-                JOBS[job_id]["status"] = "failed"
-                JOBS[job_id]["error"] = str(exc)
-
-    threading.Thread(target=worker, name=f"coding-task-{job_id}", daemon=True).start()
-    return job_id
+            parsed = json.loads(raw) if raw else {"error": exc.reason}
+        except json.JSONDecodeError:
+            parsed = {"error": raw or exc.reason}
+        return exc.code, parsed
+    except Exception as exc:
+        return 502, {"error": str(exc), "upstream": url}
 
 
 class Handler(BaseHTTPRequestHandler):
-    def log_message(self, fmt: str, *args: object) -> None:
+    def log_message(self, fmt, *args):
         sys.stderr.write("%s - %s\n" % (self.address_string(), fmt % args))
 
-    def _send(self, code: int, body: bytes, content_type: str = "application/json") -> None:
+    def _send(self, code, body):
         self.send_response(code)
-        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
 
-    def do_GET(self) -> None:  # noqa: N802
+    def do_GET(self):
         path = urlparse(self.path).path
         if path in ("/health", "/"):
-            self._send(*json_bytes({"ok": True, "service": "coding-task-bridge"}))
+            up_code, up_body = forward("GET", "/health")
+            self._send(*json_bytes({"ok": True, "upstream": up_body, "upstream_status": up_code}))
             return
-        if path.startswith("/jobs/"):
+        if path.startswith("/jobs/") or path.startswith("/tasks/"):
             if not authorized(self):
                 self._send(*json_bytes({"error": "unauthorized"}, 401))
                 return
             job_id = path.rsplit("/", 1)[-1]
-            with JOBS_LOCK:
-                job = JOBS.get(job_id)
-            if job is None:
-                self._send(*json_bytes({"error": "not_found"}, 404))
-                return
-            self._send(*json_bytes({"job_id": job_id, **job}))
+            code, body = forward("GET", f"/tasks/{job_id}")
+            self._send(*json_bytes(body, code))
             return
         self._send(*json_bytes({"error": "not_found"}, 404))
 
-    def do_POST(self) -> None:  # noqa: N802
-        path = urlparse(self.path).path
+    def do_POST(self):
         if not authorized(self):
             self._send(*json_bytes({"error": "unauthorized"}, 401))
             return
+        path = urlparse(self.path).path
         length = int(self.headers.get("Content-Length", "0") or 0)
         raw = self.rfile.read(length) if length else b"{}"
         try:
@@ -116,32 +93,27 @@ class Handler(BaseHTTPRequestHandler):
         except json.JSONDecodeError:
             self._send(*json_bytes({"error": "invalid_json"}, 400))
             return
-
-        if path in ("/mcp", "/tools/trigger_coding_task", "/trigger"):
+        if path in ("/mcp", "/tools/trigger_coding_task", "/trigger", "/tasks"):
             args = payload.get("arguments") or payload.get("params", {}).get("arguments") or payload
-            repo = str(args.get("repo") or "")
-            prompt = str(args.get("prompt") or "")
+            repo = str(args.get("repo") or args.get("repository") or "")
+            prompt = str(args.get("prompt") or args.get("initial_user_msg") or "")
             model = args.get("model")
             model = str(model) if model else None
             if not prompt:
                 self._send(*json_bytes({"error": "prompt is required"}, 400))
                 return
-            job_id = start_job(repo, prompt, model)
-            self._send(*json_bytes({"job_id": job_id, "status": "queued"}))
+            code, body = forward("POST", "/tasks", {"prompt": prompt, "repo": repo, "model": model})
+            self._send(*json_bytes(body, code))
             return
-
         self._send(*json_bytes({"error": "not_found"}, 404))
 
 
-def main() -> int:
+def main():
     if not BRIDGE_TOKEN:
         print("Error: BRIDGE_TOKEN is required", file=sys.stderr)
         return 1
-    if not Path(RUN_SCRIPT).is_file():
-        print(f"Error: run-agent-task script not found: {RUN_SCRIPT}", file=sys.stderr)
-        return 1
     server = ThreadingHTTPServer((BIND_ADDR, BIND_PORT), Handler)
-    print(f"coding-task-bridge listening on {BIND_ADDR}:{BIND_PORT}", file=sys.stderr)
+    print(f"coding-task-bridge {BIND_ADDR}:{BIND_PORT} -> {OPENHANDS_URL}", file=sys.stderr)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
