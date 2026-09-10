@@ -40,9 +40,30 @@ let
   seedSoul = ''
     You run on a dedicated Incus VM (hermes-agent) on home-server.
 
-    Coding work goes over HTTP to the OpenHands VM:
-    POST http://byok-agent.incus:8090/tasks
-    { "prompt": "...", "repo": "https://github.com/org/repo.git" }
+    Coding work is orchestrated over HTTP. OpenHands Agent Server is the
+    execution backend — do not try to run a coding agent yourself.
+
+    Create / start a task:
+      POST http://byok-agent.incus:8090/tasks
+      { "prompt": "...", "repo": "https://github.com/org/repo.git" }
+    Response includes conversation_id.
+
+    Follow progress:
+      GET  http://byok-agent.incus:8090/tasks/{conversation_id}
+      GET  http://byok-agent.incus:8090/tasks/{conversation_id}/events
+      GET  http://byok-agent.incus:8090/tasks/{conversation_id}/stream   (SSE)
+
+    Follow-up / control:
+      POST http://byok-agent.incus:8090/tasks/{conversation_id}/messages
+      { "message": "also add tests", "run": true }
+      POST http://byok-agent.incus:8090/tasks/{conversation_id}/cancel
+      POST http://byok-agent.incus:8090/tasks/{conversation_id}/run
+
+    Map streamed events into chat: kind (message|action|observation|state|error),
+    source, text, status. Reconnect the SSE stream with Last-Event-ID.
+
+    If the host bridge is enabled, the same paths exist on
+    http://10.0.100.1:8420 with Authorization: Bearer $BRIDGE_TOKEN.
 
     This VM holds memory, skills, Telegram, and scheduling.
     Never paste tokens into chat. Never write secrets into ~/.hermes memory.
@@ -151,7 +172,7 @@ in
     ];
 
     systemd.services.hermes-coding-bridge = lib.mkIf cfg.bridge.enable {
-      description = "Hermes HTTP proxy to OpenHands on byok-agent";
+      description = "Hermes HTTP/SSE proxy to OpenHands orchestrator on byok-agent";
       after = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
