@@ -19,6 +19,7 @@ in
     ./modules/incus-ai-agent
     ./modules/incus-hermes-agent
     ./modules/openhands-ui
+    ./modules/home-server-services.nix
   ];
 
   # Flip on after `manage-secret incus-ai-agent-secrets.age` and first apply.
@@ -29,11 +30,6 @@ in
   # homeServer.incusHermesAgent.bridge.enable = true; # after hermes-bridge-secrets.age
   homeServer.openHandsUi.enable = false;
 
-  # ------------------------------------------------------------------------------------------
-  # Accounts
-  # -> Don't forget to set a password with ‘passwd’.
-  # ------------------------------------------------------------------------------------------
-
   users = {
     users = {
       root = {
@@ -41,10 +37,7 @@ in
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP2a8Wi7Cg+p5OBRW3YPxFDhJ3xFTdMvdwMI1GQX6I7M root@coolify"
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP2a8Wi7Cg+p5OBRW3YPxFDhJ3xFTdMvdwMI1GQX6I7M"
         ];
-
-        extraGroups = [
-          "incus-admin"
-        ];
+        extraGroups = [ "incus-admin" ];
       };
 
       guest = {
@@ -59,65 +52,49 @@ in
         shell = pkgs.zsh;
       };
     };
-
     groups.vboxusers.members = [ data.username ];
   };
 
-  # ------------------------------------------------------------------------------------------
-  # Virtualisation
-  # ------------------------------------------------------------------------------------------
-
-  virtualisation = {
-    incus = {
-      enable = true;
-      ui.enable = true;
-
-      preseed = {
-        config = {
-          "core.https_address" = "127.0.0.1:8443";
-        };
-
-        networks = [
-          {
-            config = {
-              "ipv4.address" = "10.0.100.1/24";
-              "ipv4.nat" = "true";
+  virtualisation.incus = {
+    enable = true;
+    ui.enable = true;
+    preseed = {
+      config."core.https_address" = "127.0.0.1:8443";
+      networks = [
+        {
+          config = {
+            "ipv4.address" = "10.0.100.1/24";
+            "ipv4.nat" = "true";
+          };
+          name = "incusbr0";
+          type = "bridge";
+        }
+      ];
+      profiles = [
+        {
+          devices = {
+            eth0 = {
+              name = "eth0";
+              network = "incusbr0";
+              type = "nic";
             };
-
-            name = "incusbr0";
-            type = "bridge";
-          }
-        ];
-
-        profiles = [
-          {
-            devices = {
-              eth0 = {
-                name = "eth0";
-                network = "incusbr0";
-                type = "nic";
-              };
-              root = {
-                path = "/";
-                pool = "default";
-                size = "35GiB";
-                type = "disk";
-              };
+            root = {
+              path = "/";
+              pool = "default";
+              size = "35GiB";
+              type = "disk";
             };
-            name = "default";
-          }
-        ];
-
-        storage_pools = [
-          {
-            config = {
-              source = "/var/lib/incus/storage-pools/default";
-            };
-            driver = "dir";
-            name = "default";
-          }
-        ];
-      };
+          };
+          name = "default";
+        }
+      ];
+      storage_pools = [
+        {
+          config.source = "/var/lib/incus/storage-pools/default";
+          driver = "dir";
+          name = "default";
+        }
+      ];
     };
   };
 
@@ -126,11 +103,24 @@ in
       enable = true;
       flushRuleset = false;
     };
-
     firewall = {
       allowPing = true;
-      allowedTCPPorts = [ 8000 445 8006 18789 9510 9512 11470 12470 ];
-      allowedUDPPorts = [ 9511 9512 11470 12470 ];
+      allowedTCPPorts = [
+        8000
+        445
+        8006
+        18789
+        9510
+        9512
+        11470
+        12470
+      ];
+      allowedUDPPorts = [
+        9511
+        9512
+        11470
+        12470
+      ];
       trustedInterfaces = [ "incusbr0" ];
     };
   };
@@ -140,7 +130,6 @@ in
       PermitRootLogin = "prohibit-password";
       PasswordAuthentication = false;
     };
-
     samba = {
       package = pkgs.samba4Full;
       usershares.enable = true;
@@ -170,12 +159,10 @@ in
         };
       };
     };
-
     samba-wsdd = {
       enable = true;
       openFirewall = true;
     };
-
     avahi = {
       publish.enable = true;
       publish.userServices = true;
@@ -183,37 +170,17 @@ in
       enable = true;
       openFirewall = true;
     };
-
     tailscale = {
       enable = true;
       package = unstable.tailscale;
     };
-
     fail2ban.enable = true;
   };
 
-  system.activationScripts.init_smbpasswd = {
-    deps = [ "users" "agenix" ];
-    text = ''
-      SECRET_PATH="${config.age.secrets.e-auth.path}"
-      if [ -f "$SECRET_PATH" ] && id "${data.username}" &>/dev/null; then
-        /run/current-system/sw/bin/printf "$(/run/current-system/sw/bin/cat "$SECRET_PATH")\n$(/run/current-system/sw/bin/cat "$SECRET_PATH")\n" | /run/current-system/sw/bin/smbpasswd -sa ${data.username}
-      fi
-    '';
-  };
-
-  systemd = {
-    services = {
-      sshd = {
-        restartIfChanged = false;
-        stopIfChanged = false;
-      };
-    };
-    targets = {
-      sleep.enable = false;
-      suspend.enable = false;
-      hibernate.enable = false;
-      hybrid-sleep.enable = false;
-    };
+  systemd.targets = {
+    sleep.enable = false;
+    suspend.enable = false;
+    hibernate.enable = false;
+    hybrid-sleep.enable = false;
   };
 }
