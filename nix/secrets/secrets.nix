@@ -61,6 +61,9 @@ in
   "restart-cloudflared-service-env.age" = rootConfig;
   "notify-server-boot-service-env.age" = rootConfig;
   "incus-ai-agent-secrets.age" = rootConfig;
+  # After `manage-secret hermes-agent-secrets.age` / `hermes-bridge-secrets.age`:
+  # "hermes-agent-secrets.age" = rootConfig;
+  # "hermes-bridge-secrets.age" = rootConfig;
 
   # SSH
   # -------------------------------
