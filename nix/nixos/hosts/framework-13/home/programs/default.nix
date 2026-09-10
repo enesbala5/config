@@ -101,6 +101,7 @@ in
       antigravity-nix.packages.${system}.google-antigravity-ide-no-fhs
       antigravity-nix.packages.${system}.google-antigravity-cli
       inputs.grok-bot.packages.${pkgs.system}.default
+      omacut.packages.${system}.default
     ]);
 
   programs = {
