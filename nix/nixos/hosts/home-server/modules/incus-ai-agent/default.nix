@@ -274,21 +274,25 @@ in
     vmName = lib.mkOption {
       type = lib.types.str;
       default = "byok-agent";
+      description = "Persistent Incus VM instance name";
     };
 
     profileName = lib.mkOption {
       type = lib.types.str;
       default = "byok-agent";
+      description = "Incus profile name providing cloud-init + limits";
     };
 
     limits = {
       cpu = lib.mkOption {
         type = lib.types.str;
         default = "4";
+        description = "Incus limits.cpu for the agent profile";
       };
       memory = lib.mkOption {
         type = lib.types.str;
         default = "8GiB";
+        description = "Incus limits.memory for the agent profile";
       };
     };
   };
@@ -302,6 +306,7 @@ in
         config = {
           "limits.cpu" = cfg.limits.cpu;
           "limits.memory" = cfg.limits.memory;
+          # OpenHands (and optional Docker runtime) need nesting.
           "security.nesting" = "true";
           "user.user-data" = cloudInitUserData;
           "cloud-init.user-data" = cloudInitUserData;
