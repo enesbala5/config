@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   data,
   ...
 }:
@@ -10,6 +9,7 @@ let
   cfg = config.homeServer.incusHermesAgent;
 
   telegramScriptContent = builtins.readFile "${data.configDirectory}/tools/telegram/notify.sh";
+  ohStartScriptContent = builtins.readFile "${data.configDirectory}/tools/incus/oh-start.sh";
 
   yamlIndent =
     n: text:
@@ -38,35 +38,17 @@ let
   '';
 
   seedSoul = ''
-    You run on a dedicated Incus VM (hermes-agent) on home-server.
+    Coding goes to OpenHands on this host, not to you.
 
-    Coding work is orchestrated over HTTP. OpenHands Agent Server is the
-    execution backend — do not try to run a coding agent yourself.
+    Start:
+    /usr/local/bin/oh-start.sh --prompt "..." [--repo URL]
+    or POST http://byok-agent.incus:8000/api/conversations
+    header X-Session-API-Key: $OH_SESSION_API_KEY
 
-    Create / start a task:
-      POST http://byok-agent.incus:8090/tasks
-      { "prompt": "...", "repo": "https://github.com/org/repo.git" }
-    Response includes conversation_id.
+    Then send the user:
+    https://agent.enesbala.com/conversations/<id>
 
-    Follow progress:
-      GET  http://byok-agent.incus:8090/tasks/{conversation_id}
-      GET  http://byok-agent.incus:8090/tasks/{conversation_id}/events
-      GET  http://byok-agent.incus:8090/tasks/{conversation_id}/stream   (SSE)
-
-    Follow-up / control:
-      POST http://byok-agent.incus:8090/tasks/{conversation_id}/messages
-      { "message": "also add tests", "run": true }
-      POST http://byok-agent.incus:8090/tasks/{conversation_id}/cancel
-      POST http://byok-agent.incus:8090/tasks/{conversation_id}/run
-
-    Map streamed events into chat: kind (message|action|observation|state|error),
-    source, text, status. Reconnect the SSE stream with Last-Event-ID.
-
-    If the host bridge is enabled, the same paths exist on
-    http://10.0.100.1:8420 with Authorization: Bearer $BRIDGE_TOKEN.
-
-    This VM holds memory, skills, Telegram, and scheduling.
-    Never paste tokens into chat. Never write secrets into ~/.hermes memory.
+    Do not run coding agents locally. Do not wrap or translate OpenHands events.
   '';
 
   cloudInitUserData = lib.concatStringsSep "\n" [
@@ -88,6 +70,12 @@ let
     "    owner: root:root"
     "    content: |"
     (yamlIndent 6 telegramScriptContent)
+    ""
+    "  - path: /usr/local/bin/oh-start.sh"
+    "    permissions: '0755'"
+    "    owner: root:root"
+    "    content: |"
+    (yamlIndent 6 ohStartScriptContent)
     ""
     "  - path: /etc/systemd/system/hermes-agent.service"
     "    permissions: '0644'"
@@ -135,25 +123,6 @@ in
         default = "4GiB";
       };
     };
-
-    bridge = {
-      enable = lib.mkEnableOption "optional host HTTP proxy from Hermes to OpenHands on byok-agent";
-
-      bindAddr = lib.mkOption {
-        type = lib.types.str;
-        default = "10.0.100.1";
-      };
-
-      port = lib.mkOption {
-        type = lib.types.port;
-        default = 8420;
-      };
-
-      openHandsUrl = lib.mkOption {
-        type = lib.types.str;
-        default = "http://byok-agent.incus:8090";
-      };
-    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -170,31 +139,5 @@ in
         };
       }
     ];
-
-    systemd.services.hermes-coding-bridge = lib.mkIf cfg.bridge.enable {
-      description = "Hermes HTTP/SSE proxy to OpenHands orchestrator on byok-agent";
-      after = [ "network-online.target" ];
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        Type = "simple";
-        User = "root";
-        Group = "root";
-        EnvironmentFile = "-/run/agenix/hermes-bridge-secrets";
-        Environment = [
-          "BRIDGE_BIND_ADDR=${cfg.bridge.bindAddr}"
-          "BRIDGE_PORT=${toString cfg.bridge.port}"
-          "OPENHANDS_URL=${cfg.bridge.openHandsUrl}"
-        ];
-        Restart = "on-failure";
-        RestartSec = "10s";
-      };
-      path = [
-        pkgs.curl
-        pkgs.python3
-      ];
-      script = ''
-        exec ${pkgs.python3}/bin/python3 ${data.configDirectory}/tools/incus/coding-task-bridge/server.py
-      '';
-    };
   };
 }

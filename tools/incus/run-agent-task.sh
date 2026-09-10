@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # Host entrypoint for the persistent BYOK Incus AI agent VM.
 #
-# Starts (or reuses) the VM, pushes secrets, then creates an OpenHands
-# conversation through the guest orchestrator. OpenHands Agent Server is the
-# runtime; this script does not exec the agent CLI inside the VM.
+# Starts (or reuses) the VM, pushes secrets, then runs the guest start
+# client against OpenHands Agent Server :8000. Not an orchestrator.
 #
 # Usage:
 #   run-agent-task.sh --prompt "Fix flaky test in auth" [--repo URL] [--model ID]
@@ -14,8 +13,6 @@
 #   PROFILE       default: byok-agent
 #   IMAGE         default: images:ubuntu/24.04/cloud
 #   SECRETS_PATH  default: /run/agenix/incus-ai-agent-secrets
-#   OPENHANDS_URL default: http://byok-agent.incus:8090
-#   WAIT          default: 1 (poll until the conversation finishes)
 
 set -euo pipefail
 
@@ -23,8 +20,6 @@ VM_NAME="${VM_NAME:-byok-agent}"
 PROFILE="${PROFILE:-byok-agent}"
 IMAGE="${IMAGE:-images:ubuntu/24.04/cloud}"
 SECRETS_PATH="${SECRETS_PATH:-/run/agenix/incus-ai-agent-secrets}"
-OPENHANDS_URL="${OPENHANDS_URL:-http://byok-agent.incus:8090}"
-WAIT="${WAIT:-1}"
 
 PROMPT=""
 PROMPT_FILE=""
@@ -101,18 +96,17 @@ wait_for_agent() {
   return 1
 }
 
-wait_for_orchestrator() {
+wait_for_agent_server() {
   local i
-  echo "==> Waiting for OpenHands orchestrator at ${OPENHANDS_URL}..."
+  echo "==> Waiting for OpenHands Agent Server on ${VM_NAME}:8000..."
   for i in $(seq 1 90); do
-    if curl -fsS "${OPENHANDS_URL}/health" >/dev/null 2>&1; then
+    if incus exec "$VM_NAME" -- curl -fsS http://127.0.0.1:8000/health >/dev/null 2>&1; then
       return 0
     fi
     sleep 2
   done
-  echo "Error: timed out waiting for ${OPENHANDS_URL}/health" >&2
+  echo "Error: timed out waiting for Agent Server :8000" >&2
   incus exec "$VM_NAME" -- systemctl status openhands-agent-server --no-pager || true
-  incus exec "$VM_NAME" -- systemctl status openhands-task-api --no-pager || true
   return 1
 }
 
@@ -144,57 +138,16 @@ echo "==> Pushing secrets to guest /etc/agent-env (mode 0600)..."
 incus file push "$SECRETS_PATH" "${VM_NAME}/etc/agent-env" \
   -p --mode 0600 --uid 0 --gid 0
 
-incus exec "$VM_NAME" -- systemctl restart openhands-agent-server openhands-task-api || true
-wait_for_orchestrator
+incus exec "$VM_NAME" -- systemctl restart openhands-agent-server || true
+wait_for_agent_server
 
-BODY="$(jq -n --arg prompt "$PROMPT" --arg repo "$REPO" --arg model "$MODEL" '{
-  prompt: $prompt,
-  repo: $repo,
-  model: (if $model == "" then null else $model end)
-}')"
-
-echo "==> Creating OpenHands conversation via ${OPENHANDS_URL}/tasks..."
-RESPONSE="$(curl -fsS -X POST "${OPENHANDS_URL}/tasks" \
-  -H "Content-Type: application/json" \
-  -d "$BODY")"
-echo "$RESPONSE"
-
-JOB_ID="$(printf '%s' "$RESPONSE" | jq -r '.conversation_id // .job_id')"
-if [[ -z "$JOB_ID" || "$JOB_ID" == "null" ]]; then
-  echo "Error: orchestrator did not return a conversation id" >&2
-  exit 1
+args=(--prompt "$PROMPT")
+if [[ -n "$REPO" ]]; then
+  args+=(--repo "$REPO")
+fi
+if [[ -n "$MODEL" ]]; then
+  args+=(--model "$MODEL")
 fi
 
-if [[ "$WAIT" != "1" ]]; then
-  echo "==> conversation_id=${JOB_ID} (not waiting)"
-  exit 0
-fi
-
-echo "==> Streaming status for ${JOB_ID}..."
-for _ in $(seq 1 360); do
-  STATUS_JSON="$(curl -fsS "${OPENHANDS_URL}/tasks/${JOB_ID}" || true)"
-  STATUS="$(printf '%s' "$STATUS_JSON" | jq -r '.status // empty')"
-  OH_STATUS="$(printf '%s' "$STATUS_JSON" | jq -r '.oh_status // empty')"
-  echo "    status=${STATUS} oh_status=${OH_STATUS}"
-  case "$STATUS" in
-    ok|finished)
-      echo "==> Conversation finished"
-      printf '%s\n' "$STATUS_JSON" | jq '.events[-8:]'
-      exit 0
-      ;;
-    failed|error)
-      echo "==> Conversation failed" >&2
-      printf '%s\n' "$STATUS_JSON" | jq .
-      exit 1
-      ;;
-    cancelled|paused)
-      echo "==> Conversation ${STATUS}"
-      printf '%s\n' "$STATUS_JSON" | jq '.events[-8:]'
-      exit 0
-      ;;
-  esac
-  sleep 5
-done
-
-echo "Error: timed out waiting for conversation ${JOB_ID}" >&2
-exit 1
+echo "==> Creating OpenHands conversation via guest oh-start.sh..."
+incus exec "$VM_NAME" -- /usr/local/bin/oh-start.sh "${args[@]}"
