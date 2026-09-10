@@ -40,14 +40,12 @@ let
   seedSoul = ''
     You run on a dedicated Incus VM (hermes-agent) on home-server.
 
-    Coding work goes over HTTP to the OpenHands VM, not via Incus exec:
+    Coding work goes over HTTP to the OpenHands VM:
     POST http://byok-agent.incus:8090/tasks
     { "prompt": "...", "repo": "https://github.com/org/repo.git" }
 
     This VM holds memory, skills, Telegram, and scheduling.
-
     Never paste tokens into chat. Never write secrets into ~/.hermes memory.
-    Host notify uses OPS_TELEGRAM_* ; your channel uses TELEGRAM_BOT_TOKEN.
   '';
 
   cloudInitUserData = lib.concatStringsSep "\n" [
@@ -94,7 +92,7 @@ let
 in
 {
   options.homeServer.incusHermesAgent = {
-    enable = lib.mkEnableOption "persistent Hermes Agent Incus VM (profile + backup timer)";
+    enable = lib.mkEnableOption "persistent Hermes Agent Incus VM (profile + host helpers)";
 
     vmName = lib.mkOption {
       type = lib.types.str;
@@ -117,18 +115,8 @@ in
       };
     };
 
-    backup = {
-      enable = lib.mkEnableOption "daily restic backup of ~/.hermes to R2" // {
-        default = true;
-      };
-      onCalendar = lib.mkOption {
-        type = lib.types.str;
-        default = "daily";
-      };
-    };
-
     bridge = {
-      enable = lib.mkEnableOption "host HTTP proxy from Hermes to OpenHands on byok-agent";
+      enable = lib.mkEnableOption "optional host HTTP proxy from Hermes to OpenHands on byok-agent";
 
       bindAddr = lib.mkOption {
         type = lib.types.str;
@@ -143,7 +131,6 @@ in
       openHandsUrl = lib.mkOption {
         type = lib.types.str;
         default = "http://byok-agent.incus:8090";
-        description = "OpenHands task API on the byok-agent VM";
       };
     };
   };
@@ -162,39 +149,6 @@ in
         };
       }
     ];
-
-    systemd.services.hermes-agent-backup = lib.mkIf cfg.backup.enable {
-      description = "Backup Hermes Agent ~/.hermes to R2";
-      after = [ "network-online.target" ];
-      requires = [ "network-online.target" ];
-      serviceConfig = {
-        Type = "oneshot";
-        User = "root";
-        Group = "root";
-      };
-      path = [
-        pkgs.bash
-        pkgs.curl
-        pkgs.jq
-        pkgs.python3
-        pkgs.restic
-        pkgs.gnutar
-        pkgs.coreutils
-        pkgs.incus
-      ];
-      script = ''
-        ${data.configDirectory}/tools/incus/hermes-backup.sh
-      '';
-    };
-
-    systemd.timers.hermes-agent-backup = lib.mkIf cfg.backup.enable {
-      wantedBy = [ "timers.target" ];
-      timerConfig = {
-        OnCalendar = cfg.backup.onCalendar;
-        Persistent = true;
-        Unit = "hermes-agent-backup.service";
-      };
-    };
 
     systemd.services.hermes-coding-bridge = lib.mkIf cfg.bridge.enable {
       description = "Hermes HTTP proxy to OpenHands on byok-agent";
