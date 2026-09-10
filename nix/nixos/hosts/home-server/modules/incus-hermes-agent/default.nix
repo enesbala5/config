@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   data,
   ...
 }:
@@ -98,6 +99,8 @@ let
     "  - systemctl daemon-reload"
     "  - systemctl enable hermes-agent.service"
   ];
+
+  userDataPath = "/etc/incus-profiles/${cfg.profileName}/user-data";
 in
 {
   options.homeServer.incusHermesAgent = {
@@ -128,16 +131,51 @@ in
   config = lib.mkIf cfg.enable {
     users.users.${data.username}.extraGroups = [ "incus-admin" ];
 
+    # Limits only. Full cloud-init user-data is nested YAML and breaks
+    # `incus admin init --preseed` on an already-initialized daemon, which
+    # left the profile missing at launch time.
     virtualisation.incus.preseed.profiles = [
       {
         name = cfg.profileName;
         config = {
           "limits.cpu" = cfg.limits.cpu;
           "limits.memory" = cfg.limits.memory;
-          "user.user-data" = cloudInitUserData;
-          "cloud-init.user-data" = cloudInitUserData;
         };
       }
     ];
+
+    environment.etc."incus-profiles/${cfg.profileName}/user-data" = {
+      text = cloudInitUserData;
+      mode = "0644";
+    };
+
+    systemd.services."incus-profile-${cfg.profileName}" = {
+      description = "Ensure Incus profile ${cfg.profileName} exists";
+      after = [
+        "incus.service"
+        "incus-preseed.service"
+      ];
+      wants = [ "incus.service" ];
+      wantedBy = [ "multi-user.target" ];
+      path = [
+        pkgs.incus
+        pkgs.coreutils
+      ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+      script = ''
+        set -euo pipefail
+        profile=${lib.escapeShellArg cfg.profileName}
+        if ! incus profile show "$profile" >/dev/null 2>&1; then
+          incus profile create "$profile"
+        fi
+        incus profile set "$profile" limits.cpu ${lib.escapeShellArg cfg.limits.cpu}
+        incus profile set "$profile" limits.memory ${lib.escapeShellArg cfg.limits.memory}
+        incus profile set "$profile" cloud-init.user-data - < ${lib.escapeShellArg userDataPath}
+        incus profile set "$profile" user.user-data - < ${lib.escapeShellArg userDataPath}
+      '';
+    };
   };
 }

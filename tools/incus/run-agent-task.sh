@@ -20,6 +20,9 @@ VM_NAME="${VM_NAME:-byok-agent}"
 PROFILE="${PROFILE:-byok-agent}"
 IMAGE="${IMAGE:-images:ubuntu/24.04/cloud}"
 SECRETS_PATH="${SECRETS_PATH:-/run/agenix/incus-ai-agent-secrets}"
+USER_DATA_FILE="${USER_DATA_FILE:-/etc/incus-profiles/${PROFILE}/user-data}"
+PROFILE_CPU="${PROFILE_CPU:-4}"
+PROFILE_MEMORY="${PROFILE_MEMORY:-8GiB}"
 
 PROMPT=""
 PROMPT_FILE=""
@@ -83,6 +86,24 @@ if [[ ! -f "$SECRETS_PATH" ]]; then
   exit 1
 fi
 
+ensure_profile() {
+  if incus profile show "$PROFILE" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  echo "==> Incus profile ${PROFILE} missing; creating it..."
+  incus profile create "$PROFILE"
+  incus profile set "$PROFILE" limits.cpu "$PROFILE_CPU"
+  incus profile set "$PROFILE" limits.memory "$PROFILE_MEMORY"
+  incus profile set "$PROFILE" security.nesting true
+  if [[ -f "$USER_DATA_FILE" ]]; then
+    incus profile set "$PROFILE" cloud-init.user-data - < "$USER_DATA_FILE"
+    incus profile set "$PROFILE" user.user-data - < "$USER_DATA_FILE"
+  else
+    echo "Warning: ${USER_DATA_FILE} not found; launched VM will not get cloud-init seeding until the host oneshot runs." >&2
+  fi
+}
+
 wait_for_agent() {
   local i
   echo "==> Waiting for Incus agent on ${VM_NAME}..."
@@ -111,6 +132,7 @@ wait_for_agent_server() {
 }
 
 echo "==> Ensuring Incus VM ${VM_NAME} exists..."
+ensure_profile
 if ! incus info "$VM_NAME" >/dev/null 2>&1; then
   incus launch "$IMAGE" "$VM_NAME" \
     --profile default \
