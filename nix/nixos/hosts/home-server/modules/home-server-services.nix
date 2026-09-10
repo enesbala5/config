@@ -10,10 +10,7 @@
 }:
 {
   system.activationScripts.init_smbpasswd = {
-    deps = [
-      "users"
-      "agenix"
-    ];
+    deps = [ "users" "agenix" ];
     text = ''
       SECRET_PATH="${config.age.secrets.e-auth.path}"
       if [ -f "$SECRET_PATH" ] && id "${data.username}" &>/dev/null; then
@@ -50,10 +47,7 @@
   systemd.services.restart-cloudflared = {
     enable = true;
     description = "Restart Cloudflared Docker container (auto-recovery)";
-    after = [
-      "network-online.target"
-      "docker.service"
-    ];
+    after = [ "network-online.target" "docker.service" ];
     requires = [ "network-online.target" ];
     serviceConfig = {
       Type = "oneshot";
@@ -67,8 +61,7 @@
       #! ${pkgs.bash}/bin/bash
       set -uo pipefail
       notify_failure() {
-        ${data.configDirectory}/tools/telegram/notify.sh \
-          "Cloudflared restart failed on ${hostname}: $1" || true
+        ${data.configDirectory}/tools/telegram/notify.sh "Cloudflared restart failed on ${hostname}: $1" || true
       }
       CF_CONTAINER=$(${pkgs.docker}/bin/docker ps --format '{{.Names}}' | grep '^cloudflared-' | head -n1)
       if [ -z "$CF_CONTAINER" ]; then
@@ -190,10 +183,7 @@
 
   hardware.graphics.enable = true;
 
-  environment.systemPackages = with pkgs; [
-    pm2
-    restic
-  ];
+  environment.systemPackages = with pkgs; [ pm2 restic ];
 
   programs.steam = {
     enable = false;
@@ -213,7 +203,7 @@
     };
     users.${data.username} = {
       imports = [
-        ../../modules/home/default.nix
+        ../../../modules/home/default.nix
         ../home/default.nix
       ];
     };
