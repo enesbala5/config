@@ -111,8 +111,15 @@ fi
 wait_for_agent
 
 # First boot blocks until cloud-init finishes; later boots return quickly.
+# A failed first boot leaves status=error forever — dump logs instead of
+# exiting with only "status: error".
 echo "==> Waiting for cloud-init..."
-incus exec "$VM_NAME" -- /usr/bin/cloud-init status --wait
+if ! incus exec "$VM_NAME" -- /usr/bin/cloud-init status --wait; then
+  echo "Error: cloud-init failed on ${VM_NAME}" >&2
+  incus exec "$VM_NAME" -- /usr/bin/cloud-init status --long || true
+  incus exec "$VM_NAME" -- tail -n 120 /var/log/cloud-init-output.log || true
+  exit 1
+fi
 
 echo "==> Pushing secrets to guest /etc/agent-env (mode 0600)..."
 incus file push "$SECRETS_PATH" "${VM_NAME}/etc/agent-env" \

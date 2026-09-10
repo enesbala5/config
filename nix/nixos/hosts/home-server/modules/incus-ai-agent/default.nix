@@ -179,8 +179,9 @@ let
     "  - chmod 700 /var/lib/ai-agent"
     "  - chmod 755 /var/lib/ai-agent/workspace /var/lib/ai-agent/cache /var/lib/ai-agent/logs"
     "  - systemctl enable --now docker || true"
-    "  # OpenCode CLI (primary v1 harness); re-run only on golden rebuild."
-    "  - curl -fsSL https://opencode.ai/install | bash"
+    # Quote the pipe: unquoted `|` is a YAML literal-block indicator and
+    # can make cloud-init parse/run this runcmd incorrectly.
+    "  - \"curl -fsSL https://opencode.ai/install | bash\""
   ];
 in
 {
