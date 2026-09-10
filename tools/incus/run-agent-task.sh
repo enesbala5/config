@@ -8,6 +8,7 @@
 # Env overrides:
 #   VM_NAME       default: byok-agent
 #   PROFILE       default: byok-agent
+#   IMAGE         default: images:ubuntu/24.04/cloud (must include cloud-init)
 #   SECRETS_PATH  default: /run/agenix/incus-ai-agent-secrets
 #
 # Chat coordinators should call this script; do not bake secrets into prompts.
@@ -15,6 +16,7 @@ set -euo pipefail
 
 VM_NAME="${VM_NAME:-byok-agent}"
 PROFILE="${PROFILE:-byok-agent}"
+IMAGE="${IMAGE:-images:ubuntu/24.04/cloud}"
 SECRETS_PATH="${SECRETS_PATH:-/run/agenix/incus-ai-agent-secrets}"
 
 PROMPT=""
@@ -94,7 +96,7 @@ wait_for_agent() {
 
 echo "==> Ensuring Incus VM ${VM_NAME} exists..."
 if ! incus info "$VM_NAME" >/dev/null 2>&1; then
-  incus launch images:ubuntu/24.04 "$VM_NAME" \
+  incus launch "$IMAGE" "$VM_NAME" \
     --profile default \
     --profile "$PROFILE" \
     --vm
@@ -110,7 +112,7 @@ wait_for_agent
 
 # First boot blocks until cloud-init finishes; later boots return quickly.
 echo "==> Waiting for cloud-init..."
-incus exec "$VM_NAME" -- cloud-init status --wait
+incus exec "$VM_NAME" -- /usr/bin/cloud-init status --wait
 
 echo "==> Pushing secrets to guest /etc/agent-env (mode 0600)..."
 incus file push "$SECRETS_PATH" "${VM_NAME}/etc/agent-env" \

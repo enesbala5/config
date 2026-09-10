@@ -282,7 +282,7 @@ PROFILE="${PROFILE:-byok-agent}"
 SECRETS_PATH="${SECRETS_PATH:-/run/agenix/incus-ai-agent-secrets}"
 
 # 1. Require secrets file on host
-# 2. Ensure VM exists: if missing, incus launch images:ubuntu/24.04 "$VM_NAME" --profile default --profile "$PROFILE" --vm
+# 2. Ensure VM exists: if missing, incus launch images:ubuntu/24.04/cloud "$VM_NAME" --profile default --profile "$PROFILE" --vm
 # 3. incus start if stopped
 # 4. Wait for agent: incus exec ... -- cloud-init status --wait (first boot only; subsequent starts: wait for ping/exec)
 # 5. Push secrets to /etc/agent-env

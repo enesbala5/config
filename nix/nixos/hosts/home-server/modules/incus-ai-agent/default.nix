@@ -231,6 +231,7 @@ in
           # OpenHands (and optional Docker runtime) need nesting.
           "security.nesting" = "true";
           "user.user-data" = cloudInitUserData;
+          "cloud-init.user-data" = cloudInitUserData;
         };
       }
     ];
