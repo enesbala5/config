@@ -86,7 +86,7 @@ let
     "  - \"curl -LsSf https://astral.sh/uv/install.sh | sh\""
     "  - ln -sfn /root/.local/bin/uv /usr/local/bin/uv || true"
     "  - ln -sfn /root/.local/bin/uvx /usr/local/bin/uvx || true"
-    "  - \"grep -q /usr/local/bin /etc/environment || echo PATH=\"/usr/local/bin:/root/.local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin\" >> /etc/environment\""
+    "  - 'grep -q /usr/local/bin /etc/environment || echo PATH=\"/usr/local/bin:/root/.local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin\" >> /etc/environment'"
     "  - \"uv venv /opt/oh-agent-server --python 3.12\""
     "  - \"/root/.local/bin/uv pip install --python /opt/oh-agent-server/bin/python -U openhands-sdk openhands-tools openhands-workspace openhands-agent-server\""
     "  - systemctl daemon-reload"
