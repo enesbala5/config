@@ -6,12 +6,32 @@ VM_NAME="${VM_NAME:-hermes-agent}"
 PROFILE="${PROFILE:-hermes-agent}"
 IMAGE="${IMAGE:-images:ubuntu/24.04/cloud}"
 SECRETS_PATH="${SECRETS_PATH:-/run/agenix/hermes-agent-secrets}"
+USER_DATA_FILE="${USER_DATA_FILE:-/etc/incus-profiles/${PROFILE}/user-data}"
+PROFILE_CPU="${PROFILE_CPU:-2}"
+PROFILE_MEMORY="${PROFILE_MEMORY:-4GiB}"
 
 usage() {
   cat >&2 <<'EOF'
 Usage:
   hermes-vm-manage.sh start|stop|status|logs|push-secrets|launch
 EOF
+}
+
+ensure_profile() {
+  if incus profile show "$PROFILE" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  echo "==> Incus profile ${PROFILE} missing; creating it..."
+  incus profile create "$PROFILE"
+  incus profile set "$PROFILE" limits.cpu "$PROFILE_CPU"
+  incus profile set "$PROFILE" limits.memory "$PROFILE_MEMORY"
+  if [[ -f "$USER_DATA_FILE" ]]; then
+    incus profile set "$PROFILE" cloud-init.user-data - < "$USER_DATA_FILE"
+    incus profile set "$PROFILE" user.user-data - < "$USER_DATA_FILE"
+  else
+    echo "Warning: ${USER_DATA_FILE} not found; launched VM will not get cloud-init seeding until the host oneshot runs." >&2
+  fi
 }
 
 wait_for_agent() {
@@ -38,6 +58,7 @@ push_secrets() {
 }
 
 cmd_launch() {
+  ensure_profile
   if incus info "$VM_NAME" >/dev/null 2>&1; then
     echo "==> ${VM_NAME} already exists"
     return 0
