@@ -63,16 +63,24 @@ lib.mkIf config.homeServer.incusHermesAgent.enable {
       trap 'rm -rf "$TMP"' EXIT
 
       # Recursive `incus file pull` dies on unix sockets (gateway.sock while
-      # the gateway is running). Stream a tar instead and skip sockets.
-      # Guest tar exit 1 means a file changed mid-read (live state.db); that
+      # the gateway is running). Stream a tar instead and skip sockets / live
+      # SQLite sidecars. Guest tar exit 1 means a file changed mid-read; that
       # is acceptable. Exit >= 2 is fatal.
+      # Bash 5.3+ clears PIPESTATUS after any assignment, so capture once.
       set +e
       set +o pipefail
       ${pkgs.incus}/bin/incus exec "$VM_NAME" -- \
-        tar --exclude='*.sock' --warning=no-file-changed -C /root -cf - .hermes \
+        tar \
+          --exclude='*.sock' \
+          --exclude='*.db-wal' \
+          --exclude='*.db-shm' \
+          --warning=no-file-changed \
+          --ignore-failed-read \
+          -C /root -cf - .hermes \
         | ${pkgs.gnutar}/bin/tar -C "$TMP" -xf -
-      guest_tar=''${PIPESTATUS[0]}
-      host_tar=''${PIPESTATUS[1]}
+      pipe_status=("''${PIPESTATUS[@]}")
+      guest_tar="''${pipe_status[0]:-0}"
+      host_tar="''${pipe_status[1]:-0}"
       set -o pipefail
       set -e
       if [ "$host_tar" -ne 0 ] || [ "$guest_tar" -gt 1 ]; then
