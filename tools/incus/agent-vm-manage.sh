@@ -37,7 +37,10 @@ ensure_static_ip() {
   current="$(incus config device get "$VM_NAME" "$NIC" ipv4.address 2>/dev/null || true)"
   if [[ "$current" != "$STATIC_IP" ]]; then
     echo "==> Pinning ${VM_NAME} ${NIC} ipv4.address=${STATIC_IP}"
-    incus config device set "$VM_NAME" "$NIC" ipv4.address "$STATIC_IP"
+    # NIC is inherited from the default profile until overridden locally.
+    if ! incus config device set "$VM_NAME" "$NIC" ipv4.address="$STATIC_IP" 2>/dev/null; then
+      incus config device override "$VM_NAME" "$NIC" ipv4.address="$STATIC_IP"
+    fi
     STATIC_IP_CHANGED=1
   fi
   # An already-running guest can keep its old dynamic lease until it reboots.
