@@ -83,6 +83,33 @@ in
         '';
       };
     };
+
+    # Probe endpoints. The catch-all answers on the bound (Tailscale) address'
+    # HTTP port, so `curl http://<tailscale-ip>/` proving "Hello World" shows
+    # bind + firewall + Caddy are healthy before any guest/upstream is in play.
+    mock = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Serve a static test body to verify bind/firewall/proxy wiring.";
+      };
+
+      hostName = lib.mkOption {
+        type = lib.types.str;
+        default = "agent.enesbala.com";
+        description = ''
+          Host that answers with the mock body. Currently the OpenHands UI
+          origin named in Hermes' SOUL seed; repoint it at the byok-agent
+          upstream (10.0.100.173:8000) once that route is ready.
+        '';
+      };
+
+      body = lib.mkOption {
+        type = lib.types.str;
+        default = "Hello World";
+        description = "Body returned by the mock endpoints.";
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -97,21 +124,42 @@ in
         default_bind {$CADDY_BIND_ADDR}
         auto_https disable_redirects
       '';
-      virtualHosts = lib.mkIf cfg.hermes.enable {
-        ${cfg.hermes.hostName} = {
-          listenAddresses = [ "{$CADDY_BIND_ADDR}" ];
-          extraConfig = ''
-            tls internal
-            encode gzip
-            reverse_proxy ${cfg.hermes.upstream} {
-              header_up Host {host}
-              header_up X-Forwarded-Proto {scheme}
-              header_up X-Forwarded-Host {host}
-              flush_interval -1
-            }
-          '';
-        };
-      };
+      virtualHosts = lib.mkMerge [
+        (lib.mkIf cfg.hermes.enable {
+          ${cfg.hermes.hostName} = {
+            listenAddresses = [ "{$CADDY_BIND_ADDR}" ];
+            extraConfig = ''
+              tls internal
+              encode gzip
+              reverse_proxy ${cfg.hermes.upstream} {
+                header_up Host {host}
+                header_up X-Forwarded-Proto {scheme}
+                header_up X-Forwarded-Host {host}
+                flush_interval -1
+              }
+            '';
+          };
+        })
+
+        (lib.mkIf cfg.mock.enable {
+          # Bare `:80` matches every host on the bound address, so a raw
+          # `curl http://<tailscale-ip>/` works with no DNS and no TLS trust.
+          ":80" = {
+            extraConfig = ''
+              respond ${builtins.toJSON cfg.mock.body} 200
+            '';
+          };
+
+          ${cfg.mock.hostName} = {
+            listenAddresses = [ "{$CADDY_BIND_ADDR}" ];
+            extraConfig = ''
+              tls internal
+              encode gzip
+              respond ${builtins.toJSON cfg.mock.body} 200
+            '';
+          };
+        })
+      ];
     };
 
     services.tailscale.permitCertUid = "caddy";
