@@ -160,10 +160,9 @@
 			"default": "allow"
 		},
 		"default_model": {
-			"effort": "medium",
-   "enable_thinking": true,
+			"enable_thinking": false,
 			"provider": "zed.dev",
-			"model": "claude-sonnet-4-6"
+			"model": "gpt-5-nano"
 		},
 		"model_parameters": []
 	},
