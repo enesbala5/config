@@ -63,6 +63,38 @@ ensure_hermes_bin() {
   '
 }
 
+# Keep in sync with nix/nixos/hosts/home-server/modules/incus-hermes-agent/default.nix
+ensure_hermes_env() {
+  echo "==> Installing guest env loader (source /etc/hermes-env)..."
+  incus exec "$VM_NAME" -- tee /etc/profile.d/hermes-env.sh >/dev/null <<'EOF'
+# Export /etc/hermes-env for Hermes CLI and login shells (incus exec bash -l).
+if [ -f /etc/hermes-env ]; then
+  set -a
+  . /etc/hermes-env
+  set +a
+fi
+EOF
+  incus exec "$VM_NAME" -- chmod 0644 /etc/profile.d/hermes-env.sh
+  incus exec "$VM_NAME" -- tee /etc/systemd/system/hermes-agent.service >/dev/null <<'EOF'
+[Unit]
+Description=Hermes Agent messaging gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=HOME=/root
+WorkingDirectory=/root
+ExecStart=/bin/bash -lc 'set -a && source /etc/hermes-env && set +a; export PATH=/usr/local/bin:/root/.local/bin:$PATH; exec hermes gateway'
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+  incus exec "$VM_NAME" -- systemctl daemon-reload
+}
+
 push_secrets() {
   if [[ ! -e "$SECRETS_PATH" ]]; then
     echo "Error: secret file $SECRETS_PATH not found. Encrypt with manage-secret and apply agenix first." >&2
@@ -110,7 +142,8 @@ cmd_start() {
     exit 1
   fi
   ensure_hermes_bin
-  incus exec "$VM_NAME" -- systemctl start hermes-agent
+  ensure_hermes_env
+  incus exec "$VM_NAME" -- systemctl restart hermes-agent
 }
 
 cmd_stop() {

@@ -27,15 +27,24 @@ let
 
     [Service]
     Type=simple
-    EnvironmentFile=-/etc/hermes-env
     Environment=HOME=/root
     WorkingDirectory=/root
-    ExecStart=/bin/bash -lc 'export PATH=/usr/local/bin:/root/.local/bin:$PATH; exec hermes gateway'
+    ExecStart=/bin/bash -lc 'set -a && source /etc/hermes-env && set +a; export PATH=/usr/local/bin:/root/.local/bin:$PATH; exec hermes gateway'
     Restart=on-failure
     RestartSec=10
 
     [Install]
     WantedBy=multi-user.target
+  '';
+
+  hermesEnvProfile = ''
+    # Export /etc/hermes-env for Hermes CLI and login shells (incus exec bash -l).
+    if [ -f /etc/hermes-env ]; then
+      set -a
+      # shellcheck disable=SC1091
+      . /etc/hermes-env
+      set +a
+    fi
   '';
 
   seedSoul = ''
@@ -83,6 +92,12 @@ let
     "    owner: root:root"
     "    content: |"
     (yamlIndent 6 hermesServiceUnit)
+    ""
+    "  - path: /etc/profile.d/hermes-env.sh"
+    "    permissions: '0644'"
+    "    owner: root:root"
+    "    content: |"
+    (yamlIndent 6 hermesEnvProfile)
     ""
     "  - path: /var/lib/hermes/SOUL.seed.md"
     "    permissions: '0644'"
