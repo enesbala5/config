@@ -115,6 +115,11 @@
         nixpkgs.follows = "nixpkgs-unstable";
       };
     };
+
+    hermes-agent = {
+      url = "github:NousResearch/hermes-agent";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -124,6 +129,7 @@
       nixpkgs-unstable,
       nixos-hardware,
       home-manager,
+      hermes-agent,
       agenix,
       ...
     }:
@@ -195,6 +201,7 @@
           };
 
           modules = [
+            hermes-agent.nixosModules.default
             nixos-hardware.nixosModules.framework-13-7040-amd
             home-manager.nixosModules.default
             ./modules/base-configuration.nix
