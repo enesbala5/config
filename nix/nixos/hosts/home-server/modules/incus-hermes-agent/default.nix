@@ -178,7 +178,8 @@ let
   # Drop forwards we own but no longer declare, so removing one from the Nix
   # config actually removes the proxy device.
   prunePortForwardScript = ''
-    for dev in $(incus profile device list "$profile" --format csv | cut -d, -f1); do
+    # `incus profile device list` prints one name per line; it has no --format.
+    for dev in $(incus profile device list "$profile"); do
       case "$dev" in
         fwd-*)
           case " ${desiredForwardDevices} " in
@@ -197,7 +198,11 @@ let
     if incus info "$instance" >/dev/null 2>&1; then
       current_ip=$(incus config device get "$instance" ${lib.escapeShellArg cfg.network.nic} ipv4.address 2>/dev/null || true)
       if [ "$current_ip" != ${lib.escapeShellArg cfg.network.staticIpv4} ]; then
-        incus config device set "$instance" ${lib.escapeShellArg cfg.network.nic} ipv4.address ${lib.escapeShellArg cfg.network.staticIpv4}
+        # eth0 comes from the default profile; `set` only works after a local
+        # override exists.
+        if ! incus config device set "$instance" ${lib.escapeShellArg cfg.network.nic} ipv4.address=${lib.escapeShellArg cfg.network.staticIpv4} 2>/dev/null; then
+          incus config device override "$instance" ${lib.escapeShellArg cfg.network.nic} ipv4.address=${lib.escapeShellArg cfg.network.staticIpv4}
+        fi
       fi
     fi
   '';
@@ -265,8 +270,9 @@ in
               };
               listenAddress = lib.mkOption {
                 type = lib.types.str;
-                default = "0.0.0.0";
-                description = "Host address to bind the listener to.";
+                # Incus rejects wildcards for proxy devices with nat=true (required for VMs).
+                default = "192.168.0.40";
+                description = "Host address to bind the listener to (must be a concrete host IP; NAT mode forbids 0.0.0.0).";
               };
             };
           }
@@ -329,9 +335,11 @@ in
         incus profile set "$profile" limits.memory ${lib.escapeShellArg cfg.limits.memory}
         incus profile set "$profile" cloud-init.user-data - < ${lib.escapeShellArg userDataPath}
         incus profile set "$profile" user.user-data - < ${lib.escapeShellArg userDataPath}
+        # Static IP must exist before NAT proxies (connect IP must be a static
+        # address on the instance).
+        ${staticIpScript}
         ${portForwardScript}
         ${prunePortForwardScript}
-        ${staticIpScript}
       '';
     };
   };
