@@ -192,17 +192,6 @@ in
           "map to guest" = "bad user";
         };
 
-        # "public" = {
-        #   "path" = "/mnt/hdd/";
-        #   "browseable" = "yes";
-        #   "read only" = "no";
-        #   "guest ok" = "yes";
-        #   "create mask" = "0644";
-        #   "directory mask" = "0755";
-        #   "force user" = "username";
-        #   "force group" = "groupname";
-        # };
-
         "private" = {
           "path" = "/mnt/hdd/nas";
           "browseable" = "yes";
@@ -217,7 +206,6 @@ in
       };
     };
 
-    # To be discoverable with windows
     samba-wsdd = {
       enable = true;
       openFirewall = true;
@@ -226,10 +214,7 @@ in
     avahi = {
       publish.enable = true;
       publish.userServices = true;
-
-      # ^^ Needed to allow samba to automatically register mDNS records (without the need for an `extraServiceFile`
       nssmdns4 = true;
-      # ^^ Not one hundred percent sure if this is needed- if it aint broke, don't fix it
       enable = true;
       openFirewall = true;
     };
@@ -243,11 +228,6 @@ in
   };
 
   system.activationScripts = {
-    # The "init_smbpasswd" script name is arbitrary, but a useful label for tracking
-    # failed scripts in the build output. An absolute path to smbpasswd is necessary
-    # as it is not in $PATH in the activation script's environment. The password
-    # is repeated twice with newline characters as smbpasswd requires a password
-    # confirmation even in non-interactive mode where input is piped in through stdin.
     init_smbpasswd = {
       deps = [
         "users"
@@ -264,9 +244,6 @@ in
 
   systemd = {
     services = {
-      # Remote/Cloudflare SSH: do not kill sshd mid-switch. Activation restarts
-      # sshd by default, which drops the tunnel and can abort switch before
-      # docker.socket starts. Apply sshd changes on reboot or: systemctl restart sshd
       sshd = {
         restartIfChanged = false;
         stopIfChanged = false;
@@ -343,7 +320,6 @@ in
         wantedBy = [ "multi-user.target" ];
         after = [ "network-online.target" ];
         wants = [ "network-online.target" ];
-        # Don't re-run on every nixos-rebuild switch — only on boot / first start.
         restartIfChanged = false;
         stopIfChanged = false;
         serviceConfig = {
@@ -359,7 +335,6 @@ in
 
           BOOT_TIME=$(${pkgs.coreutils}/bin/date '+%Y-%m-%d %H:%M:%S %Z')
 
-          # Telegram outages must not fail nixos-rebuild switch / boot activation.
           ${data.configDirectory}/tools/telegram/notify.sh \
             "🚀 *Home Server is online!*
           🖥️ Host: ${hostname}
@@ -410,11 +385,10 @@ in
           cp -f "${data.configDirectory}/tools/coolify/upgrade.sh" /data/coolify/source/upgrade.sh
           cp -f "${config.age.secrets.coolify-env.path}" /data/coolify/source/.env
 
-          # Generate SSH key if not ready -> IF IT BREAKS (ISSUE IS VERY LIKELY HERE - GO RUN IT MANUALLY)
           if [ ! -f "/data/coolify/ssh/keys/id.root@host.docker.internal" ]; then
             "${pkgs.openssh}/bin/ssh-keygen" -f /data/coolify/ssh/keys/id.root@host.docker.internal -t ed25519 -N "" -C root@coolify
             cat /data/coolify/ssh/keys/id.root@host.docker.internal.pub >> "/root/.ssh/authorized_keys"
-            chmod 600 ~/.ssh.authorized_keys
+            chmod 600 ~/.ssh/authorized_keys
           fi
 
           chown -R 9999:root /data/coolify
@@ -457,18 +431,8 @@ in
           Unit = "restart-cloudflared.service";
         };
       };
-
-      # restart-onlyoffice-nginx = {
-      #   wantedBy = [ "timers.target" ];
-      #   timerConfig = {
-      #     OnBootSec = "30m";
-      #     OnUnitActiveSec = "30m";
-      #     Unit = "restart-onlyoffice-nginx.service";
-      #   };
-      # };
     };
 
-    # Stop Gnome from suspending, copied from https://discourse.nixos.org/t/stop-pc-from-sleep/5757/2
     targets = {
       sleep.enable = false;
       suspend.enable = false;
@@ -477,22 +441,15 @@ in
     };
   };
 
-  # ------------------------------------------------------------------------------------------
-  # Kernel & Bootloader
-  # ------------------------------------------------------------------------------------------
-
   boot = {
     loader = {
       grub = {
         enable = true;
-        # BIOS/MBR (single msdos partition, no ESP). by-id pins this to the
-        # system NVMe so GRUB is not installed to the data HDD.
         device = "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_500GB_S4EVNX1W425280F";
       };
     };
   };
 
-  # Memory Management
   swapDevices = [
     {
       device = "/var/lib/swapfile";
@@ -500,42 +457,14 @@ in
     }
   ];
 
-  # Hard Drive Idle - Uncomment after adding HDD to the system
-  # ---
-  # systemd.services.hd-idle = {
-  #   description = "HD spin down daemon, spins down disks after 15 minutes of inactivity";
-  #   wantedBy = [ "multi-user.target" ];
-  #   serviceConfig = {
-  #     Type = "simple";
-  #     ExecStart = "${pkgs.hd-idle}/bin/hd-idle -i 900";
-  #   };
-  # };
-
-  # ------------------------------------------------------------------------------------------
-  # Security
-  # ------------------------------------------------------------------------------------------
-
   security = { };
-
-  # ------------------------------------------------------------------------------------------
-  # Hardware
-  # ------------------------------------------------------------------------------------------
 
   hardware = {
     graphics = {
       enable = true;
-
-      # package = unstable.mesa.drivers;
-      # driSupport32Bit = true;
-      # package32 = unstable.pkgsi686Linux.mesa.drivers;
     };
   };
 
-  # ------------------------------------------------------------------------------------------
-  # Programs & Generic Installs
-  # ------------------------------------------------------------------------------------------
-
-  # List packages installed in system profile. To search, run: `nix search wget`
   environment.systemPackages = with pkgs; [
     pm2
     restic
@@ -544,15 +473,10 @@ in
   programs = {
     steam = {
       enable = false;
-
-      remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
-      dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+      remotePlay.openFirewall = true;
+      dedicatedServer.openFirewall = true;
     };
   };
-
-  # ------------------------------------------------------------------------------------------
-  # Home Manager
-  # ------------------------------------------------------------------------------------------
 
   home-manager = {
     useUserPackages = true;
