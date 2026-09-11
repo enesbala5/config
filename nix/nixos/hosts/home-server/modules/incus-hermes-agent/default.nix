@@ -93,8 +93,10 @@ let
     "runcmd:"
     "  - mkdir -p /root/.hermes /var/lib/hermes/scratch"
     "  - chmod 700 /root/.hermes /var/lib/hermes"
-    "  - \"curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash\""
-    "  - ln -sfn /root/.local/bin/hermes /usr/local/bin/hermes || true"
+    "  - \"export HOME=/root; curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash\""
+    # Root FHS installs already place the launcher at /usr/local/bin/hermes.
+    # Do not overwrite it with ~/.local/bin (that path is unused and dangling).
+    "  - test -x /usr/local/bin/hermes || ln -sfn /usr/local/lib/hermes-agent/venv/bin/hermes /usr/local/bin/hermes"
     "  - test -f /root/.hermes/SOUL.md || cp /var/lib/hermes/SOUL.seed.md /root/.hermes/SOUL.md || true"
     "  - systemctl daemon-reload"
     "  - systemctl enable hermes-agent.service"

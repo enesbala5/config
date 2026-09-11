@@ -47,6 +47,21 @@ wait_for_agent() {
   return 1
 }
 
+ensure_hermes_bin() {
+  echo "==> Ensuring /usr/local/bin/hermes is executable..."
+  incus exec "$VM_NAME" -- bash -lc '
+    if [[ -x /usr/local/bin/hermes ]]; then
+      exit 0
+    fi
+    if [[ -x /usr/local/lib/hermes-agent/venv/bin/hermes ]]; then
+      ln -sfn /usr/local/lib/hermes-agent/venv/bin/hermes /usr/local/bin/hermes
+    else
+      echo "hermes binary not found under /usr/local/lib/hermes-agent/venv/bin" >&2
+      exit 1
+    fi
+  '
+}
+
 push_secrets() {
   if [[ ! -e "$SECRETS_PATH" ]]; then
     echo "Error: secret file $SECRETS_PATH not found. Encrypt with manage-secret and apply agenix first." >&2
@@ -88,6 +103,7 @@ cmd_start() {
     exit 1
   fi
   push_secrets
+  ensure_hermes_bin
   incus exec "$VM_NAME" -- systemctl start hermes-agent || true
 }
 
