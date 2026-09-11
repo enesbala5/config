@@ -9,6 +9,13 @@
   ...
 }:
 let
+  # Single source of truth for guest IPv4 addresses on incusbr0
+  # (10.0.100.0/24). The Incus DHCP reservations below and the Caddy
+  # reverse-proxy target both reference these, so they cannot drift apart.
+  guestIps = {
+    aiAgent = "10.0.100.173";
+    hermes = "10.0.100.174";
+  };
 in
 {
   imports = [
@@ -24,16 +31,22 @@ in
   # Enable VMs for OpenHands AI and Hermes agents
   homeServer.incusAiAgent.enable = true;
   homeServer.incusHermesAgent.enable = true;
-  homeServer.caddy.enable = true;
+
+  # Tailscale-only Caddy front end. Its Hermes upstream comes from the same
+  # guest IPv4 as the DHCP reservation below.
+  homeServer.caddy = {
+    enable = true;
+    hermes.upstream = "${guestIps.hermes}:9119";
+  };
 
   # Pin guest IPs (DHCP reservations on incusbr0) and expose guest ports on the
   # home server via Incus proxy devices (NAT mode).
   homeServer.incusAiAgent.network = {
-    staticIpv4 = "10.0.100.173";
+    staticIpv4 = guestIps.aiAgent;
   };
-  
+
   homeServer.incusHermesAgent.network = {
-    staticIpv4 = "10.0.100.174";
+    staticIpv4 = guestIps.hermes;
     portForwards = [
       {
         hostPort = 9119;

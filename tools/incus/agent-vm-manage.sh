@@ -13,7 +13,8 @@ SECRETS_PATH="${SECRETS_PATH:-/run/agenix/incus-ai-agent-secrets}"
 USER_DATA_FILE="${USER_DATA_FILE:-/etc/incus-profiles/${PROFILE}/user-data}"
 PROFILE_CPU="${PROFILE_CPU:-4}"
 PROFILE_MEMORY="${PROFILE_MEMORY:-8GiB}"
-# Keep in sync with modules/incus-ai-agent (network.staticIpv4 / network.nic).
+# Keep in sync with hosts/home-server/default.nix (guestIps) and the
+# incus-ai-agent module's network.nic.
 NIC="${NIC:-eth0}"
 STATIC_IP="${STATIC_IP:-10.0.100.173}"
 
