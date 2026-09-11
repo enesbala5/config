@@ -43,20 +43,46 @@ lib.mkIf config.homeServer.incusHermesAgent.enable {
         exit 1
       fi
 
+      STATUS="$(${pkgs.incus}/bin/incus list "$VM_NAME" --format csv -c s)"
+      if [ "$STATUS" != "RUNNING" ]; then
+        notify_failure "VM $VM_NAME is not running (status: $STATUS)."
+        exit 1
+      fi
+
+      if ! ${pkgs.incus}/bin/incus exec "$VM_NAME" -- true >/dev/null 2>&1; then
+        notify_failure "Incus agent not reachable on $VM_NAME."
+        exit 1
+      fi
+
+      if ! ${pkgs.incus}/bin/incus exec "$VM_NAME" -- test -d /root/.hermes; then
+        notify_failure "/root/.hermes does not exist in $VM_NAME."
+        exit 1
+      fi
+
       TMP="$(${pkgs.coreutils}/bin/mktemp -d)"
       trap 'rm -rf "$TMP"' EXIT
 
-      if ! ${pkgs.incus}/bin/incus file pull --recursive "$VM_NAME/root/.hermes" "$TMP/"; then
-        notify_failure "Failed to pull /root/.hermes from $VM_NAME."
+      # Recursive `incus file pull` dies on unix sockets (gateway.sock while
+      # the gateway is running). Stream a tar instead and skip sockets.
+      # Guest tar exit 1 means a file changed mid-read (live state.db); that
+      # is acceptable. Exit >= 2 is fatal.
+      set +e
+      set +o pipefail
+      ${pkgs.incus}/bin/incus exec "$VM_NAME" -- \
+        tar --exclude='*.sock' --warning=no-file-changed -C /root -cf - .hermes \
+        | ${pkgs.gnutar}/bin/tar -C "$TMP" -xf -
+      guest_tar=''${PIPESTATUS[0]}
+      host_tar=''${PIPESTATUS[1]}
+      set -o pipefail
+      set -e
+      if [ "$host_tar" -ne 0 ] || [ "$guest_tar" -gt 1 ]; then
+        notify_failure "Failed to archive /root/.hermes from $VM_NAME (guest tar=$guest_tar host tar=$host_tar)."
         exit 1
       fi
 
       SRC="$TMP/.hermes"
       if [ ! -d "$SRC" ]; then
-        SRC="$TMP/hermes"
-      fi
-      if [ ! -d "$SRC" ]; then
-        notify_failure "Pulled tree did not contain .hermes/."
+        notify_failure "Archived tree did not contain .hermes/."
         exit 1
       fi
 
