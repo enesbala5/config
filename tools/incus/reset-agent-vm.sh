@@ -7,8 +7,8 @@
 # Use this when the guest toolchain is trashed, disk is full of junk, or the
 # agent left the VM in a bad state. Prefer restore over ad-hoc repair for v1.
 #
-# Secrets are not in the snapshot — re-push via run-agent-task.sh before the
-# next job (it pushes /etc/agent-env each run).
+# Secrets are not in the snapshot — re-push via agent-vm-manage.sh push-secrets
+# before the next job (or just `agent-vm-manage.sh run`, which pushes them).
 #
 # Env overrides:
 #   VM_NAME          default: byok-agent
@@ -33,4 +33,4 @@ incus snapshot restore "$VM_NAME" "$SNAPSHOT_NAME"
 echo "==> Starting ${VM_NAME}..."
 incus start "$VM_NAME"
 
-echo "==> Restored. Re-push secrets on the next run-agent-task.sh invocation."
+echo "==> Restored. Re-push secrets on the next agent-vm-manage.sh run (or push-secrets)."
