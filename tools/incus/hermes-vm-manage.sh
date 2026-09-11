@@ -18,15 +18,16 @@ EOF
 }
 
 ensure_profile() {
-  if incus profile show "$PROFILE" >/dev/null 2>&1; then
-    return 0
+  if ! incus profile show "$PROFILE" >/dev/null 2>&1; then
+    echo "==> Incus profile ${PROFILE} missing; creating it..."
+    incus profile create "$PROFILE"
   fi
 
-  echo "==> Incus profile ${PROFILE} missing; creating it..."
-  incus profile create "$PROFILE"
   incus profile set "$PROFILE" limits.cpu "$PROFILE_CPU"
   incus profile set "$PROFILE" limits.memory "$PROFILE_MEMORY"
   if [[ -f "$USER_DATA_FILE" ]]; then
+    # Always refresh: an empty profile from an earlier partial setup would
+    # otherwise leave new VMs with cloud-init user-data: {}.
     incus profile set "$PROFILE" cloud-init.user-data - < "$USER_DATA_FILE"
     incus profile set "$PROFILE" user.user-data - < "$USER_DATA_FILE"
   else
@@ -88,7 +89,12 @@ cmd_start() {
     exit 1
   fi
   push_secrets
-  incus exec "$VM_NAME" -- systemctl start hermes-agent || true
+  if ! incus exec "$VM_NAME" -- test -f /etc/systemd/system/hermes-agent.service; then
+    echo "Error: hermes-agent.service missing in guest. VM likely first-booted without profile user-data." >&2
+    echo "Recreate: incus stop ${VM_NAME} && incus delete ${VM_NAME} && $0 start" >&2
+    exit 1
+  fi
+  incus exec "$VM_NAME" -- systemctl start hermes-agent
 }
 
 cmd_stop() {
