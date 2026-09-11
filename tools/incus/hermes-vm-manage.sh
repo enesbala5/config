@@ -9,12 +9,39 @@ SECRETS_PATH="${SECRETS_PATH:-/run/agenix/hermes-agent-secrets}"
 USER_DATA_FILE="${USER_DATA_FILE:-/etc/incus-profiles/${PROFILE}/user-data}"
 PROFILE_CPU="${PROFILE_CPU:-2}"
 PROFILE_MEMORY="${PROFILE_MEMORY:-4GiB}"
+# Keep in sync with modules/incus-hermes-agent (network.staticIpv4 / network.nic).
+NIC="${NIC:-eth0}"
+STATIC_IP="${STATIC_IP:-10.0.100.174}"
 
 usage() {
   cat >&2 <<'EOF'
 Usage:
   hermes-vm-manage.sh start|stop|status|logs|push-secrets|launch
 EOF
+}
+
+STATIC_IP_CHANGED=0
+
+# Pin the guest IP. Sets STATIC_IP_CHANGED=1 when the address changed, so a
+# running guest can be rebooted to pick up its new DHCP reservation.
+ensure_static_ip() {
+  STATIC_IP_CHANGED=0
+  [[ -n "$STATIC_IP" ]] || return 0
+  local current
+  current="$(incus config device get "$VM_NAME" "$NIC" ipv4.address 2>/dev/null || true)"
+  if [[ "$current" != "$STATIC_IP" ]]; then
+    echo "==> Pinning ${VM_NAME} ${NIC} ipv4.address=${STATIC_IP}"
+    incus config device set "$VM_NAME" "$NIC" ipv4.address "$STATIC_IP"
+    STATIC_IP_CHANGED=1
+  fi
+  # An already-running guest can keep its old dynamic lease until it reboots.
+  if [[ "$(incus list "$VM_NAME" --format csv -c s 2>/dev/null || true)" == "RUNNING" ]]; then
+    local runtime_ip
+    runtime_ip="$(incus list "$VM_NAME" --format csv -c 4 2>/dev/null | cut -d' ' -f1 || true)"
+    if [[ -n "$runtime_ip" && "$runtime_ip" != "$STATIC_IP" ]]; then
+      STATIC_IP_CHANGED=1
+    fi
+  fi
 }
 
 ensure_profile() {
@@ -117,16 +144,24 @@ cmd_launch() {
     echo "==> ${VM_NAME} already exists"
     return 0
   fi
-  incus launch "$IMAGE" "$VM_NAME" --profile default --profile "$PROFILE" --vm
+  # Create without starting so the pinned IP is reserved before the guest's
+  # first DHCP request. `incus launch` would boot it with a dynamic lease.
+  incus init "$IMAGE" "$VM_NAME" --profile default --profile "$PROFILE" --vm
+  ensure_static_ip
+  incus start "$VM_NAME"
 }
 
 cmd_start() {
   if ! incus info "$VM_NAME" >/dev/null 2>&1; then
     cmd_launch
   else
+    ensure_static_ip
     status="$(incus list "$VM_NAME" --format csv -c s 2>/dev/null || true)"
     if [[ "$status" != "RUNNING" ]]; then
       incus start "$VM_NAME" || true
+    elif [[ "$STATIC_IP_CHANGED" == "1" ]]; then
+      # A running guest keeps its old lease until it reboots/renews.
+      incus restart "$VM_NAME" || true
     fi
   fi
   wait_for_agent

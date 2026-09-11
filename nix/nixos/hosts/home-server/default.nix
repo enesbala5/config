@@ -24,6 +24,22 @@ in
   homeServer.incusAiAgent.enable = true;
   homeServer.incusHermesAgent.enable = true;
 
+  # Pin guest IPs (DHCP reservations on incusbr0) and expose guest ports on the
+  # home server via Incus proxy devices (NAT mode).
+  homeServer.incusAiAgent.network = {
+    staticIpv4 = "10.0.100.173";
+  };
+  
+  homeServer.incusHermesAgent.network = {
+    staticIpv4 = "10.0.100.174";
+    portForwards = [
+      {
+        hostPort = 9119;
+        guestPort = 9119;
+      }
+    ];
+  };
+
   # ------------------------------------------------------------------------------------------
   # Accounts
   # -> Don't forget to set a password with ‘passwd’.
