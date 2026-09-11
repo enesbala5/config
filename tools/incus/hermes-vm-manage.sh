@@ -119,6 +119,24 @@ RestartSec=10
 [Install]
 WantedBy=multi-user.target
 EOF
+  incus exec "$VM_NAME" -- tee /etc/systemd/system/hermes-dashboard.service >/dev/null <<'EOF'
+[Unit]
+Description=Hermes Agent web dashboard
+After=network-online.target hermes-agent.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=HOME=/root
+Environment=HERMES_DASHBOARD_PUBLIC_URL=https://hermes.enesbala.com
+WorkingDirectory=/root
+ExecStart=/bin/bash -lc 'set -a && source /etc/hermes-env && set +a; export PATH=/usr/local/bin:/root/.local/bin:$PATH; exec hermes dashboard --host 0.0.0.0 --port 9119 --no-open'
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
   incus exec "$VM_NAME" -- systemctl daemon-reload
 }
 
@@ -178,11 +196,12 @@ cmd_start() {
   fi
   ensure_hermes_bin
   ensure_hermes_env
-  incus exec "$VM_NAME" -- systemctl restart hermes-agent
+  incus exec "$VM_NAME" -- systemctl enable --now hermes-agent hermes-dashboard
+  incus exec "$VM_NAME" -- systemctl restart hermes-agent hermes-dashboard
 }
 
 cmd_stop() {
-  incus exec "$VM_NAME" -- systemctl stop hermes-agent || true
+  incus exec "$VM_NAME" -- systemctl stop hermes-agent hermes-dashboard || true
   incus stop "$VM_NAME" || true
 }
 
@@ -191,8 +210,8 @@ case "$ACTION" in
   launch) cmd_launch ;;
   start) cmd_start ;;
   stop) cmd_stop ;;
-  status) incus list "$VM_NAME"; incus exec "$VM_NAME" -- systemctl status hermes-agent --no-pager || true ;;
-  logs) incus exec "$VM_NAME" -- journalctl -u hermes-agent -n 80 --no-pager ;;
+  status) incus list "$VM_NAME"; incus exec "$VM_NAME" -- systemctl status hermes-agent hermes-dashboard --no-pager || true ;;
+  logs) incus exec "$VM_NAME" -- journalctl -u hermes-agent -u hermes-dashboard -n 80 --no-pager ;;
   push-secrets) push_secrets ;;
   -h|--help|"") usage; exit 0 ;;
   *) echo "Unknown argument: $ACTION" >&2; usage; exit 1 ;;

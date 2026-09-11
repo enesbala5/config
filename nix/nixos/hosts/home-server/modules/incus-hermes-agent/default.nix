@@ -37,6 +37,25 @@ let
     WantedBy=multi-user.target
   '';
 
+  hermesDashboardUnit = ''
+    [Unit]
+    Description=Hermes Agent web dashboard
+    After=network-online.target hermes-agent.service
+    Wants=network-online.target
+
+    [Service]
+    Type=simple
+    Environment=HOME=/root
+    Environment=HERMES_DASHBOARD_PUBLIC_URL=https://hermes.enesbala.com
+    WorkingDirectory=/root
+    ExecStart=/bin/bash -lc 'set -a && source /etc/hermes-env && set +a; export PATH=/usr/local/bin:/root/.local/bin:$PATH; exec hermes dashboard --host 0.0.0.0 --port 9119 --no-open'
+    Restart=on-failure
+    RestartSec=10
+
+    [Install]
+    WantedBy=multi-user.target
+  '';
+
   hermesEnvProfile = ''
     # Export /etc/hermes-env for Hermes CLI and login shells (incus exec bash -l).
     if [ -f /etc/hermes-env ]; then
@@ -93,6 +112,12 @@ let
     "    content: |"
     (yamlIndent 6 hermesServiceUnit)
     ""
+    "  - path: /etc/systemd/system/hermes-dashboard.service"
+    "    permissions: '0644'"
+    "    owner: root:root"
+    "    content: |"
+    (yamlIndent 6 hermesDashboardUnit)
+    ""
     "  - path: /etc/profile.d/hermes-env.sh"
     "    permissions: '0644'"
     "    owner: root:root"
@@ -115,6 +140,7 @@ let
     "  - test -f /root/.hermes/SOUL.md || cp /var/lib/hermes/SOUL.seed.md /root/.hermes/SOUL.md || true"
     "  - systemctl daemon-reload"
     "  - systemctl enable hermes-agent.service"
+    "  - systemctl enable hermes-dashboard.service"
   ];
 
   userDataPath = "/etc/incus-profiles/${cfg.profileName}/user-data";
