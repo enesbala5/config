@@ -116,8 +116,9 @@ let
       connect = "${fwd.protocol}:${guestConnectIp}:${toString fwd.guestPort}";
     in
     ''
+      # `device get` requires a <key>; use `device list` for existence.
       dev=${lib.escapeShellArg dev}
-      if incus profile device get "$profile" "$dev" >/dev/null 2>&1; then
+      if incus profile device list "$profile" | grep -Fxq "$dev"; then
         incus profile device set "$profile" "$dev" listen=${lib.escapeShellArg listen} connect=${lib.escapeShellArg connect} nat=true
       else
         incus profile device add "$profile" "$dev" proxy listen=${lib.escapeShellArg listen} connect=${lib.escapeShellArg connect} nat=true
@@ -273,6 +274,7 @@ in
       path = [
         pkgs.incus
         pkgs.coreutils
+        pkgs.gnugrep
       ];
       serviceConfig = {
         Type = "oneshot";
