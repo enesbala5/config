@@ -81,6 +81,14 @@ Paste env content shaped like:
 # Required for v1 — DeepSeek BYOK
 DEEPSEEK_API_KEY="sk-..."
 
+# Required — Agent Server auth. Both the guest oh-start.sh client and the
+# openhands-agent-server service read these from /etc/agent-env, so one value
+# authenticates the pair. Generate with: openssl rand -hex 32
+OH_SESSION_API_KEYS_0="<32-byte hex>"
+# Encrypts secrets stored with conversations (LLM keys). Must stay stable
+# across restarts or previously stored secrets become unreadable.
+OH_SECRET_KEY="<32-byte hex>"
+
 # Optional providers (omit or leave empty if unused)
 XAI_API_KEY=""
 # Alias some stacks expect:
