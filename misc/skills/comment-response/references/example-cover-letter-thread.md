@@ -21,7 +21,7 @@ Target type: `promote-coverlttr` with an early-access offer. 388 characters, thr
 - **Length is not the enemy, padding is.** Three sentences at 388 characters. This is what the drafted comment looks like in practice, so do not compress it into something thinner than the thread deserves.
 - **Blunt market verdicts stay blunt.** "99% of the time" beats "in my experience, many employers request one". Do not soften a claim he would make flat out.
 - **His own punctuation is his.** The `&` and the comma splices stay. "I expect to launch it the next few days" keeps his grammar shape, it does not get polished into "I expect to launch it in the next few days".
-- **Lowercase, no formatting.** No headers, no bold, no bullets in a comment.
+- **Normal capitalization, no formatting.** Sentences start with capitals, as in the draft. No headers, no bold, no bullets in a comment.
 - **The offer is allowed on a job search thread.** They are applying right now and the pain is the exact one he built for, which is the condition that makes early access relevant instead of pushy. Off a thread like this, the offer is noise.
 
 ## The line not to cross

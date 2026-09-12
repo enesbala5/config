@@ -50,7 +50,7 @@ Voice in short: earnest, slightly formal English with his own grammar shape left
 1. No em dashes or en dashes. Commas, or restructure the sentence.
 2. No links and no bare domains in the text. The link lives in the bio. Offer to send it instead.
 3. Two to four sentences, up to about 400 characters. The 260 character cap in the validator is a lint for the cron batch pipeline, not the ceiling for a comment written into a live thread. His own reference draft is 388.
-4. Match the register he already used in that thread. Reddit comments run lowercase with minimal capitals and no headers, which is how his own comment reads. Sentence case is fine on LinkedIn and X.
+4. Match the register he already used in that thread. The reference draft runs normal capitalization with casual joins (`&`, comma splices). No headers, no bold, no bullets in a comment.
 5. No pitch, no feature list, no CTA. The one exception is the early-access offer in House shape below, and even that asks nothing of them.
 6. Answer what the person actually said. Their question first, his angle second.
 7. No overclaims. Never "ATS-proof", never "guaranteed interviews", never celebrating mass applying.
