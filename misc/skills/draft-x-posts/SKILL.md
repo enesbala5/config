@@ -49,11 +49,11 @@ bash scripts/recent-work.sh 36
 
 Prints commits and merged PRs across `portfolio`, `coverlttr`, `merre`, `lune`, `config` from the last 36 hours, newest first, and says so explicitly when a repo has nothing. That output is the build-in-public pool: pick the change with a real story behind it (a decision, a bug, a trade-off, a thing he learned), not the change with the biggest diff.
 
-Topic material comes from `web_search`, at most two queries per batch, in the lanes he actually has standing in: cover letters and hiring, AI tooling for developers, Albanian ecommerce and marketplaces, NixOS and self-hosting. A topical option is only valid when the item is real and recent and he has a non-obvious take. If nothing qualifies, ship a third build-in-public option instead and say so in one line.
+Topic material comes from `web_search`, at most two queries per batch, in the lanes he actually has standing in: cover letters and hiring, AI tooling for developers, Albanian ecommerce and marketplaces, NixOS and self-hosting. A topical option is only valid when the item is real, recent, and he has a non-obvious take. Its `from:` line names the outlet and the date exactly as they appeared in the search output, because that line is the only way he can check the item later. An item that cannot be tied to a source the search actually returned does not ship, and a paraphrase dressed up as reporting is not a source. If nothing qualifies, ship a third build-in-public option instead and say so in one line.
 
 ## Batch composition
 
-Four options: two for `personal`, two for `coverlttr`. Across the four: two built from his own recent work, one topical or reaction option, one free slot that goes to whichever signal is stronger that day (tie-break: his own work). Never four ideas from one commit.
+Four options: two for `personal`, two for `coverlttr`. Across the four: two built from his own recent work, one topical or reaction option, one free slot that goes to whichever signal is stronger that day (tie-break: his own work). Never four ideas from one commit. When a target has no fresh work in the window, that target's build option comes from its own docs: a mechanism worth explaining out of the product summary, or a case-study fact. The `from:` line says which.
 
 Before drafting, read the last 200 lines of the ledger and drop any commit, PR, or angle already delivered in the previous 14 days. A repeated angle is worse than a thin batch.
 
@@ -96,7 +96,9 @@ voice: Application Operator, from: coverlttr commits
 (221 chars)
 ```
 
-The draft is copy-paste ready: plain text, no quotes around it, no markdown decoration, no code fence. One `from:` line per option naming the source, kept to a few words. No preamble, no process narration, no offer to do more.
+The draft is copy-paste ready: plain text, no quotes around it, no markdown decoration, no code fence. One `from:` line per option naming the source, kept to a few words. No preamble, no process narration, no offer to do more. The ledger is the only archive: no batch files, no reports, no scratch documents written to disk.
+
+A full batch that shipped, with the source line for each option: [references/example-batch.md](references/example-batch.md).
 
 ## Procedure
 
