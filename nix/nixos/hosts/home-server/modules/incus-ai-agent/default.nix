@@ -30,6 +30,9 @@ let
     EnvironmentFile=-/etc/agent-env
     Environment=HOME=/root
     Environment=PATH=/opt/oh-agent-server/bin:/usr/local/bin:/root/.local/bin:/usr/bin
+    ${lib.concatImapStringsSep "\n    " (
+      i: origin: "Environment=OH_ALLOW_CORS_ORIGINS_${toString (i - 1)}=${origin}"
+    ) cfg.corsOrigins}
     WorkingDirectory=/var/lib/ai-agent
     ExecStart=/opt/oh-agent-server/bin/python -m openhands.agent_server --host 0.0.0.0 --port 8000
     Restart=on-failure
@@ -185,6 +188,18 @@ in
         default = "8GiB";
         description = "Incus limits.memory for the agent profile";
       };
+    };
+
+    # Browser origin of the OpenHands UI. Without this, a split-host UI
+    # (agent.enesbala.com → agent-api.enesbala.com) gets 400 Disallowed CORS origin.
+    corsOrigins = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ "https://agent.enesbala.com" ];
+      description = ''
+        Origins allowed to call the Agent Server from a browser
+        (`OH_ALLOW_CORS_ORIGINS_*`). Localhost is always allowed by the
+        server; this list is for the hosted UI origin.
+      '';
     };
 
     network = {

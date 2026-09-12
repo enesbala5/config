@@ -30,6 +30,7 @@ in
 
   # Enable VMs for OpenHands AI and Hermes agents
   homeServer.incusAiAgent.enable = true;
+  homeServer.incusAiAgent.corsOrigins = [ "https://agent.enesbala.com" ];
   homeServer.incusHermesAgent.enable = true;
 
   # Tailscale-only Caddy front end. Its Hermes upstream comes from the same
