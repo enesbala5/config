@@ -23,7 +23,7 @@ Infer it and state the pick in one line. Ask only when the goal is genuinely amb
 
 | Target | Optimizes for | Product mention | Link | Soft offer |
 | --- | --- | --- | --- | --- |
-| `promote-coverlttr` | Coverlttr relevance inside a job search conversation | Allowed as "what I have been building", never by name in strict subs | Never | Only if he was asked for a tool |
+| `promote-coverlttr` | Coverlttr relevance inside a job search conversation | Allowed as "something I built", never by name in strict subs | Never | Yes, pre-launch early access on a job search thread |
 | `personal-brand` | Builder and practitioner credibility | None | Never | Never |
 | `help-only` | Being useful with zero commercial read | None | Never | Never |
 | `lead-intent` | Someone openly asking for a tool or recommendation | Allowed, once | Never in text, the bio carries it | Yes, low pressure |
@@ -49,13 +49,23 @@ Voice in short: earnest, slightly formal English with his own grammar shape left
 
 1. No em dashes or en dashes. Commas, or restructure the sentence.
 2. No links and no bare domains in the text. The link lives in the bio. Offer to send it instead.
-3. Short. Two or three sentences in a stranger's thread. A live technical exchange with another builder can run to about four, never longer.
+3. Two to four sentences, up to about 400 characters. The 260 character cap in the validator is a lint for the cron batch pipeline, not the ceiling for a comment written into a live thread. His own reference draft is 388.
 4. Match the register he already used in that thread. Reddit comments run lowercase with minimal capitals and no headers, which is how his own comment reads. Sentence case is fine on LinkedIn and X.
-5. No pitch, no feature list, no CTA.
+5. No pitch, no feature list, no CTA. The one exception is the early-access offer in House shape below, and even that asks nothing of them.
 6. Answer what the person actually said. Their question first, his angle second.
 7. No overclaims. Never "ATS-proof", never "guaranteed interviews", never celebrating mass applying.
 8. No invented metrics, clients, or wins. Every concrete claim traces to TONE.md, PROFILE.md, or the product summary.
 9. Do not reuse an opener he already used in the same thread.
+
+## House shape
+
+The three moves, in order, taken from the reference draft in `references/`:
+
+1. **Settle the dilemma they wrote.** A verdict they can act on, in his flat register. Not a compliment, not their post summarized back at them.
+2. **The build line, personal and unnamed.** Their pain first, then his own reason for building in the same breath. No product name, no feature list, no stack.
+3. **The offer, when the target allows it.** Give it a reason to stand on (a date, a stage), then one sentence that asks nothing of them: if they want early access, he will send a link. The link is sent, never pasted.
+
+After launch, the pre-launch framing in that sentence is false, so switch it rather than reusing the wording.
 
 ## Analysis before drafting
 
@@ -72,11 +82,11 @@ If there is nothing real to add, say so instead of producing a filler comment.
 
 ## Output contract
 
-One recommended reply, then one alternative that takes a different angle. For each: target type, char count, and one line on the angle. Plain text, copy-paste ready, no quotes around it, no markdown decoration, no hashtags.
+One recommended reply, then one alternative that takes a different angle. The recommended one follows House shape. For each: target type, char count, and one line on the angle. Plain text, copy-paste ready, no quotes around it, no markdown decoration, no hashtags.
 
 Then the self-check:
 
-- dashes, links, banned openers, length, terminal punctuation
+- dashes, links, banned openers, terminal punctuation
 - would a stranger read this as an ad
 - is every concrete claim traceable to a real source
 
@@ -86,7 +96,7 @@ Mechanical check when the local Coverlttr tooling is present:
 python3 /root/coverlttr-x/validate_replies.py --text "<draft>"
 ```
 
-It enforces the dash, link, opener, and 260 character rules. Without it, do the same checks by eye. Where 260 is too tight for a technical exchange, keep the no-dash and no-link rules and say in the handover why the reply is longer.
+It enforces the dash, link, opener, and 260 character rules. Dashes, links, and banned openers are absolute. The 260 cap and the terminal punctuation check are batch pipeline lints: his own comments run past 260 and do not end with a period, so treat those two as informational here and keep the rest.
 
 ## Pitfalls
 
@@ -95,6 +105,7 @@ It enforces the dash, link, opener, and 260 character rules. Without it, do the 
 - Treating a builder thread as a lead. Someone showing their own project is a peer, not a prospect. Peer replies earn the profile click, an offer in that thread does the opposite.
 - Repeating his previous comment back to them.
 - Wrapping the reply in quotes or a code fence when handing it over. He pastes it straight in.
-- Padding length in an exchange where they asked something technical. Two sentences that answer it beat four that circle it.
+- Compressing a comment thinner than the thread deserves. Padding is the enemy, length is not: three sentences in his register beat two clipped ones.
+- Offering early access on a thread where nobody is job hunting. The offer only works where the person is the one with the pain he built for.
 
-Worked example: [references/example-builder-thread.md](references/example-builder-thread.md)
+Reference draft: [references/example-cover-letter-thread.md](references/example-cover-letter-thread.md)
