@@ -83,6 +83,21 @@ in
             incus config device set hermes-agent eth0 ipv4.address=10.0.100.174
         '';
       };
+
+      apiHostName = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = "hermes-api.enesbala.com";
+        description = ''
+          Optional second host that reverse-proxies the Hermes API on the
+          hermes-agent VM. Set null to serve only the dashboard.
+        '';
+      };
+
+      apiUpstream = lib.mkOption {
+        type = lib.types.str;
+        default = "10.0.100.174:8642";
+        description = "Hermes API inside the hermes-agent VM.";
+      };
     };
 
     # Browser front end for the byok-agent VM. Agent Canvas (the successor to
@@ -157,6 +172,21 @@ in
             extraConfig = ''
               encode gzip
               reverse_proxy ${cfg.hermes.upstream} {
+                header_up Host {host}
+                header_up X-Forwarded-Proto {scheme}
+                header_up X-Forwarded-Host {host}
+                flush_interval -1
+              }
+            '';
+          };
+        })
+
+        (lib.mkIf (cfg.hermes.enable && cfg.hermes.apiHostName != null) {
+          ${cfg.hermes.apiHostName} = {
+            listenAddresses = [ "{$CADDY_BIND_ADDR}" ];
+            extraConfig = ''
+              encode gzip
+              reverse_proxy ${cfg.hermes.apiUpstream} {
                 header_up Host {host}
                 header_up X-Forwarded-Proto {scheme}
                 header_up X-Forwarded-Host {host}

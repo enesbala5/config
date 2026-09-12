@@ -39,6 +39,7 @@ in
     enable = true;
     hermes = {
       upstream = "${guestIps.hermes}:9119";
+      apiUpstream = "${guestIps.hermes}:8642";
     };
     agent = {
       upstream = "${guestIps.aiAgent}:3000";
