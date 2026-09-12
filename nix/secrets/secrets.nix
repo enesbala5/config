@@ -47,6 +47,10 @@ in
   # Coolify
   "coolify-env.age" = rootConfig;
 
+  # Caddy / Let's Encrypt DNS-01
+  # Contains: CF_API_TOKEN=<Cloudflare token with Zone:DNS:Edit on enesbala.com>
+  "caddy-cloudflare-env.age" = rootConfig;
+
   # Systemd Services
   # -------------------------------
   "merre-database-backup-env.age" = rootConfig;
@@ -54,12 +58,17 @@ in
   "audiobookshelf-database-backup-env.age" = rootConfig;
   "uptime-kuma-database-backup-env.age" = rootConfig;
   "twenty-crm-backup-env.age" = rootConfig;
+  "hermes-agent-backup-env.age" = rootConfig;
   "garage-backup-local-env.age" = rootConfig;
   "garage-backup-cloud-env.age" = rootConfig;
+
   "garage-s3-env.age" = rootConfig;
 
   "restart-cloudflared-service-env.age" = rootConfig;
   "notify-server-boot-service-env.age" = rootConfig;
+  "incus-ai-agent-secrets.age" = rootConfig;
+  # After `manage-secret hermes-agent-secrets.age`:
+  "hermes-agent-secrets.age" = rootConfig;
 
   # SSH
   # -------------------------------

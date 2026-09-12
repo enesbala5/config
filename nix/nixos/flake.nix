@@ -115,6 +115,11 @@
         nixpkgs.follows = "nixpkgs-unstable";
       };
     };
+
+    hermes-agent = {
+      url = "github:NousResearch/hermes-agent";
+      # Do NOT `follows` another nixpkgs.
+    };
   };
 
   outputs =
@@ -124,6 +129,7 @@
       nixpkgs-unstable,
       nixos-hardware,
       home-manager,
+      hermes-agent,
       agenix,
       ...
     }:
