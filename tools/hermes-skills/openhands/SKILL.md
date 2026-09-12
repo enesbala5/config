@@ -1,7 +1,7 @@
 ---
 name: openhands
 description: "Delegate coding to the OpenHands agent server on byok-agent (features, refactors, PRs)."
-version: 1.0.0
+version: 1.2.0
 author: Hermes Agent
 license: MIT
 platforms: [linux]
@@ -48,6 +48,53 @@ terminal(command="oh-start.sh --prompt 'Fix the flaky auth test' --repo https://
 
 Optional `--model <id>` overrides the default model.
 
+## Attaching files (documents and images)
+
+Don't paste a file's contents into `--prompt` by hand. Write it to a file and
+pass it with `--file` (repeatable, any file type); the script handles delivery.
+`--md` is kept as an alias.
+
+```
+terminal(command="oh-start.sh --file /var/lib/hermes/scratch/task.md")
+```
+
+Works with or without `--prompt`:
+
+```
+terminal(command="oh-start.sh --prompt 'Implement this plan' --file /var/lib/hermes/scratch/plan.md --repo https://github.com/org/repo.git")
+```
+
+Two delivery paths, chosen automatically by file type:
+
+- **Text files** (Markdown, code, logs, ...):
+  - **Default (convert):** read and inlined into the prompt as an
+    `# Attached document: <name>` section.
+  - **`--file-upload` (blob):** uploaded into the agent workspace via
+    `POST /api/file/upload` and referenced by path, so a large file does not
+    bloat the prompt. A failed upload falls back to inlining.
+
+  ```
+  terminal(command="oh-start.sh --prompt 'Follow the spec' --file /var/lib/hermes/scratch/spec.md --file-upload")
+  ```
+
+- **Images** (`png`, `jpg`/`jpeg`, `gif`, `webp`, `bmp`, `tif`/`tiff`): embedded
+  directly in the initial message as base64 image content, so a multimodal model
+  can see them. Multiple `--file` images become multiple content parts, in the
+  order given.
+
+  ```
+  terminal(command="oh-start.sh --prompt 'Compare these screenshots' --file /var/lib/hermes/scratch/before.png --file /var/lib/hermes/scratch/after.png --model openai/gpt-4o")
+  ```
+
+  **Images require a vision-capable model.** The default `deepseek/deepseek-chat`
+  is text-only, and the agent server silently drops image content for such a
+  model. Pass a multimodal `--model` (and its key) or the images do nothing. The
+  script prints a note to stderr whenever it embeds images.
+
+The Agent Server message format only supports `text` and `image` content, so
+`--file-upload` uses the workspace file API rather than a message attachment;
+images use the `image` content type.
+
 ## What it returns
 
 ```
@@ -66,6 +113,10 @@ channel prefixed `[byok-agent]`.
 - `POST http://byok-agent.incus:8000/api/conversations` with
   `X-Session-API-Key: $OH_SESSION_API_KEY`
 - `POST .../api/conversations/<id>/run`
+- `POST .../api/file/upload?path=<absolute>` (multipart `file`) for text files
+  attached with `--file-upload`
+- image files become `{type: "image", image_urls: ["data:..."]}` parts in
+  `initial_message.content`, alongside the `{type: "text", ...}` part
 
 If you ever need to call the API directly (e.g. to list conversations), reuse
 the same header and base URL rather than re-deriving auth.
