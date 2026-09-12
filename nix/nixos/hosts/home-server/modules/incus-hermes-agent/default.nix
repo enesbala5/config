@@ -11,6 +11,7 @@ let
 
   telegramScriptContent = builtins.readFile "${data.configDirectory}/tools/telegram/notify.sh";
   ohStartScriptContent = builtins.readFile "${data.configDirectory}/tools/incus/oh-start.sh";
+  openhandsSkillContent = builtins.readFile "${data.configDirectory}/tools/hermes-skills/openhands/SKILL.md";
 
   yamlIndent =
     n: text:
@@ -66,20 +67,6 @@ let
     fi
   '';
 
-  seedSoul = ''
-    Coding goes to OpenHands on this host, not to you.
-
-    Start:
-    /usr/local/bin/oh-start.sh --prompt "..." [--repo URL]
-    or POST http://byok-agent.incus:8000/api/conversations
-    header X-Session-API-Key: $OH_SESSION_API_KEY
-
-    Then send the user:
-    https://agent.enesbala.com/conversations/<id>
-
-    Do not run coding agents locally. Do not wrap or translate OpenHands events.
-  '';
-
   cloudInitUserData = lib.concatStringsSep "\n" [
     "#cloud-config"
     "package_update: true"
@@ -124,11 +111,11 @@ let
     "    content: |"
     (yamlIndent 6 hermesEnvProfile)
     ""
-    "  - path: /var/lib/hermes/SOUL.seed.md"
+    "  - path: /root/.hermes/skills/openhands/SKILL.md"
     "    permissions: '0644'"
     "    owner: root:root"
     "    content: |"
-    (yamlIndent 6 seedSoul)
+    (yamlIndent 6 openhandsSkillContent)
     ""
     "runcmd:"
     "  - mkdir -p /root/.hermes /var/lib/hermes/scratch"
@@ -137,7 +124,6 @@ let
     # Root FHS installs already place the launcher at /usr/local/bin/hermes.
     # Do not overwrite it with ~/.local/bin (that path is unused and dangling).
     "  - test -x /usr/local/bin/hermes || ln -sfn /usr/local/lib/hermes-agent/venv/bin/hermes /usr/local/bin/hermes"
-    "  - test -f /root/.hermes/SOUL.md || cp /var/lib/hermes/SOUL.seed.md /root/.hermes/SOUL.md || true"
     "  - systemctl daemon-reload"
     "  - systemctl enable hermes-agent.service"
     "  - systemctl enable hermes-dashboard.service"

@@ -7,6 +7,9 @@ PROFILE="${PROFILE:-hermes-agent}"
 IMAGE="${IMAGE:-images:ubuntu/24.04/cloud}"
 SECRETS_PATH="${SECRETS_PATH:-/run/agenix/hermes-agent-secrets}"
 USER_DATA_FILE="${USER_DATA_FILE:-/etc/incus-profiles/${PROFILE}/user-data}"
+# Single source of truth for the OpenHands delegation skill; also embedded in
+# the guest by the incus-hermes-agent module's cloud-init.
+SKILL_FILE="${SKILL_FILE:-$(dirname "$0")/../hermes-skills/openhands/SKILL.md}"
 PROFILE_CPU="${PROFILE_CPU:-2}"
 PROFILE_MEMORY="${PROFILE_MEMORY:-4GiB}"
 # Keep in sync with hosts/home-server/default.nix (guestIps) and the
@@ -144,6 +147,34 @@ EOF
   incus exec "$VM_NAME" -- systemctl daemon-reload
 }
 
+# Keep in sync with nix/nixos/hosts/home-server/modules/incus-hermes-agent/default.nix
+# (tools/hermes-skills/openhands/SKILL.md is the single source of truth).
+ensure_hermes_skill() {
+  if [[ ! -f "$SKILL_FILE" ]]; then
+    echo "Warning: skill file ${SKILL_FILE} not found; skipping OpenHands delegation skill." >&2
+    return 0
+  fi
+  echo "==> Installing OpenHands delegation skill into guest..."
+  incus exec "$VM_NAME" -- mkdir -p /root/.hermes/skills/openhands
+  incus file push "$SKILL_FILE" "${VM_NAME}/root/.hermes/skills/openhands/SKILL.md" \
+    -p --mode 0644 --uid 0 --gid 0
+}
+
+# Refresh the OpenHands REST client from the repo. It is also embedded in the
+# profile's cloud-init, but that only runs on first boot, so a persistent VM
+# would otherwise keep a stale copy after the script changes.
+ensure_oh_start() {
+  local src
+  src="$(dirname "$0")/oh-start.sh"
+  if [[ ! -f "$src" ]]; then
+    echo "Warning: ${src} not found; keeping guest oh-start.sh." >&2
+    return 0
+  fi
+  echo "==> Refreshing guest oh-start.sh..."
+  incus file push "$src" "${VM_NAME}/usr/local/bin/oh-start.sh" \
+    -p --mode 0755 --uid 0 --gid 0
+}
+
 push_secrets() {
   if [[ ! -e "$SECRETS_PATH" ]]; then
     echo "Error: secret file $SECRETS_PATH not found. Encrypt with manage-secret and apply agenix first." >&2
@@ -200,6 +231,8 @@ cmd_start() {
   fi
   ensure_hermes_bin
   ensure_hermes_env
+  ensure_oh_start
+  ensure_hermes_skill
   incus exec "$VM_NAME" -- systemctl enable --now hermes-agent hermes-dashboard
   incus exec "$VM_NAME" -- systemctl restart hermes-agent hermes-dashboard
 }

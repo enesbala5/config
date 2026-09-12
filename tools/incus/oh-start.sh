@@ -154,9 +154,9 @@ BODY="$(jq -n \
         + (if $base_url == "" then {} else {base_url: $base_url} end)
       ),
       tools: [
-        {name: "TerminalTool"},
-        {name: "FileEditorTool"},
-        {name: "TaskTrackerTool"}
+        {name: "terminal"},
+        {name: "file_editor"},
+        {name: "task_tracker"}
       ],
       system_prompt_kwargs: {cli_mode: true}
     },
@@ -197,7 +197,9 @@ Missing conversation id"
   exit 1
 fi
 
-curl -fsS "${auth_headers[@]}" -X POST "${AGENT_SERVER}/api/conversations/${CONV_ID}/run" >/dev/null || true
+# The agent server may already start the conversation on create (409 on
+# re-run); tolerate that silently rather than printing a confusing curl error.
+curl -fsS "${auth_headers[@]}" -X POST "${AGENT_SERVER}/api/conversations/${CONV_ID}/run" >/dev/null 2>&1 || true
 
 UI_URL="${UI_BASE}/conversations/${CONV_ID}"
 echo "conversation_id=${CONV_ID}"

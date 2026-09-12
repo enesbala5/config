@@ -130,6 +130,21 @@ EOF
   incus exec "$VM_NAME" -- chmod 0644 /etc/profile.d/agent-env.sh
 }
 
+# Refresh the OpenHands REST client from the repo. It is also embedded in the
+# profile's cloud-init, but that only runs on first boot, so a persistent VM
+# would otherwise keep a stale copy after the script changes.
+ensure_oh_start() {
+  local src
+  src="$(dirname "$0")/oh-start.sh"
+  if [[ ! -f "$src" ]]; then
+    echo "Warning: ${src} not found; keeping guest oh-start.sh." >&2
+    return 0
+  fi
+  echo "==> Refreshing guest oh-start.sh..."
+  incus file push "$src" "${VM_NAME}/usr/local/bin/oh-start.sh" \
+    -p --mode 0755 --uid 0 --gid 0
+}
+
 push_secrets() {
   if [[ ! -e "$SECRETS_PATH" ]]; then
     echo "Error: secret file $SECRETS_PATH not found. Encrypt with manage-secret and apply agenix first." >&2
@@ -191,6 +206,7 @@ cmd_start() {
     exit 1
   fi
   ensure_agent_env
+  ensure_oh_start
   incus exec "$VM_NAME" -- systemctl restart openhands-agent-server || true
   wait_for_agent_server
   incus exec "$VM_NAME" -- systemctl restart openhands-agent-canvas || true
