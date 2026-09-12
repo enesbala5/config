@@ -174,6 +174,7 @@ in
         9512
         11470
         12470
+        9119
       ];
 
       allowedUDPPorts = [
@@ -181,6 +182,7 @@ in
         9512
         11470
         12470
+        9119
       ];
 
       # Necessary for Incus
