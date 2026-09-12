@@ -11,6 +11,7 @@ let
 
   telegramScriptContent = builtins.readFile "${data.configDirectory}/tools/telegram/notify.sh";
   ohStartScriptContent = builtins.readFile "${data.configDirectory}/tools/incus/oh-start.sh";
+  canvasStartScriptContent = builtins.readFile "${data.configDirectory}/tools/incus/agent-canvas-start.sh";
 
   yamlIndent =
     n: text:
@@ -34,6 +35,32 @@ let
     ExecStart=/opt/oh-agent-server/bin/python -m openhands.agent_server --host 0.0.0.0 --port 8000
     Restart=on-failure
     RestartSec=5
+
+    [Install]
+    WantedBy=multi-user.target
+  '';
+
+  # Agent Canvas is the browser client (OpenHands/OpenHands) that replaced the
+  # legacy all-in-one OpenHands GUI. It runs frontend-only so the existing
+  # openhands-agent-server on :8000 stays the single execution backend; the
+  # frontend is served on cfg.frontendPort and proxied by the host Caddy.
+  agentCanvasUnit = ''
+    [Unit]
+    Description=OpenHands Agent Canvas frontend (browser client)
+    After=network-online.target openhands-agent-server.service
+    Wants=network-online.target
+    Requires=openhands-agent-server.service
+
+    [Service]
+    Type=simple
+    EnvironmentFile=-/etc/agent-env
+    Environment=HOME=/root
+    Environment=PATH=/usr/local/bin:/root/.local/bin:/usr/bin
+    Environment=CANVAS_PORT=${toString cfg.frontendPort}
+    WorkingDirectory=/var/lib/ai-agent
+    ExecStart=/usr/local/bin/agent-canvas-start.sh
+    Restart=on-failure
+    RestartSec=10
 
     [Install]
     WantedBy=multi-user.target
@@ -66,11 +93,23 @@ let
     "    content: |"
     (yamlIndent 6 ohStartScriptContent)
     ""
+    "  - path: /usr/local/bin/agent-canvas-start.sh"
+    "    permissions: '0755'"
+    "    owner: root:root"
+    "    content: |"
+    (yamlIndent 6 canvasStartScriptContent)
+    ""
     "  - path: /etc/systemd/system/openhands-agent-server.service"
     "    permissions: '0644'"
     "    owner: root:root"
     "    content: |"
     (yamlIndent 6 agentServerUnit)
+    ""
+    "  - path: /etc/systemd/system/openhands-agent-canvas.service"
+    "    permissions: '0644'"
+    "    owner: root:root"
+    "    content: |"
+    (yamlIndent 6 agentCanvasUnit)
     ""
     "  - path: /etc/profile.d/uv.sh"
     "    permissions: '0644'"
@@ -91,56 +130,17 @@ let
     "  - \"/root/.local/bin/uv pip install --python /opt/oh-agent-server/bin/python -U openhands-sdk openhands-tools openhands-workspace openhands-agent-server\""
     "  - systemctl daemon-reload"
     "  - systemctl enable --now openhands-agent-server.service"
+    ""
+    "  # Agent Canvas frontend. Node 22.x comes from NodeSource (Ubuntu 24.04's"
+    "  # nodejs is 18.x, below the 22.12 floor)."
+    "  - \"curl -fsSL https://deb.nodesource.com/setup_22.x | bash -\""
+    "  - apt-get install -y nodejs"
+    "  - npm install -g @openhands/agent-canvas"
+    "  - npm cache clean --force || true"
+    "  - systemctl enable --now openhands-agent-canvas.service"
   ];
 
   userDataPath = "/etc/incus-profiles/${cfg.profileName}/user-data";
-
-  # With a pinned static IPv4 we can point proxies at the guest directly;
-  # otherwise fall back to the wildcard connect address, which makes Incus
-  # resolve the instance's current address from the bridge neighbour table
-  # (NAT mode only).
-  guestConnectIp = if cfg.network.staticIpv4 != null then cfg.network.staticIpv4 else "0.0.0.0";
-
-  forwardDeviceName = fwd: "fwd-${fwd.protocol}-${toString fwd.hostPort}";
-
-  desiredForwardDevices = lib.concatStringsSep " " (map forwardDeviceName cfg.network.portForwards);
-
-  # Reconcile the profile's proxy devices. Profiles are stackable and this one
-  # is used only by this instance, so it is the right home for host->guest
-  # forwards (they then apply no matter how the VM is launched).
-  portForwardScript = lib.concatMapStringsSep "\n" (
-    fwd:
-    let
-      dev = forwardDeviceName fwd;
-      listen = "${fwd.protocol}:${fwd.listenAddress}:${toString fwd.hostPort}";
-      connect = "${fwd.protocol}:${guestConnectIp}:${toString fwd.guestPort}";
-    in
-    ''
-      # `device get` requires a <key>; use `device list` for existence.
-      dev=${lib.escapeShellArg dev}
-      if incus profile device list "$profile" | grep -Fxq "$dev"; then
-        incus profile device set "$profile" "$dev" listen=${lib.escapeShellArg listen} connect=${lib.escapeShellArg connect} nat=true
-      else
-        incus profile device add "$profile" "$dev" proxy listen=${lib.escapeShellArg listen} connect=${lib.escapeShellArg connect} nat=true
-      fi
-    ''
-  ) cfg.network.portForwards;
-
-  # Drop forwards we own but no longer declare, so removing one from the Nix
-  # config actually removes the proxy device.
-  prunePortForwardScript = ''
-    # `incus profile device list` prints one name per line; it has no --format.
-    for dev in $(incus profile device list "$profile"); do
-      case "$dev" in
-        fwd-*)
-          case " ${desiredForwardDevices} " in
-            *" $dev "*) ;;
-            *) incus profile device remove "$profile" "$dev" ;;
-          esac
-          ;;
-      esac
-    done
-  '';
 
   # Pin the guest IP via an instance-level override of the profile-provided NIC.
   # Skipped when the instance does not exist yet; the launch helper applies it
@@ -174,6 +174,16 @@ in
       description = "Incus profile name providing cloud-init + limits";
     };
 
+    frontendPort = lib.mkOption {
+      type = lib.types.port;
+      default = 3000;
+      description = ''
+        Guest port for the Agent Canvas frontend (browser client). Kept off
+        8000, which the openhands-agent-server backend owns, so both can run
+        at once. The host Caddy reverse-proxies agent.enesbala.com here.
+      '';
+    };
+
     limits = {
       cpu = lib.mkOption {
         type = lib.types.str;
@@ -201,42 +211,6 @@ in
         description = ''
           Static IPv4 address for the VM, inside the incusbr0 subnet
           (10.0.100.0/24). Assigned by the managed bridge's DHCP server.
-        '';
-      };
-
-      portForwards = lib.mkOption {
-        type = lib.types.listOf (
-          lib.types.submodule {
-            options = {
-              protocol = lib.mkOption {
-                type = lib.types.enum [
-                  "tcp"
-                  "udp"
-                ];
-                default = "tcp";
-              };
-              hostPort = lib.mkOption {
-                type = lib.types.port;
-                description = "Port on the home server to listen on and forward from.";
-              };
-              guestPort = lib.mkOption {
-                type = lib.types.port;
-                description = "Port inside the guest to forward to.";
-              };
-              listenAddress = lib.mkOption {
-                type = lib.types.str;
-                # Incus rejects wildcards for proxy devices with nat=true (required for VMs).
-                default = "192.168.0.40";
-                description = "Host address to bind the listener to (must be a concrete host IP; NAT mode forbids 0.0.0.0).";
-              };
-            };
-          }
-        );
-        default = [ ];
-        description = ''
-          Host->guest port forwards, implemented as Incus proxy devices in NAT
-          mode (the only mode VMs support). Devices are named fwd-<proto>-<port>
-          and reconciled against this list on every activation.
         '';
       };
     };
@@ -274,7 +248,6 @@ in
       path = [
         pkgs.incus
         pkgs.coreutils
-        pkgs.gnugrep
       ];
       serviceConfig = {
         Type = "oneshot";
@@ -292,11 +265,7 @@ in
         incus profile set "$profile" security.nesting true
         incus profile set "$profile" cloud-init.user-data - < ${lib.escapeShellArg userDataPath}
         incus profile set "$profile" user.user-data - < ${lib.escapeShellArg userDataPath}
-        # Static IP must exist before NAT proxies (connect IP must be a static
-        # address on the instance).
         ${staticIpScript}
-        ${portForwardScript}
-        ${prunePortForwardScript}
       '';
     };
   };

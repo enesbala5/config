@@ -17,6 +17,8 @@ PROFILE_MEMORY="${PROFILE_MEMORY:-8GiB}"
 # incus-ai-agent module's network.nic.
 NIC="${NIC:-eth0}"
 STATIC_IP="${STATIC_IP:-10.0.100.173}"
+# Keep in sync with the incus-ai-agent module's frontendPort.
+CANVAS_PORT="${CANVAS_PORT:-3000}"
 
 usage() {
   cat >&2 <<'EOF'
@@ -100,6 +102,20 @@ wait_for_agent_server() {
   return 1
 }
 
+wait_for_agent_canvas() {
+  local i
+  echo "==> Waiting for Agent Canvas frontend on ${VM_NAME}:${CANVAS_PORT}..."
+  for i in $(seq 1 90); do
+    if incus exec "$VM_NAME" -- curl -fsS "http://127.0.0.1:${CANVAS_PORT}/" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 2
+  done
+  echo "Error: timed out waiting for Agent Canvas :${CANVAS_PORT}" >&2
+  incus exec "$VM_NAME" -- systemctl status openhands-agent-canvas --no-pager || true
+  return 1
+}
+
 # Keep in sync with nix/nixos/hosts/home-server/modules/incus-ai-agent/default.nix
 ensure_agent_env() {
   echo "==> Installing guest env loader (source /etc/agent-env)..."
@@ -169,12 +185,20 @@ cmd_start() {
     echo "Recreate: incus stop ${VM_NAME} && incus delete ${VM_NAME} && $0 start" >&2
     exit 1
   fi
+  if ! incus exec "$VM_NAME" -- test -f /etc/systemd/system/openhands-agent-canvas.service; then
+    echo "Error: openhands-agent-canvas.service missing in guest. VM likely first-booted without profile user-data." >&2
+    echo "Recreate: incus stop ${VM_NAME} && incus delete ${VM_NAME} && $0 start" >&2
+    exit 1
+  fi
   ensure_agent_env
   incus exec "$VM_NAME" -- systemctl restart openhands-agent-server || true
   wait_for_agent_server
+  incus exec "$VM_NAME" -- systemctl restart openhands-agent-canvas || true
+  wait_for_agent_canvas
 }
 
 cmd_stop() {
+  incus exec "$VM_NAME" -- systemctl stop openhands-agent-canvas || true
   incus exec "$VM_NAME" -- systemctl stop openhands-agent-server || true
   incus stop "$VM_NAME" || true
 }
@@ -249,8 +273,8 @@ case "$ACTION" in
   start) cmd_start ;;
   stop) cmd_stop ;;
   run) cmd_run "$@" ;;
-  status) incus list "$VM_NAME"; incus exec "$VM_NAME" -- systemctl status openhands-agent-server --no-pager || true ;;
-  logs) incus exec "$VM_NAME" -- journalctl -u openhands-agent-server -n 80 --no-pager ;;
+  status) incus list "$VM_NAME"; incus exec "$VM_NAME" -- systemctl status openhands-agent-server openhands-agent-canvas --no-pager || true ;;
+  logs) incus exec "$VM_NAME" -- journalctl -u openhands-agent-server -u openhands-agent-canvas -n 80 --no-pager ;;
   push-secrets) push_secrets ;;
   -h|--help|"") usage; exit 0 ;;
   *) echo "Unknown argument: $ACTION" >&2; usage; exit 1 ;;

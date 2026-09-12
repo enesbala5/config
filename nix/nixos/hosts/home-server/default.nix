@@ -10,8 +10,8 @@
 }:
 let
   # Single source of truth for guest IPv4 addresses on incusbr0
-  # (10.0.100.0/24). The Incus DHCP reservations below and the Caddy
-  # reverse-proxy target both reference these, so they cannot drift apart.
+  # (10.0.100.0/24). Both the Incus NIC pins below and the Caddy
+  # reverse-proxy targets reference these, so they cannot drift apart.
   guestIps = {
     aiAgent = "10.0.100.173";
     hermes = "10.0.100.174";
@@ -32,27 +32,27 @@ in
   homeServer.incusAiAgent.enable = true;
   homeServer.incusHermesAgent.enable = true;
 
-  # Tailscale-only Caddy front end. Its Hermes upstream comes from the same
-  # guest IPv4 as the DHCP reservation below.
+  # Tailscale-only Caddy front end. Upstreams are the guests' pinned incusbr0
+  # addresses, so Caddy dials the guest directly — no host-side port forwards.
   homeServer.caddy = {
     enable = true;
-    hermes.upstream = "${guestIps.hermes}:9119";
+    hermes = {
+      upstream = "${guestIps.hermes}:9119";
+    };
+    agent = {
+      upstream = "${guestIps.aiAgent}:3000";
+      apiUpstream = "${guestIps.aiAgent}:8000";
+    };
   };
 
-  # Pin guest IPs (DHCP reservations on incusbr0) and expose guest ports on the
-  # home server via Incus proxy devices (NAT mode).
+  # Pin the guest IPs on incusbr0 (10.0.100.0/24). These stay the single source
+  # of truth for the Caddy upstreams.
   homeServer.incusAiAgent.network = {
     staticIpv4 = guestIps.aiAgent;
   };
 
   homeServer.incusHermesAgent.network = {
     staticIpv4 = guestIps.hermes;
-    portForwards = [
-      {
-        hostPort = 9119;
-        guestPort = 9119;
-      }
-    ];
   };
 
   # ------------------------------------------------------------------------------------------
@@ -170,6 +170,7 @@ in
         9512
         11470
         12470
+        9119
       ];
 
       allowedUDPPorts = [
@@ -177,6 +178,7 @@ in
         9512
         11470
         12470
+        9119
       ];
 
       # Necessary for Incus

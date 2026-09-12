@@ -118,7 +118,7 @@
 
     hermes-agent = {
       url = "github:NousResearch/hermes-agent";
-      inputs.nixpkgs.follows = "nixpkgs";
+      # Do NOT `follows` another nixpkgs.
     };
   };
 
@@ -201,7 +201,6 @@
           };
 
           modules = [
-            hermes-agent.nixosModules.default
             nixos-hardware.nixosModules.framework-13-7040-amd
             home-manager.nixosModules.default
             ./modules/base-configuration.nix
