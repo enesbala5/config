@@ -18,6 +18,7 @@ Hand Enes ready-to-post X options built from his own recent work plus one topica
 ## When to use
 
 - The scheduled batch (11:00, 14:00, 17:00, 20:00 Europe/Tirane) or any ask like "what should I post", "post ideas for X", "draft a post about X".
+- Schedule note: the cron job runs `0 9,12,15,18 * * *`, and cron is UTC. That is 11:00, 14:00, 17:00, 20:00 local in CEST. When Albania moves to CET on the last Sunday of October the expression shifts one hour earlier, to `0 10,13,16,19 * * *`.
 - One target on request, or the full batch of two targets.
 - Not for replying to someone else's post (that is `comment-response`) and not for Reddit (that is `coverlttr-x-organic-replies`).
 
