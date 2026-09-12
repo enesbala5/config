@@ -25,8 +25,8 @@ Recommended:
 
 > the fixed summary is the part I would question first. parse the cv once and cache the text, then each score is one short call. but with fixed preferences the score stays a fit check instead of a ranking, and the ranking is what makes a dashboard worth opening.
 
-Alternative, softer, and it closes the loop on the question he skipped:
+Alternative, closer to where he already is, and it asks the question he skipped:
 
-> 8/10 landing two interviews on a fixed summary is a decent signal, which is also why I would change the summary before the pdf parsing. caching the cv text makes the cost a rounding error. the fixed part is what stops it sorting your queue.
+> 8/10 landing two interviews on fixed preferences is a decent signal. caching the cv text makes the cost a rounding error, so I would change the summary before the pdf parsing. did the two 8/10 ones come from jobs you would have applied to anyway?
 
-Handed over with: 260 and 240 chars, both PASS under `validate_replies.py`, no dashes, no links, nothing offered. The first one names the sharper problem, the second one stays closer to where he already is.
+Handed over with: 260 and 246 chars, both PASS under `validate_replies.py`, no dashes, no links, nothing offered. The first one names the sharper problem, the second one hands the conversation back.
