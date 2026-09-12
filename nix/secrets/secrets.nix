@@ -47,6 +47,10 @@ in
   # Coolify
   "coolify-env.age" = rootConfig;
 
+  # Caddy / Let's Encrypt DNS-01
+  # Contains: CF_API_TOKEN=<Cloudflare token with Zone:DNS:Edit on enesbala.com>
+  "caddy-cloudflare-env.age" = rootConfig;
+
   # Systemd Services
   # -------------------------------
   "merre-database-backup-env.age" = rootConfig;

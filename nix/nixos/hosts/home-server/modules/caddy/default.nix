@@ -1,5 +1,6 @@
 {
   config,
+  data,
   lib,
   pkgs,
   ...
@@ -132,23 +133,28 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Custom-domain A records point at a Tailscale IP, so Let's Encrypt
-    # HTTP-01 cannot reach us. Caddy's local CA is enough on the tailnet;
-    # trust it once from the client (`caddy trust` / install root.crt).
+    # Custom-domain A records point at a Tailscale IP, so the Let's Encrypt
+    # HTTP-01 challenge cannot reach us. DNS-01 can: it only needs the DNS
+    # provider's API, so Cloudflare issues publicly-trusted certs for these
+    # hosts. Browsers then accept them without installing Caddy's local CA.
     services.caddy = {
       enable = true;
-      # Written by caddy-tailscale-bind before caddy starts.
-      environmentFile = "/run/caddy/tailscale.env";
+      # Caddy doesn't ship the Cloudflare DNS plugin; build it in.
+      package = pkgs.caddy.withPlugins {
+        plugins = [ "github.com/caddy-dns/cloudflare@v0.2.4" ];
+        hash = "sha256-J89UH8YgEU/uUDtmRuoGkPzIcQrbbWk+k06gqj0t8ho=";
+      };
+      email = data.email;
       globalConfig = ''
         default_bind {$CADDY_BIND_ADDR}
         auto_https disable_redirects
+        acme_dns cloudflare {env.CF_API_TOKEN}
       '';
       virtualHosts = lib.mkMerge [
         (lib.mkIf cfg.hermes.enable {
           ${cfg.hermes.hostName} = {
             listenAddresses = [ "{$CADDY_BIND_ADDR}" ];
             extraConfig = ''
-              tls internal
               encode gzip
               reverse_proxy ${cfg.hermes.upstream} {
                 header_up Host {host}
@@ -175,7 +181,6 @@ in
           ${cfg.agent.hostName} = {
             listenAddresses = [ "{$CADDY_BIND_ADDR}" ];
             extraConfig = ''
-              tls internal
               encode gzip
               reverse_proxy ${cfg.agent.upstream} {
                 header_up Host {host}
@@ -191,7 +196,6 @@ in
           ${cfg.agent.apiHostName} = {
             listenAddresses = [ "{$CADDY_BIND_ADDR}" ];
             extraConfig = ''
-              tls internal
               encode gzip
               reverse_proxy ${cfg.agent.apiUpstream} {
                 header_up Host {host}
@@ -239,6 +243,13 @@ in
         "tailscaled.service"
       ];
       requires = [ "caddy-tailscale-bind.service" ];
+      # Env for Caddy: the runtime bind address (written by the oneshot) plus
+      # the Cloudflare API token consumed by `acme_dns`. mkForce replaces the
+      # NixOS module's single-file default with this explicit list.
+      serviceConfig.EnvironmentFile = lib.mkForce [
+        "/run/caddy/tailscale.env"
+        config.age.secrets.caddy-cloudflare-env.path
+      ];
       # Upstream sets RestartPreventExitStatus=1, which turns a one-shot bind
       # race into a permanent failure. With the wait oneshot this is mostly
       # redundant, but allow retries if Tailscale flaps during switch.
