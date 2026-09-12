@@ -10,8 +10,8 @@
 }:
 let
   # Single source of truth for guest IPv4 addresses on incusbr0
-  # (10.0.100.0/24). The Incus DHCP reservations below and the Caddy
-  # reverse-proxy target both reference these, so they cannot drift apart.
+  # (10.0.100.0/24). Both the Incus NIC pins below and the Caddy
+  # reverse-proxy targets reference these, so they cannot drift apart.
   guestIps = {
     aiAgent = "10.0.100.173";
     hermes = "10.0.100.174";
@@ -32,31 +32,22 @@ in
   homeServer.incusAiAgent.enable = true;
   homeServer.incusHermesAgent.enable = true;
 
-  # Tailscale-only Caddy front end. Upstreams are loopback ports owned by Incus
-  # proxy devices, so Caddy never dials incusbr0 directly — Incus does that hop.
+  # Tailscale-only Caddy front end. Upstreams are the guests' pinned incusbr0
+  # addresses, so Caddy dials the guest directly — no host-side port forwards.
   homeServer.caddy = {
     enable = true;
-    hermes.upstream = "127.0.0.1:9119";
+    hermes.upstream = "${guestIps.hermes}:9119";
   };
 
-  # Pin guest IPs (DHCP reservations on incusbr0) and expose guest ports as
-  # loopback listeners via Incus proxy devices (NAT mode). Caddy targets the
-  # 127.0.0.1 side; Incus forwards to the pinned guest IPv4, which stays the
-  # single source of truth for both the reservation and the proxy `connect`.
+  # Pin the guest IPs on incusbr0 (10.0.100.0/24). These stay the single source
+  # of truth for the Caddy upstreams. `byok-agent` stays unwired until its route
+  # is ready.
   homeServer.incusAiAgent.network = {
     staticIpv4 = guestIps.aiAgent;
   };
 
   homeServer.incusHermesAgent.network = {
     staticIpv4 = guestIps.hermes;
-    portForwards = [
-      {
-        hostPort = 9119;
-        guestPort = 9119;
-        # Loopback only: never expose the unauthenticated dashboard on the LAN.
-        listenAddress = "127.0.0.1";
-      }
-    ];
   };
 
   # ------------------------------------------------------------------------------------------

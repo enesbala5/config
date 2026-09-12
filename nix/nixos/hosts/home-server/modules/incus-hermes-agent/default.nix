@@ -145,53 +145,6 @@ let
 
   userDataPath = "/etc/incus-profiles/${cfg.profileName}/user-data";
 
-  # With a pinned static IPv4 we can point proxies at the guest directly;
-  # otherwise fall back to the wildcard connect address, which makes Incus
-  # resolve the instance's current address from the bridge neighbour table
-  # (NAT mode only).
-  guestConnectIp = if cfg.network.staticIpv4 != null then cfg.network.staticIpv4 else "0.0.0.0";
-
-  forwardDeviceName = fwd: "fwd-${fwd.protocol}-${toString fwd.hostPort}";
-
-  desiredForwardDevices = lib.concatStringsSep " " (map forwardDeviceName cfg.network.portForwards);
-
-  # Reconcile the profile's proxy devices. Profiles are stackable and this one
-  # is used only by this instance, so it is the right home for host->guest
-  # forwards (they then apply no matter how the VM is launched).
-  portForwardScript = lib.concatMapStringsSep "\n" (
-    fwd:
-    let
-      dev = forwardDeviceName fwd;
-      listen = "${fwd.protocol}:${fwd.listenAddress}:${toString fwd.hostPort}";
-      connect = "${fwd.protocol}:${guestConnectIp}:${toString fwd.guestPort}";
-    in
-    ''
-      # `device get` requires a <key>; use `device list` for existence.
-      dev=${lib.escapeShellArg dev}
-      if incus profile device list "$profile" | grep -Fxq "$dev"; then
-        incus profile device set "$profile" "$dev" listen=${lib.escapeShellArg listen} connect=${lib.escapeShellArg connect} nat=true
-      else
-        incus profile device add "$profile" "$dev" proxy listen=${lib.escapeShellArg listen} connect=${lib.escapeShellArg connect} nat=true
-      fi
-    ''
-  ) cfg.network.portForwards;
-
-  # Drop forwards we own but no longer declare, so removing one from the Nix
-  # config actually removes the proxy device.
-  prunePortForwardScript = ''
-    # `incus profile device list` prints one name per line; it has no --format.
-    for dev in $(incus profile device list "$profile"); do
-      case "$dev" in
-        fwd-*)
-          case " ${desiredForwardDevices} " in
-            *" $dev "*) ;;
-            *) incus profile device remove "$profile" "$dev" ;;
-          esac
-          ;;
-      esac
-    done
-  '';
-
   # Pin the guest IP via an instance-level override of the profile-provided NIC.
   # Skipped when the instance does not exist yet; the launch helper applies it
   # before first boot instead.
@@ -249,42 +202,6 @@ in
           (10.0.100.0/24). Assigned by the managed bridge's DHCP server.
         '';
       };
-
-      portForwards = lib.mkOption {
-        type = lib.types.listOf (
-          lib.types.submodule {
-            options = {
-              protocol = lib.mkOption {
-                type = lib.types.enum [
-                  "tcp"
-                  "udp"
-                ];
-                default = "tcp";
-              };
-              hostPort = lib.mkOption {
-                type = lib.types.port;
-                description = "Port on the home server to listen on and forward from.";
-              };
-              guestPort = lib.mkOption {
-                type = lib.types.port;
-                description = "Port inside the guest to forward to.";
-              };
-              listenAddress = lib.mkOption {
-                type = lib.types.str;
-                # Incus rejects wildcards for proxy devices with nat=true (required for VMs).
-                default = "192.168.0.40";
-                description = "Host address to bind the listener to (must be a concrete host IP; NAT mode forbids 0.0.0.0).";
-              };
-            };
-          }
-        );
-        default = [ ];
-        description = ''
-          Host->guest port forwards, implemented as Incus proxy devices in NAT
-          mode (the only mode VMs support). Devices are named fwd-<proto>-<port>
-          and reconciled against this list on every activation.
-        '';
-      };
     };
   };
 
@@ -320,7 +237,6 @@ in
       path = [
         pkgs.incus
         pkgs.coreutils
-        pkgs.gnugrep
       ];
       serviceConfig = {
         Type = "oneshot";
@@ -337,11 +253,7 @@ in
         incus profile set "$profile" limits.memory ${lib.escapeShellArg cfg.limits.memory}
         incus profile set "$profile" cloud-init.user-data - < ${lib.escapeShellArg userDataPath}
         incus profile set "$profile" user.user-data - < ${lib.escapeShellArg userDataPath}
-        # Static IP must exist before NAT proxies (connect IP must be a static
-        # address on the instance).
         ${staticIpScript}
-        ${portForwardScript}
-        ${prunePortForwardScript}
       '';
     };
   };
