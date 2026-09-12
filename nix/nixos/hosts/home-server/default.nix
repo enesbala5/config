@@ -32,15 +32,17 @@ in
   homeServer.incusAiAgent.enable = true;
   homeServer.incusHermesAgent.enable = true;
 
-  # Tailscale-only Caddy front end. Its Hermes upstream comes from the same
-  # guest IPv4 as the DHCP reservation below.
+  # Tailscale-only Caddy front end. Upstreams are loopback ports owned by Incus
+  # proxy devices, so Caddy never dials incusbr0 directly — Incus does that hop.
   homeServer.caddy = {
     enable = true;
-    hermes.upstream = "${guestIps.hermes}:9119";
+    hermes.upstream = "127.0.0.1:9119";
   };
 
-  # Pin guest IPs (DHCP reservations on incusbr0) and expose guest ports on the
-  # home server via Incus proxy devices (NAT mode).
+  # Pin guest IPs (DHCP reservations on incusbr0) and expose guest ports as
+  # loopback listeners via Incus proxy devices (NAT mode). Caddy targets the
+  # 127.0.0.1 side; Incus forwards to the pinned guest IPv4, which stays the
+  # single source of truth for both the reservation and the proxy `connect`.
   homeServer.incusAiAgent.network = {
     staticIpv4 = guestIps.aiAgent;
   };
@@ -51,6 +53,8 @@ in
       {
         hostPort = 9119;
         guestPort = 9119;
+        # Loopback only: never expose the unauthenticated dashboard on the LAN.
+        listenAddress = "127.0.0.1";
       }
     ];
   };
