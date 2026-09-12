@@ -144,6 +144,23 @@ RestartSec=10
 [Install]
 WantedBy=multi-user.target
 EOF
+  incus exec "$VM_NAME" -- tee /etc/systemd/system/hermes-serve.service >/dev/null <<'EOF'
+[Unit]
+Description=Hermes Agent backend server (Desktop/remote clients)
+After=network-online.target hermes-agent.service hermes-dashboard.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=HOME=/root
+WorkingDirectory=/root
+ExecStart=/bin/bash -lc 'set -a && source /etc/hermes-env && set +a; export PATH=/usr/local/bin:/root/.local/bin:$PATH; exec hermes serve --host 0.0.0.0 --port 8642'
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
   incus exec "$VM_NAME" -- systemctl daemon-reload
 }
 
@@ -233,12 +250,12 @@ cmd_start() {
   ensure_hermes_env
   ensure_oh_start
   ensure_hermes_skill
-  incus exec "$VM_NAME" -- systemctl enable --now hermes-agent hermes-dashboard
-  incus exec "$VM_NAME" -- systemctl restart hermes-agent hermes-dashboard
+  incus exec "$VM_NAME" -- systemctl enable --now hermes-agent hermes-dashboard hermes-serve
+  incus exec "$VM_NAME" -- systemctl restart hermes-agent hermes-dashboard hermes-serve
 }
 
 cmd_stop() {
-  incus exec "$VM_NAME" -- systemctl stop hermes-agent hermes-dashboard || true
+  incus exec "$VM_NAME" -- systemctl stop hermes-agent hermes-dashboard hermes-serve || true
   incus stop "$VM_NAME" || true
 }
 
@@ -247,8 +264,8 @@ case "$ACTION" in
   launch) cmd_launch ;;
   start) cmd_start ;;
   stop) cmd_stop ;;
-  status) incus list "$VM_NAME"; incus exec "$VM_NAME" -- systemctl status hermes-agent hermes-dashboard --no-pager || true ;;
-  logs) incus exec "$VM_NAME" -- journalctl -u hermes-agent -u hermes-dashboard -n 80 --no-pager ;;
+  status) incus list "$VM_NAME"; incus exec "$VM_NAME" -- systemctl status hermes-agent hermes-dashboard hermes-serve --no-pager || true ;;
+  logs) incus exec "$VM_NAME" -- journalctl -u hermes-agent -u hermes-dashboard -u hermes-serve -n 80 --no-pager ;;
   push-secrets) push_secrets ;;
   -h|--help|"") usage; exit 0 ;;
   *) echo "Unknown argument: $ACTION" >&2; usage; exit 1 ;;

@@ -57,6 +57,29 @@ let
     WantedBy=multi-user.target
   '';
 
+  # Headless backend server the Hermes Desktop app (and other remote clients)
+  # connect to. Desktop's remote connections use the :8642 convention and probe
+  # GET /api/health, which only `hermes serve` answers (the OpenAI-compatible
+  # gateway `api_server` platform is a different thing and serves /health).
+  # Caddy fronts this as hermes-api.enesbala.com.
+  hermesServeUnit = ''
+    [Unit]
+    Description=Hermes Agent backend server (Desktop/remote clients)
+    After=network-online.target hermes-agent.service hermes-dashboard.service
+    Wants=network-online.target
+
+    [Service]
+    Type=simple
+    Environment=HOME=/root
+    WorkingDirectory=/root
+    ExecStart=/bin/bash -lc 'set -a && source /etc/hermes-env && set +a; export PATH=/usr/local/bin:/root/.local/bin:$PATH; exec hermes serve --host 0.0.0.0 --port 8642'
+    Restart=on-failure
+    RestartSec=10
+
+    [Install]
+    WantedBy=multi-user.target
+  '';
+
   hermesEnvProfile = ''
     # Export /etc/hermes-env for Hermes CLI and login shells (incus exec bash -l).
     if [ -f /etc/hermes-env ]; then
@@ -105,6 +128,12 @@ let
     "    content: |"
     (yamlIndent 6 hermesDashboardUnit)
     ""
+    "  - path: /etc/systemd/system/hermes-serve.service"
+    "    permissions: '0644'"
+    "    owner: root:root"
+    "    content: |"
+    (yamlIndent 6 hermesServeUnit)
+    ""
     "  - path: /etc/profile.d/hermes-env.sh"
     "    permissions: '0644'"
     "    owner: root:root"
@@ -127,6 +156,7 @@ let
     "  - systemctl daemon-reload"
     "  - systemctl enable hermes-agent.service"
     "  - systemctl enable hermes-dashboard.service"
+    "  - systemctl enable hermes-serve.service"
   ];
 
   userDataPath = "/etc/incus-profiles/${cfg.profileName}/user-data";
