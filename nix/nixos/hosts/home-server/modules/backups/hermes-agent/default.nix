@@ -17,6 +17,7 @@ lib.mkIf config.homeServer.incusHermesAgent.enable {
       User = "root";
       Group = "root";
       EnvironmentFile = config.age.secrets.hermes-agent-backup-env.path;
+      StateDirectory = "hermes-agent-backup";
     };
     path = [
       pkgs.bash
@@ -59,7 +60,14 @@ lib.mkIf config.homeServer.incusHermesAgent.enable {
         exit 1
       fi
 
-      TMP="$(${pkgs.coreutils}/bin/mktemp -d)"
+      # Stable staging path. restic matches the previous snapshot as its
+      # parent by host + path, so a random mktemp dir made every run look like
+      # a brand-new path ("no parent snapshot found"), forcing restic to re-read
+      # and re-hash all files instead of doing a true incremental backup. It
+      # also broke `restic snapshots --latest 1`, since that filters per path.
+      TMP="$STATE_DIRECTORY/stage"
+      ${pkgs.coreutils}/bin/rm -rf "$TMP"
+      ${pkgs.coreutils}/bin/mkdir -p "$TMP"
       trap 'rm -rf "$TMP"' EXIT
 
       # Recursive `incus file pull` dies on unix sockets (gateway.sock while
@@ -104,7 +112,10 @@ lib.mkIf config.homeServer.incusHermesAgent.enable {
         exit 1
       fi
 
-      SNAPSHOT=$(${pkgs.restic}/bin/restic snapshots --latest 1 --json | ${pkgs.jq}/bin/jq -r '.[0].short_id')
+      # Filter by path: older snapshots exist under now-defunct random temp
+      # paths, and `--latest 1` groups by path, so without this the newest one
+      # returned would not necessarily be the snapshot we just created.
+      SNAPSHOT=$(${pkgs.restic}/bin/restic snapshots --path "$SRC" --latest 1 --json | ${pkgs.jq}/bin/jq -r '.[0].short_id')
       echo "Done. Snapshot: $SNAPSHOT"
     '';
   };
