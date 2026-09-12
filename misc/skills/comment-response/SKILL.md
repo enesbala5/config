@@ -33,13 +33,15 @@ Promo safety is per-channel. `help-only` is mandatory in `r/resumes`, `r/Enginee
 
 ## Voice source
 
-Fetch before drafting. Do not work from memory and do not guess at product facts.
+Fetch before drafting, through the cached reader. One clone per repo, at most one pull per TTL, then reads from disk, so a repeat costs nothing and no session clones from scratch:
 
 ```bash
-gh api repos/enesbala5/portfolio/contents/misc/TONE.md -q .content | base64 -d
-gh api repos/enesbala5/portfolio/contents/misc/PROFILE.md -q .content | base64 -d
-gh api "repos/enesbala5/portfolio/contents/src/routes/work/(projects)/coverlttr/misc/summary.md" -q .content | base64 -d
+bash ../draft-x-posts/scripts/repo-file.sh enesbala5/portfolio main \
+  misc/TONE.md misc/PROFILE.md \
+  "src/routes/work/(projects)/coverlttr/misc/summary.md"
 ```
+
+The reader lives in the sibling skill (`draft-x-posts`) in the same skills directory, and the cache contract is in `../draft-x-posts/references/repo-cache.md`. If that sibling skill is not installed, fall back to `gh api repos/enesbala5/portfolio/contents/<path> -q .content | base64 -d` and say so in one line. Never `git clone` the repo in a session that has the reader, and never work from memory of these files.
 
 Never use `misc/prompts/coverlttr-prompt.md`. It is an outdated invoicing draft, unrelated to the product.
 
