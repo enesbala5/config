@@ -36,12 +36,17 @@ in
   # addresses, so Caddy dials the guest directly — no host-side port forwards.
   homeServer.caddy = {
     enable = true;
-    hermes.upstream = "${guestIps.hermes}:9119";
+    hermes = {
+      upstream = "${guestIps.hermes}:9119";
+    };
+    agent = {
+      upstream = "${guestIps.aiAgent}:3000";
+      apiUpstream = "${guestIps.aiAgent}:8000";
+    };
   };
 
   # Pin the guest IPs on incusbr0 (10.0.100.0/24). These stay the single source
-  # of truth for the Caddy upstreams. `byok-agent` stays unwired until its route
-  # is ready.
+  # of truth for the Caddy upstreams.
   homeServer.incusAiAgent.network = {
     staticIpv4 = guestIps.aiAgent;
   };

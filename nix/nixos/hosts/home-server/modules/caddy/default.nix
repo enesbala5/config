@@ -84,30 +84,49 @@ in
       };
     };
 
-    # Probe endpoints. The catch-all answers on the bound (Tailscale) address'
-    # HTTP port, so `curl http://<tailscale-ip>/` proving "Hello World" shows
-    # bind + firewall + Caddy are healthy before any guest/upstream is in play.
-    mock = {
+    # Browser front end for the byok-agent VM. Agent Canvas (the successor to
+    # the legacy OpenHands GUI) runs frontend-only in the guest on its own port,
+    # while the agent server API stays on 8000. `agent.enesbala.com` proxies the
+    # frontend, and `agent-api.enesbala.com` proxies the API so a browser on the
+    # tailnet can add it as a Canvas backend.
+    agent = {
       enable = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "Serve a static test body to verify bind/firewall/proxy wiring.";
+        description = "Reverse-proxy agent.enesbala.com to the byok-agent frontend.";
       };
 
       hostName = lib.mkOption {
         type = lib.types.str;
         default = "agent.enesbala.com";
+        description = "Host that serves the OpenHands Agent Canvas frontend.";
+      };
+
+      upstream = lib.mkOption {
+        type = lib.types.str;
+        default = "10.0.100.173:3000";
         description = ''
-          Host that answers with the mock body. Currently the OpenHands UI
-          origin named in Hermes' SOUL seed; repoint it at the byok-agent
-          upstream (10.0.100.173:8000) once that route is ready.
+          Agent Canvas frontend inside the byok-agent VM (the
+          incusAiAgent module's frontendPort, default 3000). Pin the guest NIC:
+            incus config device set byok-agent eth0 ipv4.address=10.0.100.173
         '';
       };
 
-      body = lib.mkOption {
+      apiHostName = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = "agent-api.enesbala.com";
+        description = ''
+          Optional second host that reverse-proxies the byok-agent agent server
+          API. The Canvas frontend is only a client, so the browser needs to
+          reach the API too: add this URL in Manage Backends using the key in
+          OH_SESSION_API_KEYS_0. Set null to serve only the frontend.
+        '';
+      };
+
+      apiUpstream = lib.mkOption {
         type = lib.types.str;
-        default = "Hello World";
-        description = "Body returned by the mock endpoints.";
+        default = "10.0.100.173:8000";
+        description = "Agent server (conversation runtime) inside byok-agent.";
       };
     };
   };
@@ -141,21 +160,45 @@ in
           };
         })
 
-        (lib.mkIf cfg.mock.enable {
+        (lib.mkIf cfg.agent.enable {
           # Bare `:80` matches every host on the bound address, so a raw
-          # `curl http://<tailscale-ip>/` works with no DNS and no TLS trust.
+          # `curl http://<tailscale-ip>/` reaches the frontend with no DNS.
           ":80" = {
             extraConfig = ''
-              respond ${builtins.toJSON cfg.mock.body} 200
+              reverse_proxy ${cfg.agent.upstream} {
+                header_up Host {host}
+                flush_interval -1
+              }
             '';
           };
 
-          ${cfg.mock.hostName} = {
+          ${cfg.agent.hostName} = {
             listenAddresses = [ "{$CADDY_BIND_ADDR}" ];
             extraConfig = ''
               tls internal
               encode gzip
-              respond ${builtins.toJSON cfg.mock.body} 200
+              reverse_proxy ${cfg.agent.upstream} {
+                header_up Host {host}
+                header_up X-Forwarded-Proto {scheme}
+                header_up X-Forwarded-Host {host}
+                flush_interval -1
+              }
+            '';
+          };
+        })
+
+        (lib.mkIf (cfg.agent.enable && cfg.agent.apiHostName != null) {
+          ${cfg.agent.apiHostName} = {
+            listenAddresses = [ "{$CADDY_BIND_ADDR}" ];
+            extraConfig = ''
+              tls internal
+              encode gzip
+              reverse_proxy ${cfg.agent.apiUpstream} {
+                header_up Host {host}
+                header_up X-Forwarded-Proto {scheme}
+                header_up X-Forwarded-Host {host}
+                flush_interval -1
+              }
             '';
           };
         })
