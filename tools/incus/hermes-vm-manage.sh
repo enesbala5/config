@@ -25,6 +25,7 @@ Usage:
 Options:
   --vm-name <name>   Instance to manage (default: hermes-agent, or $VM_NAME).
                      Use a different name to drive a throwaway/test VM.
+                     May appear before or after the action.
 EOF
 }
 
@@ -263,8 +264,10 @@ cmd_stop() {
   incus stop "$VM_NAME" || true
 }
 
-# Flags precede the action: `hermes-vm-manage.sh --vm-name foo start`.
+# Flags may appear before or after the action, e.g.
+# `hermes-vm-manage.sh --vm-name foo start` or `... start --vm-name foo`.
 # Env vars above still work and are used as the defaults.
+ACTION=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --vm-name)
@@ -278,6 +281,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     --vm-name=*)
       VM_NAME="${1#*=}"
+      if [[ -z "$VM_NAME" ]]; then
+        echo "Error: --vm-name requires a value" >&2
+        usage
+        exit 1
+      fi
       shift
       ;;
     -h|--help)
@@ -294,12 +302,22 @@ while [[ $# -gt 0 ]]; do
       exit 1
       ;;
     *)
-      break
+      if [[ -z "$ACTION" ]]; then
+        ACTION="$1"
+      else
+        echo "Unknown argument: $1" >&2
+        usage
+        exit 1
+      fi
+      shift
       ;;
   esac
 done
 
-ACTION="${1:-}"
+# Anything after `--` is treated as the action if one wasn't seen yet.
+if [[ -z "$ACTION" ]]; then
+  ACTION="${1:-}"
+fi
 case "$ACTION" in
   launch) cmd_launch ;;
   start) cmd_start ;;
