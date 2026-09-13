@@ -15,17 +15,22 @@ PROFILE_MEMORY="${PROFILE_MEMORY:-4GiB}"
 # Keep in sync with hosts/home-server/default.nix (guestIps) and the
 # incus-hermes-agent module's network.nic.
 NIC="${NIC:-eth0}"
+# Pinned guest IPv4 (also in hosts/home-server/default.nix guestIps). Override
+# per run with --static-ip; the value "dynamic" leaves the guest on DHCP.
 STATIC_IP="${STATIC_IP:-10.0.100.174}"
 
 usage() {
   cat >&2 <<'EOF'
 Usage:
-  hermes-vm-manage.sh [--vm-name <name>] start|stop|status|logs|push-secrets|launch
+  hermes-vm-manage.sh [--vm-name <name>] [--static-ip <addr|dynamic>] start|stop|status|logs|push-secrets|launch
 
 Options:
-  --vm-name <name>   Instance to manage (default: hermes-agent, or $VM_NAME).
-                     Use a different name to drive a throwaway/test VM.
-                     May appear before or after the action.
+  --vm-name <name>    Instance to manage (default: hermes-agent, or $VM_NAME).
+                      Use a different name to drive a throwaway/test VM.
+                      May appear before or after the action.
+  --static-ip <addr>  IPv4 to pin on the guest NIC (default: 10.0.100.174, or
+                      $STATIC_IP). Pass "dynamic" to leave the guest on DHCP.
+                      May appear before or after the action.
 EOF
 }
 
@@ -35,7 +40,10 @@ STATIC_IP_CHANGED=0
 # running guest can be rebooted to pick up its new DHCP reservation.
 ensure_static_ip() {
   STATIC_IP_CHANGED=0
-  [[ -n "$STATIC_IP" ]] || return 0
+  # Empty or "dynamic" leaves the guest on a DHCP lease.
+  if [[ -z "$STATIC_IP" || "$STATIC_IP" == "dynamic" ]]; then
+    return 0
+  fi
   local current
   current="$(incus config device get "$VM_NAME" "$NIC" ipv4.address 2>/dev/null || true)"
   if [[ "$current" != "$STATIC_IP" ]]; then
@@ -283,6 +291,24 @@ while [[ $# -gt 0 ]]; do
       VM_NAME="${1#*=}"
       if [[ -z "$VM_NAME" ]]; then
         echo "Error: --vm-name requires a value" >&2
+        usage
+        exit 1
+      fi
+      shift
+      ;;
+    --static-ip)
+      STATIC_IP="${2:-}"
+      if [[ -z "$STATIC_IP" ]]; then
+        echo "Error: --static-ip requires a value" >&2
+        usage
+        exit 1
+      fi
+      shift 2
+      ;;
+    --static-ip=*)
+      STATIC_IP="${1#*=}"
+      if [[ -z "$STATIC_IP" ]]; then
+        echo "Error: --static-ip requires a value" >&2
         usage
         exit 1
       fi

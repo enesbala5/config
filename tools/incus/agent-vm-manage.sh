@@ -16,6 +16,8 @@ PROFILE_MEMORY="${PROFILE_MEMORY:-8GiB}"
 # Keep in sync with hosts/home-server/default.nix (guestIps) and the
 # incus-ai-agent module's network.nic.
 NIC="${NIC:-eth0}"
+# Pinned guest IPv4 (also in hosts/home-server/default.nix guestIps). Override
+# per run with --static-ip; the value "dynamic" leaves the guest on DHCP.
 STATIC_IP="${STATIC_IP:-10.0.100.173}"
 # Keep in sync with the incus-ai-agent module's frontendPort.
 CANVAS_PORT="${CANVAS_PORT:-3000}"
@@ -23,9 +25,14 @@ CANVAS_PORT="${CANVAS_PORT:-3000}"
 usage() {
   cat >&2 <<'EOF'
 Usage:
-  agent-vm-manage.sh start|stop|status|logs|push-secrets|launch
+  agent-vm-manage.sh [--static-ip <addr|dynamic>] start|stop|status|logs|push-secrets|launch
   agent-vm-manage.sh run --prompt TEXT [--repo URL] [--model ID]
   agent-vm-manage.sh run --prompt-file PATH [--repo URL] [--model ID]
+
+Options:
+  --static-ip <addr>  IPv4 to pin on the guest NIC (default: 10.0.100.173, or
+                      $STATIC_IP). Pass "dynamic" to leave the guest on DHCP.
+                      May appear before or after the action.
 EOF
 }
 
@@ -35,7 +42,10 @@ STATIC_IP_CHANGED=0
 # running guest can be rebooted to pick up its new DHCP reservation.
 ensure_static_ip() {
   STATIC_IP_CHANGED=0
-  [[ -n "$STATIC_IP" ]] || return 0
+  # Empty or "dynamic" leaves the guest on a DHCP lease.
+  if [[ -z "$STATIC_IP" || "$STATIC_IP" == "dynamic" ]]; then
+    return 0
+  fi
   local current
   current="$(incus config device get "$VM_NAME" "$NIC" ipv4.address 2>/dev/null || true)"
   if [[ "$current" != "$STATIC_IP" ]]; then
@@ -280,15 +290,54 @@ cmd_run() {
   incus exec "$VM_NAME" -- /usr/local/bin/oh-start.sh "${args[@]}"
 }
 
-ACTION="${1:-}"
-if [[ $# -gt 0 ]]; then
-  shift
-fi
+# Options may appear before or after the action, e.g.
+# `agent-vm-manage.sh --static-ip 10.0.100.175 start` or `... start --static-ip=dynamic`.
+# Env vars above still work and are used as the defaults.
+ACTION=""
+ACTION_ARGS=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --static-ip)
+      STATIC_IP="${2:-}"
+      if [[ -z "$STATIC_IP" ]]; then
+        echo "Error: --static-ip requires a value" >&2
+        usage
+        exit 1
+      fi
+      shift 2
+      ;;
+    --static-ip=*)
+      STATIC_IP="${1#*=}"
+      if [[ -z "$STATIC_IP" ]]; then
+        echo "Error: --static-ip requires a value" >&2
+        usage
+        exit 1
+      fi
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      if [[ -z "$ACTION" ]]; then
+        case "$1" in
+          -*) echo "Unknown flag: $1" >&2; usage; exit 1 ;;
+        esac
+        ACTION="$1"
+      else
+        ACTION_ARGS+=("$1")
+      fi
+      shift
+      ;;
+  esac
+done
+
 case "$ACTION" in
   launch) cmd_launch ;;
   start) cmd_start ;;
   stop) cmd_stop ;;
-  run) cmd_run "$@" ;;
+  run) cmd_run "${ACTION_ARGS[@]}" ;;
   status) incus list "$VM_NAME"; incus exec "$VM_NAME" -- systemctl status openhands-agent-server openhands-agent-canvas --no-pager || true ;;
   logs) incus exec "$VM_NAME" -- journalctl -u openhands-agent-server -u openhands-agent-canvas -n 80 --no-pager ;;
   push-secrets) push_secrets ;;
