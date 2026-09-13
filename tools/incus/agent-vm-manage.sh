@@ -21,11 +21,17 @@ NIC="${NIC:-eth0}"
 STATIC_IP="${STATIC_IP:-10.0.100.173}"
 # Keep in sync with the incus-ai-agent module's frontendPort.
 CANVAS_PORT="${CANVAS_PORT:-3000}"
+# OpenHands rules: the whole rules tree, pushed into the guest's user-scope
+# skills dir. Override RULES_PATH to sync a different tree.
+RULES_PATH="${RULES_PATH:-$(dirname "$0")/../../misc/rules}"
+# Rule basenames not to push. `frontend-design` already ships as a skill under
+# misc/skills/; shipping the .mdc copy would duplicate it as an always-on rule.
+EXCLUDED_RULES="${EXCLUDED_RULES-frontend-design}"
 
 usage() {
   cat >&2 <<'EOF'
 Usage:
-  agent-vm-manage.sh [--static-ip <addr|dynamic>] start|stop|status|logs|push-secrets|launch
+  agent-vm-manage.sh [--static-ip <addr|dynamic>] start|stop|status|logs|push-secrets|push-rules|launch
   agent-vm-manage.sh run --prompt TEXT [--repo URL] [--model ID]
   agent-vm-manage.sh run --prompt-file PATH [--repo URL] [--model ID]
 
@@ -155,6 +161,45 @@ ensure_oh_start() {
     -p --mode 0755 --uid 0 --gid 0
 }
 
+# Refresh the guest's OpenHands rules from the repo, recursively. Every .md and
+# .mdc under RULES_PATH is pushed as <name>.md, so the Cursor sources ship as-is:
+# OpenHands loads a file with no `paths:`/`triggers:` frontmatter in full, always.
+# A .md source (e.g. a `paths:` rule in path-triggered/) wins over a same-named
+# Cursor .mdc. The agent server runs as root with HOME=/root (see
+# nix/nixos/hosts/home-server/modules/incus-ai-agent/default.nix), so
+# ~/.agents/skills/ is the user scope that applies to every conversation.
+ensure_rules() {
+  local ext src base name seen
+  local count=0 names=() excluded=($EXCLUDED_RULES)
+  local -A declared=()
+  if [[ ! -d "$RULES_PATH" ]]; then
+    echo "Warning: ${RULES_PATH} not found; keeping guest rules." >&2
+    return 0
+  fi
+  echo "==> Refreshing guest OpenHands rules (/root/.agents/skills)..."
+  incus exec "$VM_NAME" -- mkdir -p /root/.agents/skills
+  for ext in md mdc; do
+    while IFS= read -r src; do
+      base="$(basename "$src")"
+      name="${base%.*}"
+      if [[ "$base" == "README.md" || -n "${declared[$name]:-}" ]]; then
+        continue
+      fi
+      for seen in "${excluded[@]}"; do
+        if [[ "$name" == "$seen" ]]; then
+          continue 2
+        fi
+      done
+      declared[$name]=1
+      incus file push "$src" "${VM_NAME}/root/.agents/skills/${name}.md" \
+        -p --mode 0644 --uid 0 --gid 0
+      names+=("${name}.md")
+      count=$((count + 1))
+    done < <(find "$RULES_PATH" -type f -name "*.${ext}" | sort)
+  done
+  echo "==> Pushed ${count} rule file(s): ${names[*]}"
+}
+
 push_secrets() {
   if [[ ! -e "$SECRETS_PATH" ]]; then
     echo "Error: secret file $SECRETS_PATH not found. Encrypt with manage-secret and apply agenix first." >&2
@@ -217,6 +262,7 @@ cmd_start() {
   fi
   ensure_agent_env
   ensure_oh_start
+  ensure_rules
   incus exec "$VM_NAME" -- systemctl restart openhands-agent-server || true
   wait_for_agent_server
   incus exec "$VM_NAME" -- systemctl restart openhands-agent-canvas || true
@@ -341,6 +387,7 @@ case "$ACTION" in
   status) incus list "$VM_NAME"; incus exec "$VM_NAME" -- systemctl status openhands-agent-server openhands-agent-canvas --no-pager || true ;;
   logs) incus exec "$VM_NAME" -- journalctl -u openhands-agent-server -u openhands-agent-canvas -n 80 --no-pager ;;
   push-secrets) push_secrets ;;
+  push-rules) ensure_rules ;;
   -h|--help|"") usage; exit 0 ;;
   *) echo "Unknown argument: $ACTION" >&2; usage; exit 1 ;;
 esac
