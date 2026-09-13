@@ -1,0 +1,80 @@
+---
+paths:
+  - "frontend/**/*.svelte"
+---
+
+# Component Folder Structure
+
+Every component is a **wrapper directory**.
+
+A component is **never** represented by a standalone `.svelte` file. Instead, every component lives inside a folder with the same name, and the component file inside that folder has the same name.
+
+If a component has child components, they are placed inside that component's `components/` directory. If it has no children, the wrapper folder still exists.
+
+## Pattern
+
+```
+Parent/
+├── Parent.svelte
+└── components/
+    └── Child/
+        ├── Child.svelte
+        └── components/          # only if Child has children
+            └── Grandchild/
+                └── Grandchild/
+                    └── Grandchild.svelte
+```
+
+## Rules
+
+1. **Every component has its own wrapper folder**: Component `X` is always stored as `X/X.svelte`. Never create standalone component files such as `X.svelte`.
+2. **Folder and component names must match**: The wrapper folder and `.svelte` file always share the same name (`Button/Button.svelte`).
+3. **Children belong in `components/`**: Child components are always placed inside their parent's `components/` directory.
+4. **Repeat recursively**: Every child follows the exact same structure. If a child has its own children, it gets its own `components/` directory. The wrapper-folder rule applies at every level.
+5. **Scope**: Use this for page-local and component-local UI. Shared/reusable UI still belongs under `lib/components/` (following existing shared conventions there).
+
+## Examples
+
+Adding `X` under `PageComponent`:
+
+```
+PageComponent/
+└── components/
+    └── X/
+        └── X.svelte
+```
+
+Adding `Y` used only by `X`:
+
+```
+PageComponent/
+└── components/
+    └── X/
+        ├── X.svelte
+        └── components/
+            └── Y/
+                └── Y.svelte
+```
+
+Even if `Y` has no children, it is **still** wrapped:
+
+```
+Y/
+└── Y.svelte
+```
+
+## Anti-patterns
+
+```text
+# ❌ Standalone component file
+PageComponent/X.svelte
+
+# ❌ Component not wrapped in its own folder
+PageComponent/components/X.svelte
+
+# ❌ Child not inside parent's components/ directory
+PageComponent/components/X/Y/Y.svelte
+
+# ❌ Mismatched folder/file names
+PageComponent/components/Button/ButtonComponent.svelte
+```
