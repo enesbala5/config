@@ -20,7 +20,11 @@ STATIC_IP="${STATIC_IP:-10.0.100.174}"
 usage() {
   cat >&2 <<'EOF'
 Usage:
-  hermes-vm-manage.sh start|stop|status|logs|push-secrets|launch
+  hermes-vm-manage.sh [--vm-name <name>] start|stop|status|logs|push-secrets|launch
+
+Options:
+  --vm-name <name>   Instance to manage (default: hermes-agent, or $VM_NAME).
+                     Use a different name to drive a throwaway/test VM.
 EOF
 }
 
@@ -258,6 +262,42 @@ cmd_stop() {
   incus exec "$VM_NAME" -- systemctl stop hermes-agent hermes-dashboard hermes-serve || true
   incus stop "$VM_NAME" || true
 }
+
+# Flags precede the action: `hermes-vm-manage.sh --vm-name foo start`.
+# Env vars above still work and are used as the defaults.
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --vm-name)
+      VM_NAME="${2:-}"
+      if [[ -z "$VM_NAME" ]]; then
+        echo "Error: --vm-name requires a value" >&2
+        usage
+        exit 1
+      fi
+      shift 2
+      ;;
+    --vm-name=*)
+      VM_NAME="${1#*=}"
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*)
+      echo "Unknown flag: $1" >&2
+      usage
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
 
 ACTION="${1:-}"
 case "$ACTION" in
