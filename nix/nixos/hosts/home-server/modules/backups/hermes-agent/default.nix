@@ -118,7 +118,7 @@ lib.mkIf config.homeServer.incusHermesAgent.enable {
         exit 1
       fi
 
-      if ! ${pkgs.restic}/bin/restic forget --prune --keep-daily 7 --keep-weekly 4 --keep-monthly 3; then
+      if ! ${pkgs.restic}/bin/restic forget --prune --keep-last 1; then
         notify_failure "restic forget --prune command returned non-zero."
         exit 1
       fi
