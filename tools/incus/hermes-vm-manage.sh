@@ -190,7 +190,7 @@ ensure_skills() {
     return 0
   fi
   echo "==> Refreshing guest Hermes skills (/root/.hermes/skills)..."
-  local count=0 names=()
+  local count=0 failed=0 names=()
   while IFS= read -r skill_dir; do
     local name
     name="$(basename "$skill_dir")"
@@ -198,13 +198,24 @@ ensure_skills() {
     if [[ ! -f "$src" ]]; then
       continue
     fi
-    incus exec "$VM_NAME" -- mkdir -p "/root/.hermes/skills/${name}"
-    incus file push "$src" "${VM_NAME}/root/.hermes/skills/${name}/SKILL.md" \
-      -p --mode 0644 --uid 0 --gid 0
+    if ! incus exec "$VM_NAME" -- mkdir -p "/root/.hermes/skills/${name}" 2>/dev/null; then
+      echo "Warning: could not create /root/.hermes/skills/${name} on guest; skipping ${name}" >&2
+      failed=$((failed + 1))
+      continue
+    fi
+    if ! incus file push "$src" "${VM_NAME}/root/.hermes/skills/${name}/SKILL.md" \
+        -p --mode 0644 --uid 0 --gid 0; then
+      echo "Warning: failed to push skill ${name}" >&2
+      failed=$((failed + 1))
+      continue
+    fi
     names+=("${name}")
     count=$((count + 1))
   done < <(find "$SKILLS_PATH" -mindepth 1 -maxdepth 1 -type d | sort)
-  echo "==> Pushed ${count} skill(s): ${names[*]}"
+  echo "==> Pushed ${count} skill(s): ${names[*]:-<none>}"
+  if [[ "$failed" -gt 0 ]]; then
+    echo "Warning: ${failed} skill(s) failed to push" >&2
+  fi
 }
 
 # Keep in sync with nix/nixos/hosts/home-server/modules/incus-hermes-agent/default.nix
