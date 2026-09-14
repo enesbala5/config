@@ -14,7 +14,7 @@ let
   # reverse-proxy targets reference these, so they cannot drift apart.
   guestIps = {
     aiAgent = "10.0.100.173";
-    hermes = "10.0.100.219";
+    hermes = "10.0.100.174";
   };
 in
 {
