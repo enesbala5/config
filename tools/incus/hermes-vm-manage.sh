@@ -22,7 +22,7 @@ STATIC_IP="${STATIC_IP:-10.0.100.174}"
 usage() {
   cat >&2 <<'EOF'
 Usage:
-  hermes-vm-manage.sh [--vm-name <name>] [--static-ip <addr|dynamic>] start|stop|status|logs|push-secrets|launch
+  hermes-vm-manage.sh [--vm-name <name>] [--static-ip <addr|dynamic>] start|stop|status|logs|push-secrets|launch|shell
 
 Options:
   --vm-name <name>    Instance to manage (default: hermes-agent, or $VM_NAME).
@@ -350,6 +350,7 @@ case "$ACTION" in
   stop) cmd_stop ;;
   status) incus list "$VM_NAME"; incus exec "$VM_NAME" -- systemctl status hermes-agent hermes-dashboard hermes-serve --no-pager || true ;;
   logs) incus exec "$VM_NAME" -- journalctl -u hermes-agent -u hermes-dashboard -u hermes-serve -n 80 --no-pager ;;
+  shell) incus shell "$VM_NAME" ;;
   push-secrets) push_secrets ;;
   -h|--help|"") usage; exit 0 ;;
   *) echo "Unknown argument: $ACTION" >&2; usage; exit 1 ;;
