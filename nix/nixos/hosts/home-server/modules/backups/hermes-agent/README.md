@@ -37,11 +37,12 @@ $DEST/var/lib/hermes-agent-backup/stage/extracted/
 
 ## 2. Re-zip and push into the VM
 
-`hermes restore` expects a zip archive. Re-create one from the extracted tree,
-push it into the VM, restore, then clean up.
+`hermes import` expects a zip archive. Re-create one from the extracted tree,
+push it into the VM, import, then clean up.
 
 ```bash
-VM=hermes-agent
+VM=[hermes-agent / hermes-restore-test]
+DEST="$HOME/hermes-restore"
 EXTRACTED="$DEST/var/lib/hermes-agent-backup/stage/extracted"
 ZIPFILE="/tmp/hermes-restore.zip"
 
@@ -50,14 +51,43 @@ ZIPFILE="/tmp/hermes-restore.zip"
 incus exec "$VM" -- systemctl stop hermes-agent hermes-dashboard hermes-serve
 
 incus file push "$ZIPFILE" "$VM/tmp/hermes-restore.zip"
-incus exec "$VM" -- hermes restore /tmp/hermes-restore.zip
+incus exec "$VM" -- hermes import --force /tmp/hermes-restore.zip
 
 incus exec "$VM" -- rm /tmp/hermes-restore.zip
 rm "$ZIPFILE"
 
 incus exec "$VM" -- systemctl start hermes-agent hermes-dashboard hermes-serve
-incus exec "$VM" -- ls -la /root/.hermes
 ```
+
+Verify the services came up and the gateway connected:
+
+```bash
+incus exec "$VM" -- systemctl status hermes-agent hermes-dashboard hermes-serve --no-pager
+incus exec "$VM" -- journalctl -u hermes-agent -n 40 --no-pager
+```
+
+### Expected warnings during import (safe to ignore)
+
+- **`HERMES_HOME fallback`** — hermes falls back to the default profile path
+  during import because `HERMES_HOME` isn't set in the `incus exec` environment.
+  All profile data is still restored correctly.
+
+- **`Gateway service install failed`** — `hermes import` tries to register a
+  user systemd unit at the end, which requires a D-Bus session that `incus exec`
+  doesn't provide. The gateway is managed by the system-level
+  `hermes-agent.service` (runs `hermes gateway`), not a user unit, so this
+  failure has no effect.
+
+- **`hermes status` shows "Gateway: stopped"** — hermes's own status command
+  looks for the user unit it would have installed itself. Since this setup uses
+  system-level units, that check always shows stopped even when the gateway is
+  running. Use `systemctl status hermes-agent` inside the VM to check the real
+  state.
+
+- **Most API keys show `✗ not set`** — API keys live in `/etc/hermes-env` (the
+  agenix secret injected into the VM), not in the backup. They will be present
+  in the production VM but not in a restore-test VM unless you push the secret
+  manually.
 
 ## 3. Restoring to a freshly rebuilt VM
 
