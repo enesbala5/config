@@ -61,6 +61,9 @@ in
   "restart-cloudflared-service-env.age" = rootConfig;
   "notify-server-boot-service-env.age" = rootConfig;
 
+  # Framework 13
+  # "activitywatch-backup-env.age" = rootConfig; # uncomment after `agenix -e secrets/activitywatch-backup-env.age`
+
   # SSH
   # -------------------------------
   "ssh-config.age" = rootConfig; # Framework 13
