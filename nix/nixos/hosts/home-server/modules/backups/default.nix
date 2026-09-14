@@ -6,5 +6,6 @@
     ./audiobookshelf
     ./uptime-kuma
     ./hermes-agent
+    ./incus-ai-agent
   ];
 }
