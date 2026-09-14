@@ -38,6 +38,7 @@ EOF
 }
 
 STATIC_IP_CHANGED=0
+STATIC_IP_EXPLICIT=0  # set to 1 when --static-ip is passed explicitly
 
 # Pin the guest IP. Sets STATIC_IP_CHANGED=1 when the address changed, so a
 # running guest can be rebooted to pick up its new DHCP reservation.
@@ -333,6 +334,7 @@ while [[ $# -gt 0 ]]; do
         usage
         exit 1
       fi
+      STATIC_IP_EXPLICIT=1
       shift 2
       ;;
     --static-ip=*)
@@ -342,6 +344,7 @@ while [[ $# -gt 0 ]]; do
         usage
         exit 1
       fi
+      STATIC_IP_EXPLICIT=1
       shift
       ;;
     -h|--help)
@@ -373,6 +376,13 @@ done
 # Anything after `--` is treated as the action if one wasn't seen yet.
 if [[ -z "$ACTION" ]]; then
   ACTION="${1:-}"
+fi
+
+# Non-production VMs must not steal the pinned production IP. When --static-ip
+# was not given explicitly and the VM name differs from the production default,
+# fall back to dynamic so a throwaway/restore-test VM gets a plain DHCP lease.
+if [[ "$STATIC_IP_EXPLICIT" == "0" && "$VM_NAME" != "hermes-agent" ]]; then
+  STATIC_IP="dynamic"
 fi
 case "$ACTION" in
   launch) cmd_launch ;;
