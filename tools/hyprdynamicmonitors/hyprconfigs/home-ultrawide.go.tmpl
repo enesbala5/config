@@ -14,6 +14,12 @@ workspace = 6,monitor:{{$xiaomi.Name}}
 workspace = 7,monitor:{{$xiaomi.Name}}
 workspace = 8,monitor:{{$xiaomi.Name}}
 
+# Adjust transparency for specific apps
+windowrule = opacity 1 override 0.90 override 1 override, class:(code)$
+windowrule = opacity 1 override 0.90 override 1 override, title:.*Cursor.*
+windowrule = opacity 1 override 0.90 override 1 override, class:(dev.zed.Zed-Nightly)$
+windowrule = opacity 1 override 0.90 override 1 override, class:(obsidian)$
+
 general {
 	gaps_out = 5, 660, 120, 660
 }

@@ -34,6 +34,7 @@ Usage:
   agent-vm-manage.sh [--static-ip <addr|dynamic>] start|stop|status|logs|push-secrets|push-rules|launch
   agent-vm-manage.sh run --prompt TEXT [--repo URL] [--model ID]
   agent-vm-manage.sh run --prompt-file PATH [--repo URL] [--model ID]
+  agent-vm-manage.sh shell
 
 Options:
   --static-ip <addr>  IPv4 to pin on the guest NIC (default: 10.0.100.173, or
@@ -386,6 +387,7 @@ case "$ACTION" in
   run) cmd_run "${ACTION_ARGS[@]}" ;;
   status) incus list "$VM_NAME"; incus exec "$VM_NAME" -- systemctl status openhands-agent-server openhands-agent-canvas --no-pager || true ;;
   logs) incus exec "$VM_NAME" -- journalctl -u openhands-agent-server -u openhands-agent-canvas -n 80 --no-pager ;;
+  shell) incus shell "$VM_NAME" ;;
   push-secrets) push_secrets ;;
   push-rules) ensure_rules ;;
   -h|--help|"") usage; exit 0 ;;
