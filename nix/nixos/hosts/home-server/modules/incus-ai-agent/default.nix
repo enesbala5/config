@@ -138,7 +138,7 @@ let
     "  # nodejs is 18.x, below the 22.12 floor)."
     "  - \"curl -fsSL https://deb.nodesource.com/setup_22.x | bash -\""
     "  - apt-get install -y nodejs"
-    "  - npm install -g @openhands/agent-canvas"
+    "  - npm install -g @openhands/agent-canvas@latest"
     "  - npm cache clean --force || true"
     "  - systemctl enable --now openhands-agent-canvas.service"
   ];
