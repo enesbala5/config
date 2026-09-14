@@ -57,15 +57,10 @@ lib.mkIf config.homeServer.incusAiAgent.enable {
         exit 1
       fi
 
-      # Warn but do not abort if one of the dirs is missing — the agent may not
+      # Warn but do not abort if the dir is missing — the agent may not
       # have written any conversations yet on a fresh VM.
-      HAS_OH=0
-      HAS_WS=0
-      ${pkgs.incus}/bin/incus exec "$VM_NAME" -- test -d /root/.openhands && HAS_OH=1 || true
-      ${pkgs.incus}/bin/incus exec "$VM_NAME" -- test -d /var/lib/ai-agent/workspace && HAS_WS=1 || true
-
-      if [ "$HAS_OH" -eq 0 ] && [ "$HAS_WS" -eq 0 ]; then
-        notify_failure "Neither /root/.openhands nor /var/lib/ai-agent/workspace exist in $VM_NAME — nothing to back up."
+      if ! ${pkgs.incus}/bin/incus exec "$VM_NAME" -- test -d /root/.openhands; then
+        notify_failure "/root/.openhands does not exist in $VM_NAME — nothing to back up."
         exit 1
       fi
 
@@ -79,24 +74,16 @@ lib.mkIf config.homeServer.incusAiAgent.enable {
       # Stream a tar from the guest to avoid recursive `incus file pull` dying on
       # unix sockets or live SQLite sidecars. Guest tar exit 1 = file changed
       # mid-read (acceptable); exit >= 2 is fatal.
-      # Build the source list dynamically so we only include dirs that exist.
-      SRCS=""
-      [ "$HAS_OH" -eq 1 ] && SRCS="$SRCS root/.openhands"
-      [ "$HAS_WS" -eq 1 ] && SRCS="$SRCS var/lib/ai-agent/workspace"
-
       set +e
       set +o pipefail
-      # shellcheck disable=SC2086
       ${pkgs.incus}/bin/incus exec "$VM_NAME" -- \
         tar \
           --exclude='*.sock' \
           --exclude='*.db-wal' \
           --exclude='*.db-shm' \
-          --exclude='var/lib/ai-agent/workspace/__pycache__' \
-          --exclude='var/lib/ai-agent/workspace/.git' \
           --warning=no-file-changed \
           --ignore-failed-read \
-          -C / -cf - $SRCS \
+          -C /root -cf - .openhands \
         | ${pkgs.gnutar}/bin/tar -C "$TMP" -xf -
       pipe_status=("''${PIPESTATUS[@]}")
       guest_tar="''${pipe_status[0]:-0}"
@@ -105,11 +92,17 @@ lib.mkIf config.homeServer.incusAiAgent.enable {
       set -e
 
       if [ "$host_tar" -ne 0 ] || [ "$guest_tar" -gt 1 ]; then
-        notify_failure "Failed to archive state from $VM_NAME (guest tar=$guest_tar host tar=$host_tar)."
+        notify_failure "Failed to archive /root/.openhands from $VM_NAME (guest tar=$guest_tar host tar=$host_tar)."
         exit 1
       fi
 
-      if ! ${pkgs.restic}/bin/restic backup --tag ai-agent --tag automated "$TMP"; then
+      SRC="$TMP/.openhands"
+      if [ ! -d "$SRC" ]; then
+        notify_failure "Archived tree did not contain .openhands/."
+        exit 1
+      fi
+
+      if ! ${pkgs.restic}/bin/restic backup --tag ai-agent --tag automated "$SRC"; then
         notify_failure "restic backup command returned non-zero."
         exit 1
       fi
@@ -119,7 +112,7 @@ lib.mkIf config.homeServer.incusAiAgent.enable {
         exit 1
       fi
 
-      SNAPSHOT=$(${pkgs.restic}/bin/restic snapshots --path "$TMP" --latest 1 --json | ${pkgs.jq}/bin/jq -r '.[0].short_id')
+      SNAPSHOT=$(${pkgs.restic}/bin/restic snapshots --path "$SRC" --latest 1 --json | ${pkgs.jq}/bin/jq -r '.[0].short_id')
       echo "Done. Snapshot: $SNAPSHOT"
     '';
   };

@@ -11,10 +11,12 @@ Cloudflare R2 with restic.
 | Path | Contents |
 |---|---|
 | `/root/.openhands/` | Conversation history, agent settings, API keys/secrets, MCP config |
-| `/var/lib/ai-agent/workspace/` | Conversation workspace artifacts produced by the agent |
 
-Cache dirs, `__pycache__`, `.git`, unix sockets, and live SQLite sidecars
-(`*.db-wal`, `*.db-shm`) are excluded from the tar.
+Unix sockets and live SQLite sidecars (`*.db-wal`, `*.db-shm`) are excluded
+from the tar. The workspace (`/var/lib/ai-agent/workspace`) is intentionally
+not backed up — it is ephemeral agent output (cloned repos, installed packages,
+build artefacts) that balloons to several GB and is not needed for disaster
+recovery.
 
 - **Repository:** `rclone:r2:backups/ai-agent` (set via `RESTIC_REPOSITORY` in the env secret)
 - **Creds:** agenix secret `ai-agent-backup-env` → `/run/agenix/ai-agent-backup-env`
@@ -42,9 +44,7 @@ restic restore latest --target "$DEST"
 The extracted tree mirrors the staging layout used during backup:
 
 ```
-$DEST/var/lib/incus-ai-agent-backup/stage/
-  root/.openhands/
-  var/lib/ai-agent/workspace/
+$DEST/var/lib/incus-ai-agent-backup/stage/.openhands/
 ```
 
 ## 2. Push state back into the VM
@@ -54,24 +54,15 @@ Stop the services first so nothing is writing while you restore:
 ```bash
 VM=byok-agent   # or byok-agent-restore-test for a mock run
 DEST="$HOME/ai-agent-restore"
-STAGE="$DEST/var/lib/incus-ai-agent-backup/stage"
+SRC="$DEST/var/lib/incus-ai-agent-backup/stage/.openhands"
 
 incus exec "$VM" -- systemctl stop openhands-agent-server openhands-agent-canvas || true
 
-# Restore ~/.openhands
-if [ -d "$STAGE/root/.openhands" ]; then
-  tar -C "$STAGE" -cf - root/.openhands \
-    | incus exec "$VM" -- tar -C / -xf -
-fi
-
-# Restore workspace
-if [ -d "$STAGE/var/lib/ai-agent/workspace" ]; then
-  tar -C "$STAGE" -cf - var/lib/ai-agent/workspace \
-    | incus exec "$VM" -- tar -C / -xf -
-fi
+tar -C "$(dirname "$SRC")" -cf - .openhands \
+  | incus exec "$VM" -- tar -C /root -xf -
 
 incus exec "$VM" -- systemctl start openhands-agent-server openhands-agent-canvas
-incus exec "$VM" -- ls -la /root/.openhands /var/lib/ai-agent/workspace
+incus exec "$VM" -- ls -la /root/.openhands
 ```
 
 ## 3. Restoring to a freshly rebuilt VM
