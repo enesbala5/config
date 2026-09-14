@@ -10,6 +10,9 @@ USER_DATA_FILE="${USER_DATA_FILE:-/etc/incus-profiles/${PROFILE}/user-data}"
 # Single source of truth for the OpenHands delegation skill; also embedded in
 # the guest by the incus-hermes-agent module's cloud-init.
 SKILL_FILE="${SKILL_FILE:-$(dirname "$0")/../hermes-skills/openhands/SKILL.md}"
+# Zed agent skills tree (misc/skills/<name>/SKILL.md), pushed to the guest's
+# Hermes user-scope skills dir so every conversation has them available.
+SKILLS_PATH="${SKILLS_PATH:-$(dirname "$0")/../../misc/skills}"
 PROFILE_CPU="${PROFILE_CPU:-2}"
 PROFILE_MEMORY="${PROFILE_MEMORY:-4GiB}"
 # Keep in sync with hosts/home-server/default.nix (guestIps) and the
@@ -22,7 +25,7 @@ STATIC_IP="${STATIC_IP:-10.0.100.174}"
 usage() {
   cat >&2 <<'EOF'
 Usage:
-  hermes-vm-manage.sh [--vm-name <name>] [--static-ip <addr|dynamic>] start|stop|status|logs|push-secrets|launch|shell
+  hermes-vm-manage.sh [--vm-name <name>] [--static-ip <addr|dynamic>] start|stop|status|logs|push-secrets|push-skills|launch|shell
 
 Options:
   --vm-name <name>    Instance to manage (default: hermes-agent, or $VM_NAME).
@@ -177,6 +180,32 @@ EOF
   incus exec "$VM_NAME" -- systemctl daemon-reload
 }
 
+# Push every skill from SKILLS_PATH (<name>/SKILL.md) into the guest's Hermes
+# user-scope skills dir (/root/.hermes/skills/<name>/SKILL.md), so they are
+# available to every Hermes conversation on the VM.
+ensure_skills() {
+  if [[ ! -d "$SKILLS_PATH" ]]; then
+    echo "Warning: ${SKILLS_PATH} not found; skipping skills sync." >&2
+    return 0
+  fi
+  echo "==> Refreshing guest Hermes skills (/root/.hermes/skills)..."
+  local count=0 names=()
+  while IFS= read -r skill_dir; do
+    local name
+    name="$(basename "$skill_dir")"
+    local src="${skill_dir}/SKILL.md"
+    if [[ ! -f "$src" ]]; then
+      continue
+    fi
+    incus exec "$VM_NAME" -- mkdir -p "/root/.hermes/skills/${name}"
+    incus file push "$src" "${VM_NAME}/root/.hermes/skills/${name}/SKILL.md" \
+      -p --mode 0644 --uid 0 --gid 0
+    names+=("${name}")
+    count=$((count + 1))
+  done < <(find "$SKILLS_PATH" -mindepth 1 -maxdepth 1 -type d | sort)
+  echo "==> Pushed ${count} skill(s): ${names[*]}"
+}
+
 # Keep in sync with nix/nixos/hosts/home-server/modules/incus-hermes-agent/default.nix
 # (tools/hermes-skills/openhands/SKILL.md is the single source of truth).
 ensure_hermes_skill() {
@@ -263,6 +292,7 @@ cmd_start() {
   ensure_hermes_env
   ensure_oh_start
   ensure_hermes_skill
+  ensure_skills
   incus exec "$VM_NAME" -- systemctl enable --now hermes-agent hermes-dashboard hermes-serve
   incus exec "$VM_NAME" -- systemctl restart hermes-agent hermes-dashboard hermes-serve
 }
@@ -352,6 +382,7 @@ case "$ACTION" in
   logs) incus exec "$VM_NAME" -- journalctl -u hermes-agent -u hermes-dashboard -u hermes-serve -n 80 --no-pager ;;
   shell) incus shell "$VM_NAME" ;;
   push-secrets) push_secrets ;;
+  push-skills) ensure_skills ;;
   -h|--help|"") usage; exit 0 ;;
   *) echo "Unknown argument: $ACTION" >&2; usage; exit 1 ;;
 esac
