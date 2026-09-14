@@ -87,6 +87,7 @@ lib.mkIf config.homeServer.incusHermesAgent.enable {
           --exclude='*.db-shm' \
           --exclude='.hermes/node' \
           --exclude='.hermes/lsp' \
+          --exclude='.hermes/backups' \
           --warning=no-file-changed \
           --ignore-failed-read \
           -C /root -cf - .hermes \
@@ -111,6 +112,7 @@ lib.mkIf config.homeServer.incusHermesAgent.enable {
           --tag hermes-agent --tag automated \
           --exclude "$SRC/node" \
           --exclude "$SRC/lsp" \
+          --exclude "$SRC/backups" \
           "$SRC"; then
         notify_failure "restic backup command returned non-zero."
         exit 1
