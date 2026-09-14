@@ -496,6 +496,10 @@ in
     graphics = {
       enable = true;
     };
+
+    steam-hardware = {
+      enable = true;
+    };
   };
 
   environment.systemPackages = with pkgs; [
