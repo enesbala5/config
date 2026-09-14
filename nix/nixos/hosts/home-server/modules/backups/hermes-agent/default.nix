@@ -44,7 +44,10 @@ lib.mkIf config.homeServer.incusHermesAgent.enable {
         exit 1
       fi
 
-      STATUS="$(${pkgs.incus}/bin/incus list "$VM_NAME" --format csv -c s)"
+      # `incus list NAME` is a regex filter, not an exact match. Without
+      # anchors, a sibling like hermes-agent-btest makes STATUS become
+      # $'RUNNING\nRUNNING' and this check fails.
+      STATUS="$(${pkgs.incus}/bin/incus list "^$VM_NAME$" --format csv -c s)"
       if [ "$STATUS" != "RUNNING" ]; then
         notify_failure "VM $VM_NAME is not running (status: $STATUS)."
         exit 1
