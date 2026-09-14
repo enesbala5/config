@@ -188,10 +188,10 @@
 			"default": "allow"
 		},
 		"default_model": {
-			"effort": "low",
+			"effort": "medium",
    "enable_thinking": true,
-			"provider": "deepseek",
-			"model": "deepseek-v4-flash"
+			"provider": "zed.dev",
+			"model": "claude-sonnet-4-6"
 		},
 		"model_parameters": []
 	},
