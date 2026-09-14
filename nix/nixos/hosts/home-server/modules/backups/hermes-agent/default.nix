@@ -23,10 +23,10 @@ lib.mkIf config.homeServer.incusHermesAgent.enable {
       pkgs.bash
       pkgs.coreutils
       pkgs.curl
-      pkgs.gnutar
       pkgs.incus
       pkgs.jq
       pkgs.restic
+      pkgs.unzip
     ];
     script = ''
       #! ${pkgs.bash}/bin/bash
@@ -63,56 +63,42 @@ lib.mkIf config.homeServer.incusHermesAgent.enable {
         exit 1
       fi
 
-      # Stable staging path. restic matches the previous snapshot as its
-      # parent by host + path, so a random mktemp dir made every run look like
-      # a brand-new path ("no parent snapshot found"), forcing restic to re-read
-      # and re-hash all files instead of doing a true incremental backup. It
-      # also broke `restic snapshots --latest 1`, since that filters per path.
+      # Stable staging path so restic can match the previous snapshot by
+      # host + path and do a true incremental backup.
       TMP="$STATE_DIRECTORY/stage"
       ${pkgs.coreutils}/bin/rm -rf "$TMP"
       ${pkgs.coreutils}/bin/mkdir -p "$TMP"
       trap 'rm -rf "$TMP"' EXIT
 
-      # Recursive `incus file pull` dies on unix sockets (gateway.sock while
-      # the gateway is running). Stream a tar instead and skip sockets / live
-      # SQLite sidecars. Guest tar exit 1 means a file changed mid-read; that
-      # is acceptable. Exit >= 2 is fatal.
-      # Bash 5.3+ clears PIPESTATUS after any assignment, so capture once.
-      set +e
-      set +o pipefail
-      ${pkgs.incus}/bin/incus exec "$VM_NAME" -- \
-        tar \
-          --exclude='*.sock' \
-          --exclude='*.db-wal' \
-          --exclude='*.db-shm' \
-          --exclude='.hermes/node' \
-          --exclude='.hermes/lsp' \
-          --exclude='.hermes/backups' \
-          --warning=no-file-changed \
-          --ignore-failed-read \
-          -C /root -cf - .hermes \
-        | ${pkgs.gnutar}/bin/tar -C "$TMP" -xf -
-      pipe_status=("''${PIPESTATUS[@]}")
-      guest_tar="''${pipe_status[0]:-0}"
-      host_tar="''${pipe_status[1]:-0}"
-      set -o pipefail
-      set -e
-      if [ "$host_tar" -ne 0 ] || [ "$guest_tar" -gt 1 ]; then
-        notify_failure "Failed to archive /root/.hermes from $VM_NAME (guest tar=$guest_tar host tar=$host_tar)."
+      # Use `hermes backup` to produce the zip — it already knows what to
+      # include/exclude (skips cache, bin, node, lsp, backups, etc.), which
+      # is why its output is ~1 GB while a raw .hermes tar is ~3 GB.
+      GUEST_ZIP="/tmp/hermes-backup-restic-stage.zip"
+      if ! ${pkgs.incus}/bin/incus exec "$VM_NAME" -- \
+          hermes backup -o "$GUEST_ZIP" -k 0; then
+        notify_failure "hermes backup failed inside $VM_NAME."
         exit 1
       fi
 
-      SRC="$TMP/.hermes"
-      if [ ! -d "$SRC" ]; then
-        notify_failure "Archived tree did not contain .hermes/."
+      HOST_ZIP="$TMP/hermes-backup.zip"
+      if ! ${pkgs.incus}/bin/incus file pull "$VM_NAME$GUEST_ZIP" "$HOST_ZIP"; then
+        notify_failure "incus file pull of backup zip failed."
         exit 1
       fi
+
+      # Remove zip from guest now that we have it on the host.
+      ${pkgs.incus}/bin/incus exec "$VM_NAME" -- rm -f "$GUEST_ZIP" || true
+
+      SRC="$TMP/extracted"
+      ${pkgs.coreutils}/bin/mkdir -p "$SRC"
+      if ! ${pkgs.unzip}/bin/unzip -q "$HOST_ZIP" -d "$SRC"; then
+        notify_failure "Failed to unzip hermes backup archive."
+        exit 1
+      fi
+      ${pkgs.coreutils}/bin/rm -f "$HOST_ZIP"
 
       if ! ${pkgs.restic}/bin/restic backup \
           --tag hermes-agent --tag automated \
-          --exclude "$SRC/node" \
-          --exclude "$SRC/lsp" \
-          --exclude "$SRC/backups" \
           "$SRC"; then
         notify_failure "restic backup command returned non-zero."
         exit 1
@@ -123,9 +109,6 @@ lib.mkIf config.homeServer.incusHermesAgent.enable {
         exit 1
       fi
 
-      # Filter by path: older snapshots exist under now-defunct random temp
-      # paths, and `--latest 1` groups by path, so without this the newest one
-      # returned would not necessarily be the snapshot we just created.
       SNAPSHOT=$(${pkgs.restic}/bin/restic snapshots --path "$SRC" --latest 1 --json | ${pkgs.jq}/bin/jq -r '.[0].short_id')
       echo "Done. Snapshot: $SNAPSHOT"
     '';
