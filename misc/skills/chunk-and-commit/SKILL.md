@@ -1,7 +1,6 @@
 ---
 name: chunk-and-commit
-description: >-
-  Split uncommitted work into logical git commits, present each proposed
+description: Split uncommitted work into logical git commits, present each proposed
   commit (message plus file chunk) for confirmation, then commit only after
   the user approves. Use when the user asks to commit, chunk commits, split
   commits by article/feature/file, or commit all changes in groups.

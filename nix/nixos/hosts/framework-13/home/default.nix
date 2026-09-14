@@ -13,6 +13,7 @@
     # HM 25.11's built-in module writes obsolete ~/.config/vicinae/vicinae.json
     # which Vicinae >=0.17 no longer reads.
     inputs.vicinae.homeManagerModules.default
+    inputs.hermes-agent.homeManagerModules.default
     ./programs
   ];
 

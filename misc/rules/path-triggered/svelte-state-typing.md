@@ -1,0 +1,33 @@
+---
+paths:
+  - "**/*.svelte"
+  - "**/*.svelte.ts"
+  - "**/*.svelte.js"
+---
+
+# Svelte `$state` Typing
+
+Never pass a type argument to `$state` / `$state.raw`. Annotate the variable, and declare it with `const`.
+
+```typescript
+// ❌ BAD
+let stats = $state<{ filesCount: number; coverLettersCount: number } | undefined>(undefined);
+let items = $state<string[]>([]);
+
+// ✅ GOOD
+let stats: { filesCount: number; coverLettersCount: number } | undefined = $state(undefined);
+let items: string[] = $state([]);
+```
+
+Prefer a named type or interface when the shape is non-trivial:
+
+```typescript
+interface UserStats {
+	filesCount: number;
+	coverLettersCount: number;
+}
+
+let stats: UserStats | undefined = $state(undefined);
+```
+
+Same rule for `$state.raw` when used.

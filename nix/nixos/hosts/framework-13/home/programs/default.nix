@@ -12,6 +12,7 @@ in
 {
   imports = [
     ./activitywatch
+    ./hermes-agent
     ./piper-tts
     ./plasma
     ./playwright

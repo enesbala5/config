@@ -10,7 +10,35 @@
 	// "indent_guides": {
 	// 	"background_coloring": "indent_aware",
 	// },
-	"disable_ai": false,
+	"ssh_connections": [
+  {
+   "host": "192.168.0.40",
+   "username": "e",
+   "args": [
+    "-o",
+    "IdentitiesOnly=no"
+   ],
+   "projects": [
+    {
+     "paths": [
+      "/home/e/config"
+     ]
+    }
+   ]
+  },
+  {
+   "host": "home-server",
+   "args": [],
+   "projects": [
+    {
+     "paths": [
+      "/home/e/config"
+     ]
+    }
+   ]
+  }
+ ],
+ "disable_ai": false,
 	"context_servers": {
 		"Coverlttr (Development)": {
    "enabled": true,
@@ -160,7 +188,7 @@
 			"default": "allow"
 		},
 		"default_model": {
-			"effort": "low",
+			"effort": "medium",
    "enable_thinking": true,
 			"provider": "zed.dev",
 			"model": "claude-sonnet-4-6"
