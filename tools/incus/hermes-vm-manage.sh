@@ -198,13 +198,13 @@ ensure_skills() {
     if [[ ! -f "$src" ]]; then
       continue
     fi
-    if ! incus exec "$VM_NAME" -- mkdir -p "/root/.hermes/skills/${name}" 2>/dev/null; then
+    if ! incus exec "$VM_NAME" -- mkdir -p "/root/.hermes/skills/${name}" </dev/null 2>/dev/null; then
       echo "Warning: could not create /root/.hermes/skills/${name} on guest; skipping ${name}" >&2
       failed=$((failed + 1))
       continue
     fi
     if ! incus file push "$src" "${VM_NAME}/root/.hermes/skills/${name}/SKILL.md" \
-        -p --mode 0644 --uid 0 --gid 0; then
+        -p --mode 0644 --uid 0 --gid 0 </dev/null; then
       echo "Warning: failed to push skill ${name}" >&2
       failed=$((failed + 1))
       continue
