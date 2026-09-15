@@ -1,24 +1,25 @@
 ---
-name: Seedance + Remotion promo pipeline
+name: seedance-remotion-video-pipeline
 description: >-
   Use this when building or running a BYOK promo-video workflow: generate clips
   with Seedance 2.5, compose titles/CTAs in Remotion, and export MP4 without a
   subscription video SaaS.
 ---
+
 # Seedance + Remotion promo pipeline
 
 Reusable BYOK video workflow: generate raw clips with ByteDance Seedance 2.5, compose the branded promo in Remotion, export MP4. Prefer provider keys you control over all-in-one SaaS editors.
 
 ## Roles in the pipeline
 
-| Stage | Tool | Owns |
-| --- | --- | --- |
-| Brief + script | Human / scripting agent | Hook, beats, CTA, aspect ratio, length |
-| Shot list | Same | Per-shot prompt, refs, duration, audio on/off |
-| Generate | Seedance 2.5 API (BYOK) | Raw B-roll / scene clips |
-| Compose | Remotion | Titles, captions, logo, cuts, end card |
-| Export | `npx remotion render` or `renderMedia` | Final MP4 (and optional stills) |
-| Review | Human | Pick winners, re-gen weak shots only |
+| Stage          | Tool                                   | Owns                                          |
+| -------------- | -------------------------------------- | --------------------------------------------- |
+| Brief + script | Human / scripting agent                | Hook, beats, CTA, aspect ratio, length        |
+| Shot list      | Same                                   | Per-shot prompt, refs, duration, audio on/off |
+| Generate       | Seedance 2.5 API (BYOK)                | Raw B-roll / scene clips                      |
+| Compose        | Remotion                               | Titles, captions, logo, cuts, end card        |
+| Export         | `npx remotion render` or `renderMedia` | Final MP4 (and optional stills)               |
+| Review         | Human                                  | Pick winners, re-gen weak shots only          |
 
 ## Principles
 
@@ -49,26 +50,26 @@ Break the script into Seedance-sized shots (prefer 4–12s each; Seedance 2.5 su
 
 ```json
 {
-  "project": "promo-name",
-  "aspect": "9:16",
-  "fps": 30,
-  "shots": [
-    {
-      "id": "hook",
-      "durationSec": 5,
-      "mode": "text-to-video",
-      "prompt": "…",
-      "generateAudio": false,
-      "resolutionDraft": "480p",
-      "resolutionFinal": "720p",
-      "refs": {
-        "images": ["brand/product.png"],
-        "videos": [],
-        "audios": []
-      },
-      "notes": "Silent B-roll; captions come from Remotion"
-    }
-  ]
+	"project": "promo-name",
+	"aspect": "9:16",
+	"fps": 30,
+	"shots": [
+		{
+			"id": "hook",
+			"durationSec": 5,
+			"mode": "text-to-video",
+			"prompt": "…",
+			"generateAudio": false,
+			"resolutionDraft": "480p",
+			"resolutionFinal": "720p",
+			"refs": {
+				"images": ["brand/product.png"],
+				"videos": [],
+				"audios": []
+			},
+			"notes": "Silent B-roll; captions come from Remotion"
+		}
+	]
 }
 ```
 
