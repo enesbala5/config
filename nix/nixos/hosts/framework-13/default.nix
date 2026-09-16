@@ -15,6 +15,7 @@ in
   imports = [
     # Input-server capability wrapper (clipboard paste, snippets, etc.)
     inputs.vicinae.nixosModules.default
+    ./modules/backups
   ];
 
   # ------------------------------------------------------------------------------------------

@@ -71,6 +71,9 @@ in
   # After `manage-secret hermes-agent-secrets.age`:
   "hermes-agent-secrets.age" = rootConfig;
 
+  # Framework 13
+  # "activitywatch-backup-env.age" = rootConfig; # uncomment after `agenix -e secrets/activitywatch-backup-env.age`
+
   # SSH
   # -------------------------------
   "ssh-config.age" = rootConfig; # Framework 13
