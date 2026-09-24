@@ -27,12 +27,14 @@ let
     config.allowUnfree = true;
   };
 
-  # Electron republished v43.5.1's headers tarball after hermes-agent pinned
-  # its hash, so upstream `nix/desktop.nix` fails its fixed-output check:
+  # Electron republishes the headers tarball for the version hermes-agent's
+  # nixpkgs pins, so upstream `nix/desktop.nix` and this override take turns
+  # failing the fixed-output check. The last build fetched
+  # node-v41.10.3-headers.tar.gz and reported:
   #
   #   error: hash mismatch in fixed-output derivation '...-headers.tar.gz.drv'
-  #            specified: sha256-f8bSbLRmtbP93CJAvEBs+sHWDZ1xP2bcpLhC1EnOmZU=
-  #                 got: sha256-+dR2pWvfSj1DUJXOr5BGlCHFv1FVxWOyHFGoliFcbXU=
+  #            specified: sha256-+dR2pWvfSj1DUJXOr5BGlCHFv1FVxWOyHFGoliFcbXU=
+  #                 got: sha256-f8bSbLRmtbP93CJAvEBs+sHWDZ1xP2bcpLhC1EnOmZU=
   #
   # Override exactly that one fetchurl to the tarball's current content hash;
   # the rest of desktop.nix is used verbatim.
@@ -42,7 +44,7 @@ let
   # with it and this build fails loudly on the now-stale hash below instead of
   # silently mismatching. Update it from the "got:" line in that failure.
   electronHeadersUrl = "https://artifacts.electronjs.org/headers/dist/v${hermesPkgs.electron.version}/node-v${hermesPkgs.electron.version}-headers.tar.gz";
-  electronHeadersHash = "sha256-+dR2pWvfSj1DUJXOr5BGlCHFv1FVxWOyHFGoliFcbXU=";
+  electronHeadersHash = "sha256-f8bSbLRmtbP93CJAvEBs+sHWDZ1xP2bcpLhC1EnOmZU=";
 
   hermesPkgsPatched = hermesPkgs.extend (final: prev: {
     fetchurl =
