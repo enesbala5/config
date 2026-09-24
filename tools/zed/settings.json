@@ -50,12 +50,6 @@
    "enabled": true,
 			"url": "https://mcp.polar.sh/mcp/polar-mcp"
 		},
-		"twenty": {
-   "url": "https://twenty.enesbala.com/mcp",
-			"headers": {
-				"Authorization": "Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjYwNjhkZGEyLTkxZTAtNDQzZS1iNDIzLWU1ZTliMzJiYWI1NCJ9.eyJzdWIiOiJkYTgzYWEwYi1hOTcwLTRiZGQtYTU1Yi04MWIwYmUyNGE3MjgiLCJ0eXBlIjoiQVBJX0tFWSIsIndvcmtzcGFjZUlkIjoiZGE4M2FhMGItYTk3MC00YmRkLWE1NWItODFiMGJlMjRhNzI4IiwiaWF0IjoxNzg2NDE3MDI4LCJleHAiOjQ5NDAwMTcwMjcsImp0aSI6ImMyMTQ4MzAyLTdiMDUtNDhlYi04ODliLWJjYmY3MDQ1NjQzMCJ9.-RIlLWX_sbKc8NYLwnZlxNfBumbWMS0N3gS7ogyzWnhkiRIJzrAu5MRj1vJnF8za-MGRTqv5wlxMKou80lPJwA"
-			}
-		},
 		"Figma": {
    "url": "https://mcp.figma.com/mcp"
 		}
@@ -139,8 +133,8 @@
 	},
 	"cli_default_open_behavior": "new_window",
 	"git_panel": {
-		"folder_icons": true,
-		"dock": "left"
+		"folder_indicator": "icon",
+  "dock": "left"
 	},
 	"agent_servers": {
 		"cursor": {
@@ -246,7 +240,7 @@
 	"ui_font_size": 16,
 	"buffer_font_size": 13.0,
 	"theme": {
-		"mode": "system",
+		"mode": "dark",
 		"light": "macOS Classic Light",
 		"dark": "VSCode Dark Modern"
 	},
