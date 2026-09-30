@@ -147,6 +147,26 @@ EOF
   incus exec "$VM_NAME" -- chmod 0644 /etc/profile.d/agent-env.sh
 }
 
+# Host Helium Playwright MCP + recording mount. Cloud-init only covers first boot.
+ensure_helium_browser() {
+  local root configure skill attach
+  root="$(dirname "$0")"
+  configure="${root}/configure-browser-mcp.sh"
+  skill="${root}/../hermes-skills/helium-browser/SKILL.md"
+  attach="${root}/attach-helium-recordings.sh"
+  echo "==> Pointing OpenHands at host Helium MCP..."
+  if [[ -f "$attach" ]]; then
+    HELIUM_RECORDINGS="${HELIUM_RECORDINGS:-/var/lib/helium-browser/recordings}" \
+      bash "$attach" "$VM_NAME" || echo "Warning: recording disk was not attached" >&2
+  fi
+  incus file push "$configure" "${VM_NAME}/usr/local/bin/configure-browser-mcp.sh" \
+    -p --mode 0755 --uid 0 --gid 0
+  incus exec "$VM_NAME" -- mkdir -p /root/.agents/skills /root/.openhands
+  incus file push "$skill" "${VM_NAME}/root/.agents/skills/helium-browser.md" \
+    -p --mode 0644 --uid 0 --gid 0
+  incus exec "$VM_NAME" -- /usr/local/bin/configure-browser-mcp.sh openhands
+}
+
 # Refresh the OpenHands REST client from the repo. It is also embedded in the
 # profile's cloud-init, but that only runs on first boot, so a persistent VM
 # would otherwise keep a stale copy after the script changes.
@@ -264,6 +284,7 @@ cmd_start() {
   ensure_agent_env
   ensure_oh_start
   ensure_rules
+  ensure_helium_browser
   incus exec "$VM_NAME" -- systemctl restart openhands-agent-server || true
   wait_for_agent_server
   incus exec "$VM_NAME" -- systemctl restart openhands-agent-canvas || true
