@@ -48,6 +48,7 @@ in
       shotcut # Video Editor
       kdePackages.kdenlive # Video Editor
       wl-screenrec # Wayland screen recorder (region via slurp)
+      ffmpeg
 
       # Tools
       # ------------------------------------------------------------------------------------------
@@ -86,6 +87,9 @@ in
 
       # IDE
       vscode
+
+      # AI
+      codex # OpenAI Codex CLI
 
       # TTS
       handy
@@ -369,7 +373,8 @@ in
   };
 
   # Keep hardware as the default sink; EasyEffects attaches to it automatically.
-  systemd.user.services.easyeffects.Service.ExecStartPre = "${data.configDirectory}/scripts/audio/ensure-easyeffects-auto.sh";
+  systemd.user.services.easyeffects.Service.ExecStartPre =
+    "${data.configDirectory}/scripts/audio/ensure-easyeffects-auto.sh";
 
   xdg = {
     mimeApps = {
