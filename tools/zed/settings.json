@@ -137,7 +137,13 @@
   "dock": "left"
 	},
 	"agent_servers": {
-		"cursor": {
+		"opencode": {
+   "default_config_options": {
+    "model": "openrouter/z-ai/glm-5.3-flash"
+   },
+   "type": "registry"
+  },
+  "cursor": {
 			"type": "registry"
 		}
 	},
