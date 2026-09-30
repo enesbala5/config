@@ -1,21 +1,34 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/stylix/polarity"
+
+LIGHT_SWITCH="/nix/var/nix/profiles/system/specialisation/light/bin/switch-to-configuration"
+DARK_SWITCH="/nix/var/nix/profiles/system/bin/switch-to-configuration"
 
 LIGHT_MODE_WALLPAPER="~/config/wallpapers/distortion-1-inverted.png"
 DARK_MODE_WALLPAPER="~/config/wallpapers/distortion-1.png"
 
-current="$(tr -d '[:space:]' < "$STATE_FILE" 2>/dev/null || true)"
-if [ -z "$current" ]; then
-  current="dark"
+# Prefer the live system over the state file: once you are inside a
+# specialisation, /run/current-system/specialisation/ is empty, and the
+# state file can drift if a switch fails partway.
+current_sys="$(readlink -f /run/current-system)"
+light_sys="$(readlink -f /nix/var/nix/profiles/system/specialisation/light 2>/dev/null || true)"
+if [ -n "$light_sys" ] && [ "$current_sys" = "$light_sys" ]; then
+  current="light"
+else
+  current="$(tr -d '[:space:]' < "$STATE_FILE" 2>/dev/null || true)"
+  if [ -z "$current" ]; then
+    current="dark"
+  fi
 fi
 
 if [ "$current" = "light" ]; then
-  sudo /nix/var/nix/profiles/system/bin/switch-to-configuration test
+  sudo "$DARK_SWITCH" test
   waypaper --wallpaper "$DARK_MODE_WALLPAPER"
   notify-send "🌙 Switched to Dark Mode"
 else
-  sudo /run/current-system/specialisation/light/bin/switch-to-configuration test
+  sudo "$LIGHT_SWITCH" test
   waypaper --wallpaper "$LIGHT_MODE_WALLPAPER"
   notify-send "☀️ Switched to Light Mode"
 fi

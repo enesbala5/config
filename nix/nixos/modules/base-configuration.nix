@@ -360,7 +360,9 @@ in
           users = [ data.username ];
           commands = [
             {
-              command = "/run/current-system/specialisation/light/bin/switch-to-configuration";
+              # Profile path — /run/current-system/specialisation/ is empty
+              # once a specialisation is already active (they do not nest).
+              command = "/nix/var/nix/profiles/system/specialisation/light/bin/switch-to-configuration";
               options = [ "NOPASSWD" ];
             }
             {
