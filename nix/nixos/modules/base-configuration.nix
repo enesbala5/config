@@ -253,11 +253,10 @@ in
       freeSwapThreshold = 2;
       freeMemThreshold = 2;
       extraArgs = [
-        "-g"
         "--avoid"
-        "^(X|plasma.*|konsole|kwin|hyprland|waybar|keymapper|hyprlock|hyprsunset|hypridle|hyprdynamicmonitors)$"
+        "(^X$|Xorg|Xwayland|plasma|konsole|kwin|[Hh]yprland|waybar|keymapper|hyprlock|hyprsunset|hypridle|hyprdynamicmoni)"
         "--prefer"
-        "^(obsidian|electron|libreoffice|gimp|vlc|spotify|chrome|code|zen-beta)$"
+        "(obsidian|electron|libreoffice|gimp|vlc|spotify|chrome|code|zen|zed-editor|nix|node|gitstatusd|activitywatch)"
       ];
     };
 
