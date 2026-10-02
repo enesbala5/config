@@ -522,6 +522,32 @@ in
         ];
       };
 
+      spotifast = {
+        name = "Spotifast";
+        genericName = "Spotify Desktop Client";
+        icon = "${data.configDirectory}/tools/links/spotify.png";
+        exec = "appimage-run ${data.homeDirectory}/programs/spotifast/program.AppImage";
+        type = "Application";
+        terminal = false;
+        categories = [
+          "Audio"
+          "AudioVideo"
+        ];
+      };
+
+      zapfast = {
+        name = "Zapfast";
+        genericName = "WhatsApp Desktop Client";
+        icon = "${data.configDirectory}/tools/links/whatsApp.png";
+        exec = "appimage-run ${data.homeDirectory}/programs/zapfast/program.AppImage";
+        type = "Application";
+        terminal = false;
+        categories = [
+          "Network"
+          "InstantMessaging"
+        ];
+      };
+
       analytics = {
         name = "Analytics";
         icon = "${data.configDirectory}/tools/links/analytics.png";
