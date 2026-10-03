@@ -58,6 +58,7 @@ Voice in short: earnest, slightly formal English with his own grammar shape left
 7. No overclaims. Never "ATS-proof", never "guaranteed interviews", never celebrating mass applying.
 8. No invented metrics, clients, or wins. Every concrete claim traces to TONE.md, PROFILE.md, or the product summary.
 9. Do not reuse an opener he already used in the same thread.
+10. No AI-isms. Run the anti-AI-slop skill's checks over the reply before handing it over. It is registered as either `humanizer` or `humanize`, so load it by the name this install has: `skill_view(name='humanizer')`, and if that comes back not found, `skill_view(name='humanize')`. That skill owns the list of tells, so this one does not restate it. Take its rules, not its output format: still one recommended reply and one alternative, never a draft-audit-final triple. Rules 1 and 4 already cover its dash and bold/bullets items; the tells that actually land in a comment are rule-of-three padding, "not just X, it's Y", promotional adjectives, signposting, reassurance kickers, a rhetorical question answered in the next sentence, and hyphenated pair overuse.
 
 ## House shape
 
@@ -89,6 +90,7 @@ One recommended reply, then one alternative that takes a different angle. The re
 Then the self-check:
 
 - dashes, links, banned openers, terminal punctuation
+- anti-AI-slop skill loaded (`humanizer` or `humanize`), its pass run, and everything it flagged is fixed rather than left in
 - would a stranger read this as an ad
 - is every concrete claim traceable to a real source
 
