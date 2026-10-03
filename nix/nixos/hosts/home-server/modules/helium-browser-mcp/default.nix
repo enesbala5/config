@@ -48,8 +48,8 @@ let
       --allowed-hosts ${lib.concatMapStringsSep " " lib.escapeShellArg cfg.allowedHosts} \
       --caps=testing,devtools,storage \
       --output-dir ${lib.escapeShellArg cfg.recordingsPath} \
-      --save-trace \
-      --save-video=${toString cfg.video.width}x${toString cfg.video.height}
+      --save-session \
+      --viewport-size=${toString cfg.video.width}x${toString cfg.video.height}
   '';
 
   shareScript = pkgs.writeShellScript "helium-browser-mcp-share" ''
@@ -142,6 +142,7 @@ in
       ];
       wantedBy = [ "multi-user.target" ];
       path = [
+        pkgs.bash
         pkgs.nodejs
         pkgs.iproute2
         pkgs.gnugrep
