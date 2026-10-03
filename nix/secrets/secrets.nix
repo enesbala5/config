@@ -4,8 +4,8 @@ let
   };
 
   keys = [
-	  # Host Keys - Used for authoring secrets
-	  # ---
+    # Host Keys - Used for authoring secrets
+    # ---
 
     # Framework 13 - /home/e/.ssh/id_ed25519.pub
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGm00Erh3zQ4qlWP9kwXzXvdOovcZ8KmN8Dj/YmYDXVw E - User"
@@ -16,8 +16,8 @@ let
     # Home Server - /home/e/.ssh/id_ed25519.pub
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL0eRCXdwly0mD+VR5GL6Vr8nvSgdrxZY9xWg4GCnVQj"
 
-	  # System Keys - Used while building the system
-	  # ---
+    # System Keys - Used while building the system
+    # ---
 
     # Framework 13 - /etc/ssh/ssh_host_ed25519_key.pub
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH7g+sWNdCtaVjPb7nZ8Cp2Hu6b06HgAzWi+k4N9OGrt root@nixos"
@@ -32,7 +32,7 @@ let
     mode = "0600";
   };
 
-  rootConfig =  {
+  rootConfig = {
     publicKeys = keys;
     owner = "root";
   };
@@ -58,6 +58,7 @@ in
   "audiobookshelf-database-backup-env.age" = rootConfig;
   "uptime-kuma-database-backup-env.age" = rootConfig;
   "twenty-crm-backup-env.age" = rootConfig;
+  "dbflux-backup-env.age" = rootConfig;
   "hermes-agent-backup-env.age" = rootConfig;
   "ai-agent-backup-env.age" = rootConfig;
   "garage-backup-local-env.age" = rootConfig;

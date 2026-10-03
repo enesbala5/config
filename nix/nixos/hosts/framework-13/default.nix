@@ -15,6 +15,9 @@ in
   imports = [
     # Input-server capability wrapper (clipboard paste, snippets, etc.)
     inputs.vicinae.nixosModules.default
+
+    # Host-level service backups (restic -> Cloudflare R2)
+    ./modules/backups
   ];
 
   # ------------------------------------------------------------------------------------------

@@ -139,6 +139,7 @@
 	"agent_servers": {
 		"opencode": {
    "default_config_options": {
+    "effort": "high",
     "model": "openrouter/z-ai/glm-5.3-flash"
    },
    "type": "registry"
@@ -148,7 +149,7 @@
 		}
 	},
 	"icon_theme": {
-		"mode": "dark",
+		"mode": "light",
 		"light": "VSCode Icons",
 		"dark": "VSCode Icons"
 	},
@@ -246,7 +247,7 @@
 	"ui_font_size": 16,
 	"buffer_font_size": 13.0,
 	"theme": {
-		"mode": "dark",
+		"mode": "light",
 		"light": "macOS Classic Light",
 		"dark": "VSCode Dark Modern"
 	},
