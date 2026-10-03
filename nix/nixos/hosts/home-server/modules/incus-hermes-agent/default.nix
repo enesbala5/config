@@ -11,7 +11,7 @@ let
 
   telegramScriptContent = builtins.readFile "${data.configDirectory}/tools/telegram/notify.sh";
   ohStartScriptContent = builtins.readFile "${data.configDirectory}/tools/incus/oh-start.sh";
-  openhandsSkillContent = builtins.readFile "${data.configDirectory}/tools/hermes-skills/openhands/SKILL.md";
+  configureBrowserMcpContent = builtins.readFile "${data.configDirectory}/tools/incus/configure-browser-mcp.sh";
 
   yamlIndent =
     n: text:
@@ -101,6 +101,7 @@ let
     "  - python3"
     "  - python3-venv"
     "  - python3-pip"
+    "  - python3-yaml"
     "  - chromium-browser"
     ""
     "write_files:"
@@ -140,15 +141,16 @@ let
     "    content: |"
     (yamlIndent 6 hermesEnvProfile)
     ""
-    "  - path: /root/.hermes/skills/openhands/SKILL.md"
-    "    permissions: '0644'"
+    "  - path: /usr/local/bin/configure-browser-mcp.sh"
+    "    permissions: '0755'"
     "    owner: root:root"
     "    content: |"
-    (yamlIndent 6 openhandsSkillContent)
+    (yamlIndent 6 configureBrowserMcpContent)
     ""
     "runcmd:"
     "  - mkdir -p /root/.hermes /var/lib/hermes/scratch"
     "  - chmod 700 /root/.hermes /var/lib/hermes"
+    "  - /usr/local/bin/configure-browser-mcp.sh hermes"
     "  - \"export HOME=/root; curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash\""
     # Root FHS installs already place the launcher at /usr/local/bin/hermes.
     # Do not overwrite it with ~/.local/bin (that path is unused and dangling).

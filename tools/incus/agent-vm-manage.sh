@@ -24,6 +24,11 @@ CANVAS_PORT="${CANVAS_PORT:-3000}"
 # OpenHands rules: the whole rules tree, pushed into the guest's user-scope
 # skills dir. Override RULES_PATH to sync a different tree.
 RULES_PATH="${RULES_PATH:-$(dirname "$0")/../../misc/rules}"
+# Zed/Cursor agent skills tree (misc/skills/<name>/SKILL.md), pushed to the
+# guest's OpenHands user-scope skills dir so every conversation has them.
+SKILLS_PATH="${SKILLS_PATH:-$(dirname "$0")/../../misc/skills}"
+# Shared helper that syncs a local tree into the guest.
+PUSH_FILES="${PUSH_FILES:-$(dirname "$0")/utils/push-files.sh}"
 # Rule basenames not to push. `frontend-design` already ships as a skill under
 # misc/skills/; shipping the .mdc copy would duplicate it as an always-on rule.
 EXCLUDED_RULES="${EXCLUDED_RULES-frontend-design}"
@@ -31,7 +36,7 @@ EXCLUDED_RULES="${EXCLUDED_RULES-frontend-design}"
 usage() {
   cat >&2 <<'EOF'
 Usage:
-  agent-vm-manage.sh [--static-ip <addr|dynamic>] start|stop|status|logs|push-secrets|push-rules|launch
+  agent-vm-manage.sh [--static-ip <addr|dynamic>] start|stop|status|logs|push-secrets|push-rules|push-skills|launch
   agent-vm-manage.sh run --prompt TEXT [--repo URL] [--model ID]
   agent-vm-manage.sh run --prompt-file PATH [--repo URL] [--model ID]
   agent-vm-manage.sh shell
@@ -145,6 +150,31 @@ if [ -f /etc/agent-env ]; then
 fi
 EOF
   incus exec "$VM_NAME" -- chmod 0644 /etc/profile.d/agent-env.sh
+}
+
+# Host Helium Playwright MCP + recording mount. Cloud-init only covers first boot.
+# The helium-browser skill lives in misc/skills/ and is synced by ensure_skills.
+ensure_helium_browser() {
+  local root configure attach
+  root="$(dirname "$0")"
+  configure="${root}/configure-browser-mcp.sh"
+  attach="${root}/attach-helium-recordings.sh"
+  echo "==> Pointing OpenHands at host Helium MCP..."
+  if [[ -f "$attach" ]]; then
+    HELIUM_RECORDINGS="${HELIUM_RECORDINGS:-/var/lib/helium-browser/recordings}" \
+      bash "$attach" "$VM_NAME" || echo "Warning: recording disk was not attached" >&2
+  fi
+  incus file push "$configure" "${VM_NAME}/usr/local/bin/configure-browser-mcp.sh" \
+    -p --mode 0755 --uid 0 --gid 0
+  incus exec "$VM_NAME" -- mkdir -p /root/.agents/skills /root/.openhands
+  incus exec "$VM_NAME" -- /usr/local/bin/configure-browser-mcp.sh openhands
+}
+
+# Sync every skill bundle from SKILLS_PATH (<name>/SKILL.md plus its supporting
+# files) into the guest's OpenHands user-scope skills dir (/root/.agents/skills).
+ensure_skills() {
+  echo "==> Refreshing guest OpenHands skills (/root/.agents/skills)..."
+  VM_NAME="$VM_NAME" bash "$PUSH_FILES" "$SKILLS_PATH" /root/.agents/skills
 }
 
 # Refresh the OpenHands REST client from the repo. It is also embedded in the
@@ -264,6 +294,8 @@ cmd_start() {
   ensure_agent_env
   ensure_oh_start
   ensure_rules
+  ensure_skills
+  ensure_helium_browser
   incus exec "$VM_NAME" -- systemctl restart openhands-agent-server || true
   wait_for_agent_server
   incus exec "$VM_NAME" -- systemctl restart openhands-agent-canvas || true
@@ -390,6 +422,7 @@ case "$ACTION" in
   shell) incus shell "$VM_NAME" ;;
   push-secrets) push_secrets ;;
   push-rules) ensure_rules ;;
+  push-skills) ensure_skills ;;
   -h|--help|"") usage; exit 0 ;;
   *) echo "Unknown argument: $ACTION" >&2; usage; exit 1 ;;
 esac

@@ -12,6 +12,7 @@ let
   telegramScriptContent = builtins.readFile "${data.configDirectory}/tools/telegram/notify.sh";
   ohStartScriptContent = builtins.readFile "${data.configDirectory}/tools/incus/oh-start.sh";
   canvasStartScriptContent = builtins.readFile "${data.configDirectory}/tools/incus/agent-canvas-start.sh";
+  configureBrowserMcpContent = builtins.readFile "${data.configDirectory}/tools/incus/configure-browser-mcp.sh";
 
   yamlIndent =
     n: text:
@@ -120,10 +121,17 @@ let
     "    content: |"
     "      export PATH=\"/usr/local/bin:/root/.local/bin:$PATH\""
     ""
+    "  - path: /usr/local/bin/configure-browser-mcp.sh"
+    "    permissions: '0755'"
+    "    owner: root:root"
+    "    content: |"
+    (yamlIndent 6 configureBrowserMcpContent)
+    ""
     "runcmd:"
-    "  - mkdir -p /var/lib/ai-agent/workspace /var/lib/ai-agent/cache /var/lib/ai-agent/logs /opt/oh-agent-server"
+    "  - mkdir -p /var/lib/ai-agent/workspace /var/lib/ai-agent/cache /var/lib/ai-agent/logs /opt/oh-agent-server /root/.agents/skills /root/.openhands"
     "  - chmod 700 /var/lib/ai-agent"
     "  - chmod 755 /var/lib/ai-agent/workspace /var/lib/ai-agent/cache /var/lib/ai-agent/logs"
+    "  - /usr/local/bin/configure-browser-mcp.sh openhands"
     "  - systemctl enable --now docker || true"
     "  - \"curl -LsSf https://astral.sh/uv/install.sh | sh\""
     "  - ln -sfn /root/.local/bin/uv /usr/local/bin/uv || true"

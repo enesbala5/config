@@ -110,7 +110,7 @@ For each approved commit, in order:
 
 1. `git add` only that chunk's paths
 2. `git commit` with the full message via HEREDOC (no `-i`, no `--no-verify`
-   unless they asked)
+   unless they asked). NEVER add a co-author (`Co-authored-by` or similar)
 3. After the last one: `git status`
 
 If a hook fails, fix and make a **new** commit. Do not `--amend` unless they
@@ -123,4 +123,5 @@ Do not commit when there is nothing to commit.
 - Never `push --force`, hard reset, or skip hooks unless they asked in this turn
 - Never `--amend` a pushed commit unless they asked (needs force-push)
 - Never prefix branches with `cursor/`
+- NEVER add a co-author (`Co-authored-by` trailer or any equivalent)
 - Do not push unless they asked

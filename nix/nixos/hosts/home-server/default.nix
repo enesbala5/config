@@ -25,6 +25,7 @@ in
     ./modules/backups
     ./modules/incus-ai-agent
     ./modules/incus-hermes-agent
+    ./modules/helium-browser-mcp
     ./modules/caddy
   ];
 
@@ -32,6 +33,9 @@ in
   homeServer.incusAiAgent.enable = true;
   homeServer.incusAiAgent.corsOrigins = [ "https://agent.enesbala.com" ];
   homeServer.incusHermesAgent.enable = true;
+
+  # Headless Helium on this host. Both guests dial incusbr0; Hyprland stays unused.
+  homeServer.heliumBrowserMcp.enable = true;
 
   # Tailscale-only Caddy front end. Upstreams are the guests' pinned incusbr0
   # addresses, so Caddy dials the guest directly — no host-side port forwards.
