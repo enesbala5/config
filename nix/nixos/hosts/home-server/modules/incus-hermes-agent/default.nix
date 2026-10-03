@@ -13,7 +13,7 @@ let
   ohStartScriptContent = builtins.readFile "${data.configDirectory}/tools/incus/oh-start.sh";
   openhandsSkillContent = builtins.readFile "${data.configDirectory}/tools/hermes-skills/openhands/SKILL.md";
   configureBrowserMcpContent = builtins.readFile "${data.configDirectory}/tools/incus/configure-browser-mcp.sh";
-  heliumBrowserSkillContent = builtins.readFile "${data.configDirectory}/tools/hermes-skills/helium-browser/SKILL.md";
+  heliumBrowserSkillContent = builtins.readFile "${data.configDirectory}/misc/skills/helium-browser/SKILL.md";
 
   yamlIndent =
     n: text:

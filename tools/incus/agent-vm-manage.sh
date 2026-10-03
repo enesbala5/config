@@ -24,6 +24,9 @@ CANVAS_PORT="${CANVAS_PORT:-3000}"
 # OpenHands rules: the whole rules tree, pushed into the guest's user-scope
 # skills dir. Override RULES_PATH to sync a different tree.
 RULES_PATH="${RULES_PATH:-$(dirname "$0")/../../misc/rules}"
+# Zed/Cursor agent skills tree (misc/skills/<name>/SKILL.md), pushed to the
+# guest's OpenHands user-scope skills dir so every conversation has them.
+SKILLS_PATH="${SKILLS_PATH:-$(dirname "$0")/../../misc/skills}"
 # Rule basenames not to push. `frontend-design` already ships as a skill under
 # misc/skills/; shipping the .mdc copy would duplicate it as an always-on rule.
 EXCLUDED_RULES="${EXCLUDED_RULES-frontend-design}"
@@ -31,7 +34,7 @@ EXCLUDED_RULES="${EXCLUDED_RULES-frontend-design}"
 usage() {
   cat >&2 <<'EOF'
 Usage:
-  agent-vm-manage.sh [--static-ip <addr|dynamic>] start|stop|status|logs|push-secrets|push-rules|launch
+  agent-vm-manage.sh [--static-ip <addr|dynamic>] start|stop|status|logs|push-secrets|push-rules|push-skills|launch
   agent-vm-manage.sh run --prompt TEXT [--repo URL] [--model ID]
   agent-vm-manage.sh run --prompt-file PATH [--repo URL] [--model ID]
   agent-vm-manage.sh shell
@@ -148,11 +151,11 @@ EOF
 }
 
 # Host Helium Playwright MCP + recording mount. Cloud-init only covers first boot.
+# The helium-browser skill lives in misc/skills/ and is synced by ensure_skills.
 ensure_helium_browser() {
-  local root configure skill attach
+  local root configure attach
   root="$(dirname "$0")"
   configure="${root}/configure-browser-mcp.sh"
-  skill="${root}/../hermes-skills/helium-browser/SKILL.md"
   attach="${root}/attach-helium-recordings.sh"
   echo "==> Pointing OpenHands at host Helium MCP..."
   if [[ -f "$attach" ]]; then
@@ -162,9 +165,43 @@ ensure_helium_browser() {
   incus file push "$configure" "${VM_NAME}/usr/local/bin/configure-browser-mcp.sh" \
     -p --mode 0755 --uid 0 --gid 0
   incus exec "$VM_NAME" -- mkdir -p /root/.agents/skills /root/.openhands
-  incus file push "$skill" "${VM_NAME}/root/.agents/skills/helium-browser.md" \
-    -p --mode 0644 --uid 0 --gid 0
   incus exec "$VM_NAME" -- /usr/local/bin/configure-browser-mcp.sh openhands
+}
+
+# Push every skill from SKILLS_PATH (<name>/SKILL.md) into the guest's OpenHands
+# user-scope skills dir (/root/.agents/skills/<name>/SKILL.md).
+ensure_skills() {
+  if [[ ! -d "$SKILLS_PATH" ]]; then
+    echo "Warning: ${SKILLS_PATH} not found; skipping skills sync." >&2
+    return 0
+  fi
+  echo "==> Refreshing guest OpenHands skills (/root/.agents/skills)..."
+  local count=0 failed=0 names=()
+  while IFS= read -r skill_dir; do
+    local name
+    name="$(basename "$skill_dir")"
+    local src="${skill_dir}/SKILL.md"
+    if [[ ! -f "$src" ]]; then
+      continue
+    fi
+    if ! incus exec "$VM_NAME" -- mkdir -p "/root/.agents/skills/${name}" </dev/null 2>/dev/null; then
+      echo "Warning: could not create /root/.agents/skills/${name} on guest; skipping ${name}" >&2
+      failed=$((failed + 1))
+      continue
+    fi
+    if ! incus file push "$src" "${VM_NAME}/root/.agents/skills/${name}/SKILL.md" \
+        -p --mode 0644 --uid 0 --gid 0 </dev/null; then
+      echo "Warning: failed to push skill ${name}" >&2
+      failed=$((failed + 1))
+      continue
+    fi
+    names+=("${name}")
+    count=$((count + 1))
+  done < <(find "$SKILLS_PATH" -mindepth 1 -maxdepth 1 -type d | sort)
+  echo "==> Pushed ${count} skill(s): ${names[*]:-<none>}"
+  if [[ "$failed" -gt 0 ]]; then
+    echo "Warning: ${failed} skill(s) failed to push" >&2
+  fi
 }
 
 # Refresh the OpenHands REST client from the repo. It is also embedded in the
@@ -284,6 +321,7 @@ cmd_start() {
   ensure_agent_env
   ensure_oh_start
   ensure_rules
+  ensure_skills
   ensure_helium_browser
   incus exec "$VM_NAME" -- systemctl restart openhands-agent-server || true
   wait_for_agent_server
@@ -411,6 +449,7 @@ case "$ACTION" in
   shell) incus shell "$VM_NAME" ;;
   push-secrets) push_secrets ;;
   push-rules) ensure_rules ;;
+  push-skills) ensure_skills ;;
   -h|--help|"") usage; exit 0 ;;
   *) echo "Unknown argument: $ACTION" >&2; usage; exit 1 ;;
 esac

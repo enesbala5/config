@@ -232,11 +232,11 @@ ensure_hermes_skill() {
 }
 
 # Host Helium Playwright MCP + recording mount. Cloud-init only covers first boot.
+# The helium-browser skill lives in misc/skills/ and is synced by ensure_skills.
 ensure_helium_browser() {
-  local root configure skill attach
+  local root configure attach
   root="$(dirname "$0")"
   configure="${root}/configure-browser-mcp.sh"
-  skill="${root}/../hermes-skills/helium-browser/SKILL.md"
   attach="${root}/attach-helium-recordings.sh"
   echo "==> Pointing Hermes at host Helium MCP..."
   if [[ -x "$attach" ]] || [[ -f "$attach" ]]; then
@@ -245,9 +245,6 @@ ensure_helium_browser() {
   fi
   incus file push "$configure" "${VM_NAME}/usr/local/bin/configure-browser-mcp.sh" \
     -p --mode 0755 --uid 0 --gid 0
-  incus exec "$VM_NAME" -- mkdir -p /root/.hermes/skills/helium-browser
-  incus file push "$skill" "${VM_NAME}/root/.hermes/skills/helium-browser/SKILL.md" \
-    -p --mode 0644 --uid 0 --gid 0
   incus exec "$VM_NAME" -- /usr/local/bin/configure-browser-mcp.sh hermes
 }
 

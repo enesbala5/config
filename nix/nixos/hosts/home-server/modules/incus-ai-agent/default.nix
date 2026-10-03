@@ -13,7 +13,7 @@ let
   ohStartScriptContent = builtins.readFile "${data.configDirectory}/tools/incus/oh-start.sh";
   canvasStartScriptContent = builtins.readFile "${data.configDirectory}/tools/incus/agent-canvas-start.sh";
   configureBrowserMcpContent = builtins.readFile "${data.configDirectory}/tools/incus/configure-browser-mcp.sh";
-  heliumBrowserSkillContent = builtins.readFile "${data.configDirectory}/tools/hermes-skills/helium-browser/SKILL.md";
+  heliumBrowserSkillContent = builtins.readFile "${data.configDirectory}/misc/skills/helium-browser/SKILL.md";
 
   yamlIndent =
     n: text:
@@ -122,7 +122,7 @@ let
     "    content: |"
     "      export PATH=\"/usr/local/bin:/root/.local/bin:$PATH\""
     ""
-    "  - path: /root/.agents/skills/helium-browser.md"
+    "  - path: /root/.agents/skills/helium-browser/SKILL.md"
     "    permissions: '0644'"
     "    owner: root:root"
     "    content: |"
