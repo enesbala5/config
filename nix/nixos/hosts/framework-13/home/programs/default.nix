@@ -48,6 +48,7 @@ in
       shotcut # Video Editor
       kdePackages.kdenlive # Video Editor
       wl-screenrec # Wayland screen recorder (region via slurp)
+      ffmpeg
 
       # Tools
       # ------------------------------------------------------------------------------------------
@@ -86,6 +87,9 @@ in
 
       # IDE
       vscode
+
+      # AI
+      codex # OpenAI Codex CLI
 
       # TTS
       handy
@@ -369,7 +373,8 @@ in
   };
 
   # Keep hardware as the default sink; EasyEffects attaches to it automatically.
-  systemd.user.services.easyeffects.Service.ExecStartPre = "${data.configDirectory}/scripts/audio/ensure-easyeffects-auto.sh";
+  systemd.user.services.easyeffects.Service.ExecStartPre =
+    "${data.configDirectory}/scripts/audio/ensure-easyeffects-auto.sh";
 
   xdg = {
     mimeApps = {
@@ -514,6 +519,32 @@ in
         categories = [
           "Utility"
           "Graphics"
+        ];
+      };
+
+      spotifast = {
+        name = "Spotifast";
+        genericName = "Spotify Desktop Client";
+        icon = "${data.configDirectory}/tools/links/spotify.png";
+        exec = "appimage-run ${data.homeDirectory}/programs/spotifast/program.AppImage";
+        type = "Application";
+        terminal = false;
+        categories = [
+          "Audio"
+          "AudioVideo"
+        ];
+      };
+
+      zapfast = {
+        name = "Zapfast";
+        genericName = "WhatsApp Desktop Client";
+        icon = "${data.configDirectory}/tools/links/whatsApp.png";
+        exec = "appimage-run ${data.homeDirectory}/programs/zapfast/program.AppImage";
+        type = "Application";
+        terminal = false;
+        categories = [
+          "Network"
+          "InstantMessaging"
         ];
       };
 
