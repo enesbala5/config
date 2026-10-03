@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 # Point a guest agent at the host Helium Playwright MCP.
 # Runs inside the guest (cloud-init or `incus exec`).
+#
+# hermes: also pins `browser.backend: "off"` in the guest Hermes config, so the
+#   agent drives the Helium MCP tools instead of Hermes' own browser stack
+#   (no Browser Use CLI and no Chromium fetched on the VM). The installer never
+#   overwrites an existing config.yaml, and this script re-runs on every first
+#   boot and every `hermes-vm-manage.sh start`, so the setting survives a VM
+#   rebuild.
+# openhands: registers the MCP server only (/root/.openhands/mcp.json).
 set -euo pipefail
 
 ROLE="${1:?usage: configure-browser-mcp.sh hermes|openhands}"
@@ -37,16 +45,30 @@ if path.exists() and path.read_text().strip():
     if not isinstance(loaded, dict):
         raise SystemExit("refusing to edit /root/.hermes/config.yaml: not a mapping")
     data = loaded
+
 servers = data.get("mcp_servers") or {}
 if not isinstance(servers, dict):
     raise SystemExit("refusing to edit mcp_servers: not a mapping")
-current = servers.get("helium-browser")
-if current != {"url": url}:
+browser = data.get("browser")
+if browser is None:
+    browser = {}
+if not isinstance(browser, dict):
+    raise SystemExit("refusing to edit browser: not a mapping")
+
+wanted_servers = dict(servers)
+wanted_servers["helium-browser"] = {"url": url}
+# "off" disables Hermes' own browser driver, so the Helium MCP tools are the
+# only browser surface in the guest and nothing is fetched at runtime.
+wanted_browser = dict(browser)
+wanted_browser["backend"] = "off"
+
+# Both edits are desired state: rewrite (and back up) only on a real change.
+if wanted_servers != servers or wanted_browser != browser:
     backup = path.with_name("config.yaml.bak-helium")
     if path.exists() and not backup.exists():
         backup.write_text(path.read_text())
-    servers["helium-browser"] = {"url": url}
-    data["mcp_servers"] = servers
+    data["mcp_servers"] = wanted_servers
+    data["browser"] = wanted_browser
     path.write_text(yaml.safe_dump(data, sort_keys=False))
 path.chmod(0o600)
 PY

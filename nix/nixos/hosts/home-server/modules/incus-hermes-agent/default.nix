@@ -102,7 +102,6 @@ let
     "  - python3-venv"
     "  - python3-pip"
     "  - python3-yaml"
-    "  - chromium-browser"
     ""
     "write_files:"
     "  - path: /usr/local/bin/notify.sh"
