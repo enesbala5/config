@@ -107,6 +107,7 @@ in
       antigravity-nix.packages.${system}.google-antigravity-cli
       inputs.grok-bot.packages.${pkgs.system}.default
       omacut.packages.${system}.default
+      dbflux.packages.${system}.default
     ]);
 
   programs = {

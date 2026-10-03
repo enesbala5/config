@@ -103,6 +103,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    dbflux = {
+      url = "github:0xErwin1/dbflux";
+    };
+
     omacut = {
       url = "path:./hosts/framework-13/home/programs/omacut";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
