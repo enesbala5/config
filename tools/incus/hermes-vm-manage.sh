@@ -8,11 +8,15 @@ IMAGE="${IMAGE:-images:ubuntu/24.04/cloud}"
 SECRETS_PATH="${SECRETS_PATH:-/run/agenix/hermes-agent-secrets}"
 USER_DATA_FILE="${USER_DATA_FILE:-/etc/incus-profiles/${PROFILE}/user-data}"
 # Hermes-only skills tree (tools/hermes-skills/<name>/SKILL.md), pushed to the
-# guest's Hermes user-scope skills dir alongside the shared misc/skills tree.
+# guest's shared skills dir (skills.external_dirs) alongside misc/skills.
 HERMES_SKILLS_PATH="${HERMES_SKILLS_PATH:-$(dirname "$0")/../hermes-skills}"
-# Zed agent skills tree (misc/skills/<name>/SKILL.md), pushed to the guest's
-# Hermes user-scope skills dir so every conversation has them available.
+# Zed agent skills tree (misc/skills/<name>/SKILL.md), pushed to the same
+# shared dir so every Hermes profile sees them via external_dirs.
 SKILLS_PATH="${SKILLS_PATH:-$(dirname "$0")/../../misc/skills}"
+# Guest path every profile already lists under skills.external_dirs. Profile-
+# local dirs (~/.hermes/skills or profiles/<name>/skills) are NOT the target —
+# those are per-profile and would hide pushed skills from other profiles.
+GUEST_SHARED_SKILLS="${GUEST_SHARED_SKILLS:-/root/.hermes/shared-skills}"
 # Shared helper that syncs a local tree into the guest (used for both trees).
 PUSH_FILES="${PUSH_FILES:-$(dirname "$0")/utils/push-files.sh}"
 PROFILE_CPU="${PROFILE_CPU:-2}"
@@ -184,13 +188,13 @@ EOF
 }
 
 # Sync the Hermes-only skills tree and the shared misc/skills tree into the
-# guest's Hermes user-scope skills dir (/root/.hermes/skills), so they are
-# available to every Hermes conversation on the VM. Both trees are pushed to the
-# same destination; each source is a directory of <name>/SKILL.md bundles.
+# guest's shared skills dir (skills.external_dirs → GUEST_SHARED_SKILLS), so
+# every Hermes profile sees them. Both trees are pushed to the same destination;
+# each source is a directory of <name>/SKILL.md bundles.
 ensure_skills() {
-  echo "==> Refreshing guest Hermes skills (/root/.hermes/skills)..."
-  VM_NAME="$VM_NAME" bash "$PUSH_FILES" "$HERMES_SKILLS_PATH" /root/.hermes/skills
-  VM_NAME="$VM_NAME" bash "$PUSH_FILES" "$SKILLS_PATH" /root/.hermes/skills
+  echo "==> Refreshing guest Hermes shared skills (${GUEST_SHARED_SKILLS})..."
+  VM_NAME="$VM_NAME" bash "$PUSH_FILES" "$HERMES_SKILLS_PATH" "$GUEST_SHARED_SKILLS"
+  VM_NAME="$VM_NAME" bash "$PUSH_FILES" "$SKILLS_PATH" "$GUEST_SHARED_SKILLS"
 }
 
 # Host Helium Playwright MCP + recording mount. Cloud-init only covers first boot.

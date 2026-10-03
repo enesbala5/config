@@ -11,8 +11,9 @@
 # guest, preserving the directory structure and file modes and owning the
 # result as root:root. The instance is taken from $VM_NAME.
 #
-# The source is passed as "<source>/.", which incus treats as "the directory's
-# contents" rather than creating a nested copy of the directory itself.
+# Uses tar over `incus exec` rather than `incus file push -r` because:
+# - recursive file push rejects --uid/--gid/--mode
+# - recursive file push nests the source directory name (even with "src/.")
 set -euo pipefail
 
 if [[ $# -ne 2 ]]; then
@@ -31,5 +32,5 @@ fi
 
 echo "==> Pushing ${SRC} -> ${VM_NAME}:/${DEST}"
 incus exec "$VM_NAME" -- mkdir -p "/${DEST}"
-incus file push -r --create-dirs --uid 0 --gid 0 \
-  "${SRC}/." "${VM_NAME}/${DEST}"
+tar -C "$SRC" -cf - . | incus exec "$VM_NAME" -- tar -C "/${DEST}" -xf -
+incus exec "$VM_NAME" -- chown -R 0:0 "/${DEST}"
