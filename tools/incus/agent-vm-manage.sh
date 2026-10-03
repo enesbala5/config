@@ -27,6 +27,8 @@ RULES_PATH="${RULES_PATH:-$(dirname "$0")/../../misc/rules}"
 # Zed/Cursor agent skills tree (misc/skills/<name>/SKILL.md), pushed to the
 # guest's OpenHands user-scope skills dir so every conversation has them.
 SKILLS_PATH="${SKILLS_PATH:-$(dirname "$0")/../../misc/skills}"
+# Shared helper that syncs a local tree into the guest.
+PUSH_FILES="${PUSH_FILES:-$(dirname "$0")/utils/push-files.sh}"
 # Rule basenames not to push. `frontend-design` already ships as a skill under
 # misc/skills/; shipping the .mdc copy would duplicate it as an always-on rule.
 EXCLUDED_RULES="${EXCLUDED_RULES-frontend-design}"
@@ -168,40 +170,11 @@ ensure_helium_browser() {
   incus exec "$VM_NAME" -- /usr/local/bin/configure-browser-mcp.sh openhands
 }
 
-# Push every skill from SKILLS_PATH (<name>/SKILL.md) into the guest's OpenHands
-# user-scope skills dir (/root/.agents/skills/<name>/SKILL.md).
+# Sync every skill bundle from SKILLS_PATH (<name>/SKILL.md plus its supporting
+# files) into the guest's OpenHands user-scope skills dir (/root/.agents/skills).
 ensure_skills() {
-  if [[ ! -d "$SKILLS_PATH" ]]; then
-    echo "Warning: ${SKILLS_PATH} not found; skipping skills sync." >&2
-    return 0
-  fi
   echo "==> Refreshing guest OpenHands skills (/root/.agents/skills)..."
-  local count=0 failed=0 names=()
-  while IFS= read -r skill_dir; do
-    local name
-    name="$(basename "$skill_dir")"
-    local src="${skill_dir}/SKILL.md"
-    if [[ ! -f "$src" ]]; then
-      continue
-    fi
-    if ! incus exec "$VM_NAME" -- mkdir -p "/root/.agents/skills/${name}" </dev/null 2>/dev/null; then
-      echo "Warning: could not create /root/.agents/skills/${name} on guest; skipping ${name}" >&2
-      failed=$((failed + 1))
-      continue
-    fi
-    if ! incus file push "$src" "${VM_NAME}/root/.agents/skills/${name}/SKILL.md" \
-        -p --mode 0644 --uid 0 --gid 0 </dev/null; then
-      echo "Warning: failed to push skill ${name}" >&2
-      failed=$((failed + 1))
-      continue
-    fi
-    names+=("${name}")
-    count=$((count + 1))
-  done < <(find "$SKILLS_PATH" -mindepth 1 -maxdepth 1 -type d | sort)
-  echo "==> Pushed ${count} skill(s): ${names[*]:-<none>}"
-  if [[ "$failed" -gt 0 ]]; then
-    echo "Warning: ${failed} skill(s) failed to push" >&2
-  fi
+  VM_NAME="$VM_NAME" bash "$PUSH_FILES" "$SKILLS_PATH" /root/.agents/skills
 }
 
 # Refresh the OpenHands REST client from the repo. It is also embedded in the

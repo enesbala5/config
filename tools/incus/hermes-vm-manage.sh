@@ -7,12 +7,14 @@ PROFILE="${PROFILE:-hermes-agent}"
 IMAGE="${IMAGE:-images:ubuntu/24.04/cloud}"
 SECRETS_PATH="${SECRETS_PATH:-/run/agenix/hermes-agent-secrets}"
 USER_DATA_FILE="${USER_DATA_FILE:-/etc/incus-profiles/${PROFILE}/user-data}"
-# Single source of truth for the OpenHands delegation skill; also embedded in
-# the guest by the incus-hermes-agent module's cloud-init.
-SKILL_FILE="${SKILL_FILE:-$(dirname "$0")/../hermes-skills/openhands/SKILL.md}"
+# Hermes-only skills tree (tools/hermes-skills/<name>/SKILL.md), pushed to the
+# guest's Hermes user-scope skills dir alongside the shared misc/skills tree.
+HERMES_SKILLS_PATH="${HERMES_SKILLS_PATH:-$(dirname "$0")/../hermes-skills}"
 # Zed agent skills tree (misc/skills/<name>/SKILL.md), pushed to the guest's
 # Hermes user-scope skills dir so every conversation has them available.
 SKILLS_PATH="${SKILLS_PATH:-$(dirname "$0")/../../misc/skills}"
+# Shared helper that syncs a local tree into the guest (used for both trees).
+PUSH_FILES="${PUSH_FILES:-$(dirname "$0")/utils/push-files.sh}"
 PROFILE_CPU="${PROFILE_CPU:-2}"
 PROFILE_MEMORY="${PROFILE_MEMORY:-4GiB}"
 # Keep in sync with hosts/home-server/default.nix (guestIps) and the
@@ -181,54 +183,14 @@ EOF
   incus exec "$VM_NAME" -- systemctl daemon-reload
 }
 
-# Push every skill from SKILLS_PATH (<name>/SKILL.md) into the guest's Hermes
-# user-scope skills dir (/root/.hermes/skills/<name>/SKILL.md), so they are
-# available to every Hermes conversation on the VM.
+# Sync the Hermes-only skills tree and the shared misc/skills tree into the
+# guest's Hermes user-scope skills dir (/root/.hermes/skills), so they are
+# available to every Hermes conversation on the VM. Both trees are pushed to the
+# same destination; each source is a directory of <name>/SKILL.md bundles.
 ensure_skills() {
-  if [[ ! -d "$SKILLS_PATH" ]]; then
-    echo "Warning: ${SKILLS_PATH} not found; skipping skills sync." >&2
-    return 0
-  fi
   echo "==> Refreshing guest Hermes skills (/root/.hermes/skills)..."
-  local count=0 failed=0 names=()
-  while IFS= read -r skill_dir; do
-    local name
-    name="$(basename "$skill_dir")"
-    local src="${skill_dir}/SKILL.md"
-    if [[ ! -f "$src" ]]; then
-      continue
-    fi
-    if ! incus exec "$VM_NAME" -- mkdir -p "/root/.hermes/skills/${name}" </dev/null 2>/dev/null; then
-      echo "Warning: could not create /root/.hermes/skills/${name} on guest; skipping ${name}" >&2
-      failed=$((failed + 1))
-      continue
-    fi
-    if ! incus file push "$src" "${VM_NAME}/root/.hermes/skills/${name}/SKILL.md" \
-        -p --mode 0644 --uid 0 --gid 0 </dev/null; then
-      echo "Warning: failed to push skill ${name}" >&2
-      failed=$((failed + 1))
-      continue
-    fi
-    names+=("${name}")
-    count=$((count + 1))
-  done < <(find "$SKILLS_PATH" -mindepth 1 -maxdepth 1 -type d | sort)
-  echo "==> Pushed ${count} skill(s): ${names[*]:-<none>}"
-  if [[ "$failed" -gt 0 ]]; then
-    echo "Warning: ${failed} skill(s) failed to push" >&2
-  fi
-}
-
-# Keep in sync with nix/nixos/hosts/home-server/modules/incus-hermes-agent/default.nix
-# (tools/hermes-skills/openhands/SKILL.md is the single source of truth).
-ensure_hermes_skill() {
-  if [[ ! -f "$SKILL_FILE" ]]; then
-    echo "Warning: skill file ${SKILL_FILE} not found; skipping OpenHands delegation skill." >&2
-    return 0
-  fi
-  echo "==> Installing OpenHands delegation skill into guest..."
-  incus exec "$VM_NAME" -- mkdir -p /root/.hermes/skills/openhands
-  incus file push "$SKILL_FILE" "${VM_NAME}/root/.hermes/skills/openhands/SKILL.md" \
-    -p --mode 0644 --uid 0 --gid 0
+  VM_NAME="$VM_NAME" bash "$PUSH_FILES" "$HERMES_SKILLS_PATH" /root/.hermes/skills
+  VM_NAME="$VM_NAME" bash "$PUSH_FILES" "$SKILLS_PATH" /root/.hermes/skills
 }
 
 # Host Helium Playwright MCP + recording mount. Cloud-init only covers first boot.
@@ -320,7 +282,6 @@ cmd_start() {
   ensure_hermes_bin
   ensure_hermes_env
   ensure_oh_start
-  ensure_hermes_skill
   ensure_skills
   ensure_helium_browser
   incus exec "$VM_NAME" -- systemctl enable --now hermes-agent hermes-dashboard hermes-serve
