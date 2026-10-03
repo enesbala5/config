@@ -25,6 +25,12 @@ Use those tools (`browser_navigate`, `browser_snapshot`, `browser_click`, …). 
 
 One browser is shared by Hermes and OpenHands. Do not leave a session running while the other agent is testing.
 
+## Hermes-side
+
+The guest config pins `browser.backend: "off"`, so Hermes runs no browser driver of its own here — the `helium-browser` MCP tools are the only browser surface. Do not reach for `browser_exec`; use the MCP tools above.
+
+`tools/incus/configure-browser-mcp.sh hermes` writes both the MCP server and that key, and `hermes-vm-manage.sh start` re-runs it, so the config survives a VM rebuild.
+
 ## Recordings
 
 Traces, webm video, and auto-named screenshots land in:
