@@ -1,0 +1,33 @@
+---
+description: Never add Co-authored-by; commit only via plain git in the shell
+alwaysApply: true
+---
+
+# No Co-authored-by / No Cursor commit UI
+
+## Hard ban
+
+- **NEVER** add `Co-authored-by`, `Signed-off-by`, or any other trailer that attributes the commit to Cursor, an agent, or a tool.
+- **NEVER** use Cursor's commit UI, commit harness, Source Control commit button, or any IDE-mediated commit flow that may inject trailers.
+- **ONLY** create commits by running plain `git commit` in the **Shell** tool with a HEREDOC message.
+
+```bash
+# ✅ GOOD — shell only
+git commit -m "$(cat <<'EOF'
+Commit title here
+
+- Optional bullet
+EOF
+)"
+
+# ❌ BAD — anything that lets Cursor wrap/inject the commit
+# (Source Control panel, "Commit" UI actions, agent commit helpers)
+```
+
+## After every commit
+
+Run `git log -1 --format='%B'` and confirm the body has **no** `Co-authored-by` (or similar). If one was injected somehow, remove it immediately with a new commit or an amend **only** when amend rules already allow it; prefer stripping before the commit lands if possible.
+
+## Related
+
+Also enforced in the chunk-and-commit skill and commit-message rule.

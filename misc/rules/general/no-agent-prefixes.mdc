@@ -1,22 +1,24 @@
 ---
-description: Do not use cursor/ (or similar agent prefixes) in branches, commits, PRs, or messages
+description: Never keep an agent branch prefix. Rename cursor/ branches before any commit or push.
 alwaysApply: true
 ---
 
-# No agent prefixes in git or messages
+# No agent prefix on branches
 
-Never use `cursor/` (or similar agent/tool prefixes) in branch names, commit messages, pull request titles/bodies, or user-facing chat.
+Cursor's Branch Prefix setting injects `cursor/` even when that field looks empty. That prefix is not a naming convention. Ignore it.
 
-```text
-# ❌ BAD
-cursor/add-screen-record
-cursor/fix-hyprland-binds
+## Branches
 
-# ✅ GOOD
-add-screen-record
-fix-hyprland-binds
+- Never create a branch whose name starts with `cursor/`, `agent/`, or any other tool name.
+- If the current branch already has that prefix, rename it before the first commit, push, or pull request:
+
+```bash
+git branch -m <name-without-prefix>
 ```
 
-Follow the repo's existing branch naming if it already has a convention (e.g. `feat/...`). Still do not add a `cursor/` prefix on top of that.
+- Follow the repo's existing branch names (`feat/...`, `fix/...`) when it has a convention. Do not add a tool prefix on top.
+- If a pull request already points at the prefixed branch, push the renamed branch and retarget the PR. Delete the prefixed branch.
 
-Do not mention `cursor/` in commit messages, PR titles, PR descriptions, or similar git metadata. Describe the change, not the tool that made it.
+## Commits and pull requests
+
+Do not mention Cursor, the agent, or `cursor/` in commit messages, PR titles, or PR bodies. Describe the change.
