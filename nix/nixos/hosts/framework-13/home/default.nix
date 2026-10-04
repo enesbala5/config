@@ -15,6 +15,8 @@
     inputs.vicinae.homeManagerModules.default
     inputs.hermes-agent.homeManagerModules.default
     ./programs
+
+    ../../../modules/home/programs/opencode
   ];
 
   disabledModules = [ "programs/vicinae.nix" ];
@@ -28,6 +30,8 @@
   };
 
   config = {
+    modules.home.opencode.enable = true;
+
     home.sessionVariables = {
       # Allow all GTK apps to find the xfsettingsd GTK sync module so they
       # don't emit "Failed to load module xfsettingsd-gtk-settings-sync" warnings
