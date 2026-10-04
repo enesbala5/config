@@ -44,6 +44,12 @@ in
   "default-telegram.age" = userConfig;
   "rclone-conf.age" = userConfig;
 
+  # OpenCode
+  # -------------------------------
+  # Secret config layer (provider API keys, MCP tokens, …), merged by opencode
+  # via OPENCODE_CONFIG. See modules/home/programs/opencode/secrets.nix.
+  "opencode-secrets.json.age" = userConfig;
+
   # Coolify
   "coolify-env.age" = rootConfig;
 

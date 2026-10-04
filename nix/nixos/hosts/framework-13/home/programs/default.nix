@@ -113,10 +113,6 @@ in
   programs = {
     zen-browser.enable = true;
 
-    opencode = {
-      enable = true;
-    };
-
     obs-studio = {
       enable = true;
 

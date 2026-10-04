@@ -139,8 +139,8 @@
 	"agent_servers": {
 		"opencode": {
    "default_config_options": {
-    "effort": "high",
-    "model": "openrouter/z-ai/glm-5.3-flash"
+    "effort": "default",
+    "model": "deepseek/deepseek-flash"
    },
    "type": "registry"
   },
@@ -247,7 +247,7 @@
 	"ui_font_size": 16,
 	"buffer_font_size": 13.0,
 	"theme": {
-		"mode": "light",
+		"mode": "system",
 		"light": "macOS Classic Light",
 		"dark": "VSCode Dark Modern"
 	},

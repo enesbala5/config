@@ -187,6 +187,7 @@
       dunst.enable = false;
       zed.enable = true;
       vicinae.enable = true;
+      opencode.enable = false; # themed by opencode module
     };
   };
 

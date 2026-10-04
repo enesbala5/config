@@ -8,5 +8,7 @@
 {
   imports = [
     ./programs
+
+    ../../../modules/home/programs/opencode
   ];
 }
