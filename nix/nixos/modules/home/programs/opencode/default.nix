@@ -20,7 +20,7 @@ in
 {
   imports = siblingModules;
 
-  options.modules.home.opencode.enable = lib.mkEnableOption "OpenCode CLI with the GitHub theme";
+  options.modules.home.opencode.enable = lib.mkEnableOption "OpenCode";
 
   config = lib.mkIf cfg.enable {
     programs.opencode.enable = true;

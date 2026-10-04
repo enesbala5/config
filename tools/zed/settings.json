@@ -139,7 +139,8 @@
 	"agent_servers": {
 		"opencode": {
    "default_config_options": {
-    "model": "openrouter/z-ai/glm-5.3-flash"
+    "effort": "default",
+    "model": "deepseek/deepseek-flash"
    },
    "type": "registry"
   },
