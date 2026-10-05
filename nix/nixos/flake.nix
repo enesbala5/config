@@ -107,6 +107,11 @@
       url = "github:0xErwin1/dbflux";
     };
 
+    herdr = {
+      url = "github:herdrdev/herdr";
+      # herdr pins nixos-unstable and rust-overlay; don't force it onto our nixpkgs.
+    };
+
     omacut = {
       url = "path:./hosts/framework-13/home/programs/omacut";
       inputs.nixpkgs.follows = "nixpkgs-unstable";

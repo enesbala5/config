@@ -93,6 +93,7 @@ in
 
       # TTS
       handy
+
     ])
     # Flakes
     # ---
@@ -108,6 +109,7 @@ in
       inputs.grok-bot.packages.${pkgs.system}.default
       omacut.packages.${system}.default
       dbflux.packages.${system}.default
+      herdr.packages.${system}.default
     ]);
 
   programs = {
