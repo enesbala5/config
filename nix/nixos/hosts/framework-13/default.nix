@@ -523,6 +523,11 @@ in
     ])
     ++ [
       inputs.aw-watcher-window-hyprland.defaultPackage.${system}
+
+      # Strata file manager. Upstream ships no flake and its nixpkgs package is
+      # still an open PR, so the derivation is vendored in nix/pkgs/strata —
+      # see the header there before updating it.
+      (pkgs.callPackage ../../../pkgs/strata { })
     ];
 
   programs = {
