@@ -80,7 +80,6 @@ in
     # Unstable packages
     # ---
     ++ (with unstable; [
-      spotify
       telegram-desktop
       discord
 
@@ -204,7 +203,6 @@ in
 
         favorites = [
           "applications:zen-beta"
-          "applications:spotify"
           "applications:obsidian"
           "applications:cursor"
           "applications:dev.zed.Zed-Nightly.desktop"
