@@ -5,8 +5,7 @@ Wires the Codex CLI to DeepSeek. The surface is small:
 - `wrapper.nix` — provider config and `-c` overrides; `deepseek-flash` is the
   default, `codex-openai` is the escape hatch back to the base config.
 - `catalog.nix` — produces `~/.codex/models.json`.
-- `package.nix` — takes the Codex CLI from OpenAI's own flake, pinned to a
-  release tag in `flake.nix` (see below).
+- `package.nix` — pins the official OpenAI Codex release binary (see below).
 
 The API key comes from agenix (`deepseek-api-key`); it is read by the wrapper at
 run time and never enters the store or `~/.codex/config.toml`.
@@ -33,21 +32,26 @@ The extraction is deliberately brittle: if DeepSeek renames the heredoc marker
 
 ## Updating the Codex client pin
 
-The client is OpenAI's own package, from the `codex` flake input in
-`flake.nix`, pinned to the release tag `rust-v0.160.1`. That flake reads the
-version from `codex-rs/Cargo.toml` and builds the workspace with its own pinned
-nixpkgs and rust-overlay toolchain, so the client tracks upstream directly
-instead of nixpkgs-unstable's lagging `codex`.
+`package.nix` pins the official release binary for `rust-v0.160.1`, the
+`codex-x86_64-unknown-linux-musl.tar.gz` asset on the GitHub release. It is a
+statically linked musl binary, so it needs no compiler and no upstream binary
+cache — we just fetch and install it.
 
-To bump to a new `rust-vX.Y.Z` tag, edit the URL in `flake.nix`, then:
+We deliberately do **not** use OpenAI's own `openai/codex` flake: it is a
+development flake whose `packages` output does not build. Its
+`cargoLock.outputHashes` omits git dependencies that `Cargo.lock` requires
+(`appcontainer_common` and the rest of `microsoft/mxc`, `h3`, `h3-quinn`), so
+`nix build github:openai/codex#default` fails while vendoring.
+
+To bump to a new `rust-vX.Y.Z` release:
 
 ```sh
-nix flake update codex     # from nix/nixos/
+nix store prefetch-file --json \
+  "https://github.com/openai/codex/releases/download/rust-vX.Y.Z/codex-x86_64-unknown-linux-musl.tar.gz"
 ```
 
-and rebuild. If `codex-rs/Cargo.lock` changed, upstream's own
-`cargoLock.outputHashes` build fails; fixing that is theirs to do in their
-flake.
+Set `version` and `src.hash` (the returned `hash`) in `package.nix`, then
+rebuild (`nixos-rebuild-switch`).
 
 ## Updating the catalog pin
 
