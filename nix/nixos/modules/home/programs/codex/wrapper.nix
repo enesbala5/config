@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  unstable,
   data,
   ...
 }:
@@ -18,11 +17,15 @@ let
 
   catalog = "${data.homeDirectory}/.codex/models.json";
 
-  # Codex 0.139 speaks only the Responses API (wire_api = "chat" is rejected),
-  # which DeepSeek serves natively at https://api.deepseek.com. Layering these
-  # as -c overrides keeps the user's writable config.toml (MCP servers, hooks,
-  # project trust) untouched while making DeepSeek the default. Values are
-  # parsed as TOML, hence the inner quoting.
+  # Codex speaks only the Responses API (wire_api = "chat" is rejected), which
+  # DeepSeek serves natively at https://api.deepseek.com. Layering these as -c
+  # overrides keeps the user's writable config.toml (MCP servers, hooks, project
+  # trust) untouched while making DeepSeek the default. Values are parsed as
+  # TOML, hence the inner quoting.
+  #
+  # The catalog is DeepSeek's data, not ours (see catalog.nix and README.md).
+  # It declares its own `minimal_client_version`; package.nix pins the client
+  # above that so the two stay in step.
   deepseekOverrides = [
     "-c"
     "model=\"deepseek-flash\""
@@ -57,11 +60,11 @@ let
     fi
     DEEPSEEK_API_KEY="$(cat ${lib.escapeShellArg keyFile})"
     export DEEPSEEK_API_KEY
-    exec ${lib.getExe unstable.codex} ${lib.escapeShellArgs deepseekOverrides} "$@"
+    exec ${lib.getExe cfg.package} ${lib.escapeShellArgs deepseekOverrides} "$@"
   '';
 
   openaiCodex = pkgs.writeShellScriptBin "codex-openai" ''
-    exec ${lib.getExe unstable.codex} "$@"
+    exec ${lib.getExe cfg.package} "$@"
   '';
 in
 {
