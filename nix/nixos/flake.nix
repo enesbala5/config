@@ -112,6 +112,11 @@
       # herdr pins nixos-unstable and rust-overlay; don't force it onto our nixpkgs.
     };
 
+    herdr-gpui = {
+      url = "github:penso/herdr-gpui/v20261006.1";
+      # Native GPUI client for the local herdr daemon; also pins its own nixpkgs + rust-overlay.
+    };
+
     omacut = {
       url = "path:./hosts/framework-13/home/programs/omacut";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
