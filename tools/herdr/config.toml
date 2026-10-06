@@ -1,0 +1,22 @@
+onboarding = false
+
+[theme]
+name = "terminal"
+auto_switch = false
+
+[ui.toast]
+delivery = "herdr"
+
+[ui.toast.herdr]
+position = "bottom-right"
+
+[ui.sound]
+enabled = true
+
+[ui]
+status_indicators = "symbols"
+prompt_new_tab_name = false
+
+# [keys]
+# next_tab = "prefix+ctrl+tab"
+# previous_tab = "prefix+ctrl+shift+tab"

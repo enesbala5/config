@@ -17,6 +17,7 @@
     ./programs
 
     ../../../modules/home/programs/opencode
+    ../../../modules/home/programs/codex
   ];
 
   disabledModules = [ "programs/vicinae.nix" ];
@@ -31,6 +32,7 @@
 
   config = {
     modules.home.opencode.enable = true;
+    modules.home.codex.enable = true;
 
     home.sessionVariables = {
       # Allow all GTK apps to find the xfsettingsd GTK sync module so they
@@ -60,6 +62,20 @@
         ".config/zed" = {
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/zed";
           recursive = true;
+        };
+
+        # Herdr has no home-manager module, so version config.toml here.
+        # Only the config file is symlinked; the rest of ~/.config/herdr holds
+        # runtime state (sockets, logs, session.json) and must stay writable.
+        ".config/herdr/config.toml" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/config.toml";
+        };
+
+        # Pi has no home-manager module, so version its agent config here.
+        # Only settings.json is symlinked: auth.json, models-store.json (an
+        # HTTP cache), and sessions/ stay as local runtime state under ~/.pi.
+        ".pi/agent/settings.json" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/settings.json";
         };
 
         ".agents/skills" = {

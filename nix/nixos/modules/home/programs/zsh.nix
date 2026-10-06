@@ -24,7 +24,7 @@
       source ${data.configDirectory}/tools/zsh/powerlevel10k/.p10k.zsh
 
       # Source Telegram credentials - Needed for `telegram-notify` script
-      [ -f /run/agenix/default-telegram ] && set -a && source /run/agenix/default-telegram
+      [ -f /run/agenix/default-telegram ] && { set -a; source /run/agenix/default-telegram; set +a; }
 
       PATH=~/.console-ninja/.bin:$PATH
 

@@ -137,7 +137,10 @@
   "dock": "left"
 	},
 	"agent_servers": {
-		"opencode": {
+		"pi-acp": {
+   "type": "registry"
+  },
+  "opencode": {
    "default_config_options": {
     "effort": "default",
     "model": "deepseek/deepseek-flash"
@@ -149,7 +152,7 @@
 		}
 	},
 	"icon_theme": {
-		"mode": "light",
+		"mode": "dark",
 		"light": "VSCode Icons",
 		"dark": "VSCode Icons"
 	},
@@ -247,7 +250,7 @@
 	"ui_font_size": 16,
 	"buffer_font_size": 13.0,
 	"theme": {
-		"mode": "system",
+		"mode": "dark",
 		"light": "macOS Classic Light",
 		"dark": "VSCode Dark Modern"
 	},

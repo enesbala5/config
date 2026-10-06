@@ -37,6 +37,7 @@ in
 
       # Development
       # ------------------------------------------------------------------------------------------
+      go # Go toolchain (herdr builds Go plugins like herdr.auto-title at install time)
       beekeeper-studio # Database Management
       insomnia # API Client
       neovim # Neovim
@@ -79,7 +80,6 @@ in
     # Unstable packages
     # ---
     ++ (with unstable; [
-      spotify
       telegram-desktop
       discord
 
@@ -88,11 +88,9 @@ in
       # IDE
       vscode
 
-      # AI
-      codex # OpenAI Codex CLI
-
       # TTS
       handy
+
     ])
     # Flakes
     # ---
@@ -108,6 +106,9 @@ in
       inputs.grok-bot.packages.${pkgs.system}.default
       omacut.packages.${system}.default
       dbflux.packages.${system}.default
+      herdr.packages.${system}.default
+      herdr-gpui.packages.${system}.default
+      pi.packages.${system}.pi
     ]);
 
   programs = {
@@ -203,7 +204,6 @@ in
 
         favorites = [
           "applications:zen-beta"
-          "applications:spotify"
           "applications:obsidian"
           "applications:cursor"
           "applications:dev.zed.Zed-Nightly.desktop"

@@ -187,7 +187,7 @@
       dunst.enable = false;
       zed.enable = true;
       vicinae.enable = true;
-      opencode.enable = false; # themed by opencode module
+      opencode.enable = true; # theme owned by opencode module (see opencode/theme.nix)
     };
   };
 
