@@ -1,0 +1,10 @@
+{
+  "lastChangelogVersion": "1.0.4",
+  "defaultProvider": "deepseek",
+  "defaultModel": "deepseek-flash",
+  "hideThinkingBlock": false,
+  "packages": [
+    "npm:@ogulcancelik/pi-minimal-footer"
+  ],
+  "defaultThinkingLevel": "low"
+}

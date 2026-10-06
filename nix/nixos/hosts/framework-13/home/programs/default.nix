@@ -108,6 +108,7 @@ in
       dbflux.packages.${system}.default
       herdr.packages.${system}.default
       herdr-gpui.packages.${system}.default
+      pi.packages.${system}.pi
     ]);
 
   programs = {

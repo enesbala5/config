@@ -117,6 +117,12 @@
       # Native GPUI client for the local herdr daemon; also pins its own nixpkgs + rust-overlay.
     };
 
+    pi = {
+      url = "github:earendil-works/pi/stable";
+      # Pi's own nix/package.nix builds the Node bundle with importNpmLock, so
+      # keep it on its pinned nixpkgs instead of forcing ours.
+    };
+
     omacut = {
       url = "path:./hosts/framework-13/home/programs/omacut";
       inputs.nixpkgs.follows = "nixpkgs-unstable";

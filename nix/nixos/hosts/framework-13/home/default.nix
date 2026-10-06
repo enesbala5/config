@@ -71,6 +71,13 @@
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/config.toml";
         };
 
+        # Pi has no home-manager module, so version its agent config here.
+        # Only settings.json is symlinked: auth.json, models-store.json (an
+        # HTTP cache), and sessions/ stay as local runtime state under ~/.pi.
+        ".pi/agent/settings.json" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/settings.json";
+        };
+
         ".agents/skills" = {
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/misc/skills";
           recursive = true;
