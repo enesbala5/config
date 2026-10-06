@@ -149,7 +149,7 @@
 		}
 	},
 	"icon_theme": {
-		"mode": "light",
+		"mode": "dark",
 		"light": "VSCode Icons",
 		"dark": "VSCode Icons"
 	},
@@ -247,7 +247,7 @@
 	"ui_font_size": 16,
 	"buffer_font_size": 13.0,
 	"theme": {
-		"mode": "light",
+		"mode": "dark",
 		"light": "macOS Classic Light",
 		"dark": "VSCode Dark Modern"
 	},
