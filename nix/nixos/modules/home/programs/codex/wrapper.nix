@@ -42,7 +42,7 @@ let
     "-c"
     "model_providers.deepseek.env_key=\"DEEPSEEK_API_KEY\""
     "-c"
-    "model_reasoning_effort=\"high\""
+    "model_reasoning_effort=\"low\""
     "-c"
     "web_search=\"disabled\""
     "-c"
