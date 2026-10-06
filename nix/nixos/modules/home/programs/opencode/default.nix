@@ -25,8 +25,10 @@ in
   config = lib.mkIf cfg.enable {
     programs.opencode.enable = true;
 
-    # Stylix auto-themes opencode (settings.theme = "stylix"); this module owns
-    # the theme instead, so opt out to avoid a conflicting definition.
-    stylix.targets.opencode.enable = false;
+    # Stylix generates a "stylix" theme (base16 palette) and sets
+    # settings.theme = "stylix" in config.json. The TUI picks its active theme
+    # from tui.json instead, where "github" stays the default (see tui.nix), so
+    # stylix's theme is available via /theme without changing the default.
+    stylix.targets.opencode.enable = true;
   };
 }
