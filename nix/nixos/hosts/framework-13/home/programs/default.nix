@@ -88,9 +88,6 @@ in
       # IDE
       vscode
 
-      # AI
-      codex # OpenAI Codex CLI
-
       # TTS
       handy
 

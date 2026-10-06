@@ -17,6 +17,7 @@
     ./programs
 
     ../../../modules/home/programs/opencode
+    ../../../modules/home/programs/codex
   ];
 
   disabledModules = [ "programs/vicinae.nix" ];
@@ -31,6 +32,7 @@
 
   config = {
     modules.home.opencode.enable = true;
+    modules.home.codex.enable = true;
 
     home.sessionVariables = {
       # Allow all GTK apps to find the xfsettingsd GTK sync module so they

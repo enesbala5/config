@@ -50,6 +50,12 @@ in
   # via OPENCODE_CONFIG. See modules/home/programs/opencode/secrets.nix.
   "opencode-secrets.json.age" = userConfig;
 
+  # Codex
+  # -------------------------------
+  # DeepSeek API key (raw `sk-…`), injected as DEEPSEEK_API_KEY by the codex
+  # wrapper. See modules/home/programs/codex/wrapper.nix.
+  "deepseek-api-key.age" = userConfig;
+
   # Coolify
   "coolify-env.age" = rootConfig;
 
