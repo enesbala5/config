@@ -64,6 +64,13 @@
           recursive = true;
         };
 
+        # Herdr has no home-manager module, so version config.toml here.
+        # Only the config file is symlinked; the rest of ~/.config/herdr holds
+        # runtime state (sockets, logs, session.json) and must stay writable.
+        ".config/herdr/config.toml" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/config.toml";
+        };
+
         ".agents/skills" = {
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/misc/skills";
           recursive = true;
