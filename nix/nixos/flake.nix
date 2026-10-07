@@ -107,6 +107,14 @@
       url = "github:0xErwin1/dbflux";
     };
 
+    antseed = {
+      url = "github:AntSeed/antseed";
+      # antseed's flake builds the CLI bundle and pins the native prebuilds
+      # (better-sqlite3, node-datachannel, keytar) against its own nixpkgs and a
+      # pnpm fetch hash, so keep it off ours like pi/hermes rather than forcing
+      # `inputs.nixpkgs.follows`.
+    };
+
     herdr = {
       url = "github:herdrdev/herdr";
       # herdr pins nixos-unstable and rust-overlay; don't force it onto our nixpkgs.
