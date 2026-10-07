@@ -67,13 +67,18 @@ recording_error() {
 	printf '%s' "${line:-wl-screenrec exited}"
 }
 
-# slurp often overshoots a full-monitor drag by 1px; wl-screenrec then bails.
-# Snap to the output if the selection covers it (2px slop), otherwise intersect.
+# slurp reports logical coordinates, but `hyprctl monitors` reports the buffer
+# size (physical pixels) and a scale rounded to two decimals. A full-screen drag
+# often overshoots by a pixel, which used to compare against the wrong bounds and
+# make wl-screenrec bail with "not entirely within one output".
+#
+# Returns either "output <name>" when the selection covers a whole display, or
+# "geometry x,y WxH" clamped to the display it overlaps most.
 clamp_selection() {
 	local geom=$1
 	local x y w h clamped
 	if [[ ! "$geom" =~ ^(-?[0-9]+),(-?[0-9]+)[[:space:]]+([0-9]+)x([0-9]+)$ ]]; then
-		printf '%s' "$geom"
+		printf 'geometry %s' "$geom"
 		return 0
 	fi
 	x=${BASH_REMATCH[1]}
@@ -91,23 +96,28 @@ clamp_selection() {
 		($sx | tonumber) as $sx | ($sy | tonumber) as $sy
 		| ($sw | tonumber) as $sw | ($sh | tonumber) as $sh
 		| (map(select(.disabled | not))
-			| map(. + {ov: overlap($sx; $sy; $sw; $sh; .x; .y; .width; .height)})
+			| map(. + {
+					lw: ((.width / .scale) | round),
+					lh: ((.height / .scale) | round)
+				})
+			| map(. + {ov: overlap($sx; $sy; $sw; $sh; .x; .y; .lw; .lh)})
 			| max_by(.ov)) as $m
 		| if ($m | type) == "null" or $m.ov <= 0 then empty
 			else
-				2 as $slop
+				# Cover the 2dp scale rounding (<=0.5%) plus a 1px slurp overshoot.
+				((($m.lw * 0.006) | ceil) + 2) as $slop
 				| if ($sx <= $m.x + $slop)
 						and ($sy <= $m.y + $slop)
-						and ($sx+$sw >= $m.x+$m.width - $slop)
-						and ($sy+$sh >= $m.y+$m.height - $slop)
-					then "\($m.x),\($m.y) \($m.width)x\($m.height)"
+						and ($sx+$sw >= $m.x+$m.lw - $slop)
+						and ($sy+$sh >= $m.y+$m.lh - $slop)
+					then "output \($m.name)"
 					else
 						([$sx, $m.x] | max) as $cx
 						| ([$sy, $m.y] | max) as $cy
-						| ([$sx+$sw, $m.x+$m.width] | min) as $cx2
-						| ([$sy+$sh, $m.y+$m.height] | min) as $cy2
+						| ([$sx+$sw, $m.x+$m.lw] | min) as $cx2
+						| ([$sy+$sh, $m.y+$m.lh] | min) as $cy2
 						| if ($cx2 - $cx) < 1 or ($cy2 - $cy) < 1 then empty
-							else "\($cx),\($cy) \($cx2-$cx)x\($cy2-$cy)"
+							else "geometry \($cx),\($cy) \($cx2-$cx)x\($cy2-$cy)"
 							end
 					end
 			end
@@ -222,6 +232,19 @@ start_recording() {
 		exit 1
 	fi
 
+	local rec_args
+	case "$selection" in
+		"output "*)
+			rec_args=(-o "${selection#output }")
+			;;
+		"geometry "*)
+			rec_args=(-g "${selection#geometry }")
+			;;
+		*)
+			rec_args=(-g "$selection")
+			;;
+	esac
+
 	# Prefer the desktop audio monitor (system sounds + apps); fall back to default source.
 	local audio_device
 	audio_device=$(pactl get-default-sink 2>/dev/null)
@@ -233,7 +256,7 @@ start_recording() {
 	: >"$LOG_FILE"
 	# Wait until the encoder is actually up before silencing notifications.
 	# Region/encoder errors exit immediately; a brief pgrep would miss them.
-	wl-screenrec -g "$selection" -f "$filename" --audio ${audio_device:+--audio-device "$audio_device"} \
+	wl-screenrec "${rec_args[@]}" -f "$filename" --audio ${audio_device:+--audio-device "$audio_device"} \
 		>"$LOG_FILE" 2>&1 &
 
 	local i
