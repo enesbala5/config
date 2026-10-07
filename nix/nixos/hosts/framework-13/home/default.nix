@@ -18,6 +18,7 @@
 
     ../../../modules/home/programs/opencode
     ../../../modules/home/programs/codex
+    ../../../modules/home/programs/antseed
   ];
 
   disabledModules = [ "programs/vicinae.nix" ];
@@ -32,7 +33,10 @@
 
   config = {
     modules.home.opencode.enable = true;
-    modules.home.codex.enable = true;
+    modules.home.codex.enable = false;
+
+    # Antseed buyer proxy
+    modules.home.antseed.enable = false;
 
     home.sessionVariables = {
       # Allow all GTK apps to find the xfsettingsd GTK sync module so they
@@ -111,26 +115,6 @@
             ];
             ExecStart = "${pkgs.xfce.xfce4-settings}/bin/xfsettingsd";
             Restart = "on-abort";
-          };
-        };
-
-        # Antseed buyer proxy: local OpenAI/Anthropic-compatible endpoint on
-        # 127.0.0.1:8377 that routes through the Antseed P2P network. Loopback
-        # only. Chain/identity/config live under ~/.antseed (identity.key must
-        # never move off this host).
-        antseed-buyer = {
-          Unit = {
-            Description = "Antseed Buyer Proxy";
-            After = [ "network-online.target" ];
-            Wants = [ "network-online.target" ];
-          };
-
-          Install.WantedBy = [ "default.target" ];
-
-          Service = {
-            ExecStart = "${inputs.antseed.packages.${pkgs.system}.default}/bin/antseed buyer start";
-            Restart = "on-failure";
-            RestartSec = 10;
           };
         };
       };
