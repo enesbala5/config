@@ -153,6 +153,15 @@ in
   # ------------------------------------------------------------------------------------------
 
   services = {
+    # SSH: allow password logins so a phone (no private key) can connect over
+    # LAN/Tailscale. base-configuration.nix defaults PasswordAuthentication to
+    # false, so force it here. Setting this also makes the openssh module pull
+    # pam_unix into the sshd PAM stack (unixAuth follows PasswordAuthentication).
+    openssh.settings = {
+      PasswordAuthentication = lib.mkForce true;
+      KbdInteractiveAuthentication = true;
+    };
+
     # Do not make EasyEffects the default sink. It follows the hardware default
     # (Ryzen / headphones) and attaches via processAllOutputs.
     pipewire.wireplumber.extraConfig = {
@@ -474,6 +483,12 @@ in
   # ------------------------------------------------------------------------------------------
 
   security = {
+    # Don't run the local fingerprint reader for SSH logins. pam_fprintd is
+    # pointless over the network (the reader is on the server) and can stall
+    # the password prompt. Password auth through pam_unix still works because
+    # PasswordAuthentication above enables unixAuth for the sshd PAM service.
+    pam.services.sshd.fprintAuth = false;
+
     # pki = {
     #   certificateFiles = [
     #     ./certificates/incus/incus.enesbala.com.crt
