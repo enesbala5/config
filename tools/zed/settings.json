@@ -10,7 +10,10 @@
 	// "indent_guides": {
 	// 	"background_coloring": "indent_aware",
 	// },
-	"ssh_connections": [
+	"auto_update_extensions": {
+  "activitywatch": false
+ },
+ "ssh_connections": [
   {
    "host": "192.168.0.40",
    "username": "e",
