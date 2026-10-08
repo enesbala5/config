@@ -23,22 +23,22 @@
     package = pkgs.aw-server-rust;
 
     watchers = {
-      aw-watcher-afk = {
-        package = pkgs.aw-watcher-afk;
+      # Disabled: produced incorrect data on this machine.
+      # aw-watcher-afk = {
+      #   package = pkgs.aw-watcher-afk;
+      #   settings = {
+      #     poll_time = 1000;
+      #   };
+      # };
 
-        settings = {
-          poll_time = 1000;
-        };
-      };
-
-      aw-watcher-window = {
-        package = pkgs.activitywatch;
-
-        settings = {
-          poll_time = 1000;
-          exclude_title = true;
-        };
-      };
+      # Disabled: generic X11 watcher, redundant/incorrect under Hyprland.
+      # aw-watcher-window = {
+      #   package = pkgs.activitywatch;
+      #   settings = {
+      #     poll_time = 1000;
+      #     exclude_title = true;
+      #   };
+      # };
 
       aw-watcher-window-hyprland = {
         package = inputs.aw-watcher-window-hyprland.defaultPackage.${system};
