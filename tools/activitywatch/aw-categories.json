@@ -1,0 +1,275 @@
+{
+  "id": "hyprland-enes",
+  "categories": [
+    {
+      "id": 0,
+      "name": ["Work"],
+      "rule": { "type": "none" },
+      "data": { "color": "#4ADE80", "score": 10 }
+    },
+    {
+      "id": 1,
+      "name": ["Work", "Projects"],
+      "rule": { "type": "none" },
+      "data": { "color": "#22C55E", "score": 12 }
+    },
+    {
+      "id": 2,
+      "name": ["Work", "Projects", "Coverlttr"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "coverlttr|Cover Letter|React Email|founding-member-offer|LinkedInPasteImport"
+      },
+      "data": { "color": "#16A34A", "score": 15 }
+    },
+    {
+      "id": 3,
+      "name": ["Work", "Projects", "Flamingo"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "flamingo|revolucioni flamingo|kleahuta"
+      },
+      "data": { "color": "#F472B6", "score": 12 }
+    },
+    {
+      "id": 4,
+      "name": ["Work", "Projects", "Portfolio"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "~/dev/portfolio|portfolio —|Portfolio – Figma|enesbala5/portfolio|^portfolio$|About me - Enes Bala|Marina Bay Casino|Enes Bala - Fullstack"
+      },
+      "data": { "color": "#86EFAC", "score": 12 }
+    },
+    {
+      "id": 5,
+      "name": ["Work", "Projects", "Merre"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "merre"
+      },
+      "data": { "color": "#4ADE80", "score": 12 }
+    },
+    {
+      "id": 6,
+      "name": ["Work", "Projects", "Config"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "~/config|framework-13: config|enesbala5/config|config — |nixos-rebuild|home-manager|mynixos|search\\.nixos"
+      },
+      "data": { "color": "#A3E635", "score": 10 }
+    },
+    {
+      "id": 7,
+      "name": ["Work", "Projects", "HyperFrames"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "hyperframes"
+      },
+      "data": { "color": "#34D399", "score": 12 }
+    },
+    {
+      "id": 8,
+      "name": ["Work", "Programming"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "Cursor|dev\\.zed\\.Zed|Zed-Nightly|^zed$|kitty|GitHub|Stack Overflow|BitBucket|Gitlab|Insomnia|vscode|Antigravity|herdr|OpenCode|opencode|dbflux|localhost|127\\.0\\.0\\.1|Prisma Studio|sveltebits"
+      },
+      "data": { "color": "#22C55E", "score": 10 }
+    },
+    {
+      "id": 9,
+      "name": ["Work", "Programming", "ActivityWatch"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "ActivityWatch|aw-watcher|localhost:5600"
+      },
+      "data": { "color": "#86EFAC", "score": 5 }
+    },
+    {
+      "id": 10,
+      "name": ["Work", "AI"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "^hermes$|^Hermes$|grok-bot|ChatGPT|OpenAI Platform|Google Gemini|Claude\\.ai|Claude |DeepSeek|OpenRouter|Cursor Agents|agent\\.enesbala|Hermes Agent|Hermes - Dashboard|grok\\.com|^Grok —|Grok — Zen|OpenHands|AI Coding Usage Analytics"
+      },
+      "data": { "color": "#2DD4BF", "score": 8 }
+    },
+    {
+      "id": 11,
+      "name": ["Work", "Design"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "Figma|FigJam|Affinity|Inkscape|GIMP|nomacs|Converseen"
+      },
+      "data": { "color": "#A78BFA", "score": 10 }
+    },
+    {
+      "id": 12,
+      "name": ["Work", "Video"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "Kdenlive|HandBrake|handbrake|OBS Studio|obsproject|Shotcut|avidemux|Kooha|omacut|Constrict"
+      },
+      "data": { "color": "#C084FC", "score": 10 }
+    },
+    {
+      "id": 13,
+      "name": ["Work", "3D"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "Blender|BambuStudio|Bambu|makerworld|Printables"
+      },
+      "data": { "color": "#E879F9", "score": 8 }
+    },
+    {
+      "id": 14,
+      "name": ["Work", "Business"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "Publer|LinkedIn|Polar|Resend|Twenty|Inngest|toggl|Cloudflare|Ads Manager|adsmanager|Umami|PostHog|OpenSEO|Axiom|clarity\\.microsoft|Search Console|analytics\\.enesbala|twenty\\.enesbala|leapahead|All People - People|All Workflows|Uptime Kuma|^Tasks -|^Tasks —|Workflow Runs|StoryBrand"
+      },
+      "data": { "color": "#FBBF24", "score": 11 }
+    },
+    {
+      "id": 15,
+      "name": ["Work", "Docs"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "Obsidian|Typora|Google Docs|libreoffice|ReText|notes —|Tasks - July|Google Tasks|tasks\\.google"
+      },
+      "data": { "color": "#FDE68A", "score": 9 }
+    },
+    {
+      "id": 16,
+      "name": ["Work", "Research"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "Google Search|DuckDuckGo|duckduckgo"
+      },
+      "data": { "color": "#BEF264", "score": 3 }
+    },
+    {
+      "id": 17,
+      "name": ["Comms"],
+      "rule": { "type": "none" },
+      "data": { "color": "#67E8F9", "score": 0 }
+    },
+    {
+      "id": 18,
+      "name": ["Comms", "IM"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "priority": 35,
+        "regex": "Discord|Telegram|WhatsApp|Signal|Slack|Element|Mattermost|Messenger|Google Meet|^Meet -"
+      },
+      "data": { "color": "#22D3EE", "score": -2 }
+    },
+    {
+      "id": 19,
+      "name": ["Comms", "Email"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "Gmail|Thunderbird|mail\\.zoho|mail\\.google|Outlook|Proton Mail"
+      },
+      "data": { "color": "#67E8F9", "score": 2 }
+    },
+    {
+      "id": 20,
+      "name": ["Media"],
+      "rule": { "type": "none" },
+      "data": { "color": "#F87171", "score": -5 }
+    },
+    {
+      "id": 21,
+      "name": ["Media", "Video"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "priority": 40,
+        "regex": "YouTube|Stremio|VLC|^mpv$|Plex|Twitch|Netflix|ReplayZone|Audiobookshelf|Picture-in-Picture"
+      },
+      "data": { "color": "#EF4444", "score": -8 }
+    },
+    {
+      "id": 22,
+      "name": ["Media", "Music"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "Spotify|spotifast|fastpotify|Deezer|Easy Effects"
+      },
+      "data": { "color": "#A3E635", "score": 0 }
+    },
+    {
+      "id": 23,
+      "name": ["Media", "Social"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "Instagram|Reddit|Facebook|/ X |Home / X|Twitter|x\\.com"
+      },
+      "data": { "color": "#FACC15", "score": -10 }
+    },
+    {
+      "id": 24,
+      "name": ["Media", "Games"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "regex": "Minecraft|RimWorld|jumpnbump|blobby|devilutionx|VirtualBox"
+      },
+      "data": { "color": "#FB923C", "score": -10 }
+    },
+    {
+      "id": 25,
+      "name": ["System"],
+      "rule": { "type": "none" },
+      "data": { "color": "#94A3B8", "score": 0 }
+    },
+    {
+      "id": 26,
+      "name": ["System", "Files"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "priority": 35,
+        "regex": "dolphin|thunar|LocalSend|localsend|xarchiver|ark|gparted|seahorse|blueman|kdeconnect|piper|gPhotos|Google Photos|rclone|to-compress|smb://"
+      },
+      "data": { "color": "#CBD5E1", "score": 0 }
+    },
+    {
+      "id": 27,
+      "name": ["System", "Remote"],
+      "rule": {
+        "type": "regex",
+        "ignore_case": true,
+        "priority": 45,
+        "regex": "ssh home-server|e@home-server|192\\.168\\.0\\.40|host\\.enesbala|server\\.enesbala"
+      },
+      "data": { "color": "#64748B", "score": 5 }
+    },
+    {
+      "id": 28,
+      "name": ["Uncategorized"],
+      "rule": { "type": "none" },
+      "data": { "color": "#CCC", "score": 0 }
+    }
+  ]
+}
