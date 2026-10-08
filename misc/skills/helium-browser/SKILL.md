@@ -17,7 +17,7 @@ Browser checks run on the **home-server host**, not inside this VM. Hyprland is 
 
 ## Endpoint
 
-Playwright MCP is already registered as `helium-browser`:
+The host Playwright MCP server is registered in this guest as `playwright`:
 
 `http://10.0.100.1:8931/mcp`
 
@@ -27,9 +27,9 @@ One browser is shared by Hermes and OpenHands. Do not leave a session running wh
 
 ## Hermes-side
 
-The guest config pins `browser.backend: "off"`, so Hermes runs no browser driver of its own here — the `helium-browser` MCP tools are the only browser surface. Do not reach for `browser_exec`; use the MCP tools above.
+The guest config keeps `agent.disabled_toolsets: [browser]`, so Hermes registers no browser tools of its own — the Playwright MCP tools are the only browser surface, and nothing here needs a local Chromium. `browser.backend: "off"` is pinned as well: it drops the Browser Use CLI driver (and the notice Hermes prints when that CLI is missing, which it is — the guest installer runs with `--skip-browser`). Do not reach for `browser_exec`; use the MCP tools above.
 
-`tools/incus/configure-browser-mcp.sh hermes` writes both the MCP server and that key, and `hermes-vm-manage.sh start` re-runs it, so the config survives a VM rebuild.
+`tools/incus/configure-browser-mcp.sh hermes` writes the MCP server, the backend pin and the disabled toolset, and `hermes-vm-manage.sh start` re-runs it, so the config survives a VM rebuild.
 
 ## Recordings
 
