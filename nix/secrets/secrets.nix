@@ -71,6 +71,7 @@ in
   "uptime-kuma-database-backup-env.age" = rootConfig;
   "twenty-crm-backup-env.age" = rootConfig;
   "dbflux-backup-env.age" = rootConfig;
+  "activitywatch-backup-env.age" = rootConfig;
   "hermes-agent-backup-env.age" = rootConfig;
   "ai-agent-backup-env.age" = rootConfig;
   "garage-backup-local-env.age" = rootConfig;

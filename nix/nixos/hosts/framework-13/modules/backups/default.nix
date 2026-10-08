@@ -1,6 +1,7 @@
 { ... }:
 {
   imports = [
+    ./activitywatch
     ./dbflux
   ];
 }
