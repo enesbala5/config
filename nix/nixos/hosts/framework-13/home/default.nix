@@ -75,6 +75,14 @@
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/config.toml";
         };
 
+        # Herdr Auto Title has no home-manager module, so its config is
+        # versioned beside Herdr's own. Only the config file is symlinked; the
+        # rest of ~/.config/herdr-auto-title holds runtime state (instances,
+        # manual-names.json) and must stay writable.
+        ".config/herdr-auto-title/config.env" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/plugins/auto-title/config.env";
+        };
+
         # Pi has no home-manager module, so version its agent config here.
         # Only settings.json is symlinked: auth.json, models-store.json (an
         # HTTP cache), and sessions/ stay as local runtime state under ~/.pi.
