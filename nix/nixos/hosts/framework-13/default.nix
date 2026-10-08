@@ -476,7 +476,14 @@ in
 
   # Memory Management
   # Swap partition: hardware-configuration.nix (by-uuid).
-  # zswap (boot.kernelParams above) compresses pages in RAM, then writebacks to that partition.
+  # Extra 8 GiB swapfile; the partition is already at the end of the disk.
+  # zswap (boot.kernelParams above) compresses pages in RAM, then writebacks to swap.
+  swapDevices = [
+    {
+      device = "/var/lib/swapfile";
+      size = 8 * 1024; # 8 GB
+    }
+  ];
 
   # ------------------------------------------------------------------------------------------
   # Security
