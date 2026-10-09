@@ -23,13 +23,17 @@
     package = pkgs.aw-server-rust;
 
     watchers = {
-      # Disabled: produced incorrect data on this machine.
-      # aw-watcher-afk = {
-      #   package = pkgs.aw-watcher-afk;
-      #   settings = {
-      #     poll_time = 1000;
-      #   };
-      # };
+      # poll_time must stay <= timeout (both seconds) or the watcher exits.
+      # 180 is the default AFK threshold, so this is the slowest poll that still starts.
+      aw-watcher-afk = {
+        package = pkgs.aw-watcher-afk;
+        settings = {
+          aw-watcher-afk = {
+            timeout = 180;
+            poll_time = 180;
+          };
+        };
+      };
 
       # Disabled: generic X11 watcher, redundant/incorrect under Hyprland.
       # aw-watcher-window = {
