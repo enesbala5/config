@@ -147,6 +147,10 @@ in
       includes = [ config.age.secrets.ssh-config.path ];
     };
 
+    yazi = {
+      enable = true;
+    };
+
     vicinae = {
       # Schema: https://www.vicinae.com/schemas/config.json
       # Default Config: `vicinae config default`
