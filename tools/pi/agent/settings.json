@@ -2,11 +2,16 @@
   "lastChangelogVersion": "1.0.4",
   "defaultProvider": "deepseek",
   "defaultModel": "deepseek-flash",
-  "hideThinkingBlock": false,
+  "hideThinkingBlock": true,
   "quietStartup": true,
   "packages": [
     "npm:@ogulcancelik/pi-minimal-footer",
     "npm:pi-sidebar-tui"
   ],
-  "defaultThinkingLevel": "low"
+  "defaultThinkingLevel": "low",
+  "terminal": {
+    "showImages": true,
+    "imageWidthCells": 80,
+    "images": "kitty"
+  }
 }

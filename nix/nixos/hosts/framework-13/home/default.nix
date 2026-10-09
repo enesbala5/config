@@ -84,10 +84,24 @@
         };
 
         # Pi has no home-manager module, so version its agent config here.
-        # Only settings.json is symlinked: auth.json, models-store.json (an
-        # HTTP cache), and sessions/ stay as local runtime state under ~/.pi.
+        # settings.json and keybindings.json are symlinked. auth.json,
+        # models-store.json (an HTTP cache), sessions/, and Herdr-managed files
+        # under extensions/ stay as local runtime state under ~/.pi.
         ".pi/agent/settings.json" = {
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/settings.json";
+        };
+
+        # ctrl+backspace should delete a word, not delete the session
+        # (pi's default binding for app.session.deleteNoninvasive).
+        ".pi/agent/keybindings.json" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/keybindings.json";
+        };
+
+        # Only the extension itself is symlinked; the extensions/ directory
+        # also holds herdr-agent-state.ts, which Herdr writes at runtime and
+        # must stay writable.
+        ".pi/agent/extensions/attach-pasted-images.ts" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/attach-pasted-images.ts";
         };
 
         ".agents/skills" = {
