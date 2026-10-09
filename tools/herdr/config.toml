@@ -1,5 +1,8 @@
 onboarding = false
 
+[terminal]
+kitty_graphics = true
+
 [theme]
 name = "terminal"
 auto_switch = false
