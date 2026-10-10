@@ -90,6 +90,10 @@ hl.config({
 		force_default_wallpaper = 1,
 		disable_hyprland_logo = true,
 		mouse_move_focuses_monitor = false,
+		-- 1 = "take_over": focusing another window (e.g. Alt+Tab/cyclenext) while a
+		-- window is fullscreen/maximized hands the same mode to the new window
+		-- instead of dropping out of fullscreen (2, the default). 0 = ignore.
+		on_focus_under_fullscreen = 1,
 	},
 
 	cursor = {
@@ -219,9 +223,9 @@ hl.bind(mainMod .. " + V", hl.dsp.exec_cmd(clipboardManager))
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd(clipboardManagerBackup))
 hl.bind(mainMod .. " + Period", hl.dsp.exec_cmd(emojiPicker))
 
-hl.bind("ALT + TAB", hl.dsp.window.cycle_next())
+hl.bind("ALT + TAB", hl.dsp.window.cycle_next({ tiled = true }))
 hl.bind("ALT + TAB", hl.dsp.window.bring_to_top())
-hl.bind("ALT + SHIFT + TAB", hl.dsp.window.cycle_next({ next = false }))
+hl.bind("ALT + SHIFT + TAB", hl.dsp.window.cycle_next({ next = false, tiled = true }))
 hl.bind("ALT + SHIFT + TAB", hl.dsp.window.bring_to_top())
 
 hl.bind(mainMod .. " + left", hl.dsp.focus({ direction = "left" }))
@@ -276,6 +280,11 @@ hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 --------------------------------
 ---- WINDOWS AND WORKSPACES ----
 --------------------------------
+
+-- Workspace 1 is a fullscreen stack: all windows are laid out at full size,
+-- so Alt+Tab/cyclenext swaps windows without a resize.
+hl.workspace_rule({ workspace = "1", layout = "monocle" })
+
 -- Anonymous on purpose. Named rules run first, so a named base rule would beat
 -- the later anonymous profile overrides.
 
