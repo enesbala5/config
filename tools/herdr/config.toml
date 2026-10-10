@@ -8,7 +8,7 @@ name = "terminal"
 auto_switch = false
 
 [ui.toast]
-delivery = "herdr"
+delivery = "terminal"
 
 [ui.toast.herdr]
 position = "bottom-right"
@@ -19,6 +19,16 @@ enabled = true
 [ui]
 status_indicators = "symbols"
 prompt_new_tab_name = false
+
+# Agents panel: line 1 = status + tab title, line 2 = [spin] agent · workspace.
+# Tokens in one row are hard-separated with " · "; there is no per-row
+# separator setting, so " - " is not possible without faking a token.
+[ui.sidebar.agents]
+row_gap = 0
+rows = [
+  ["state_icon", "tab"],
+  [{ token = "$spin", fg = "#fab387", bold = true, dim = false }, "agent", "workspace"],
+]
 
 # [keys]
 # next_tab = "prefix+ctrl+tab"
