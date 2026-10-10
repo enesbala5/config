@@ -1,11 +1,11 @@
--- Effective laptop mode from the old trailing TUI block (scale 2). The earlier 1.566 line lost.
+-- Laptop native mode at 1.56666667 scale => 1440x960 logical.
 {{- $laptop := index .MonitorsByTag "laptop" -}}
 {{- if $laptop }}
 hl.monitor({
 	output = "desc:BOE 0x0BCA",
 	mode = "2256x1504@59.99900",
 	position = "0x0",
-	scale = 2,
+	scale = 1.56666667,
 	transform = 0,
 	vrr = 0,
 })
