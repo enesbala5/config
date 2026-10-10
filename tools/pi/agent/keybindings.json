@@ -3,5 +3,8 @@
   "app.session.deleteNoninvasive": [],
   "app.session.tree": "ctrl+shift+r",
   "app.model.select": "ctrl+/",
-  "app.thinking.cycle": "ctrl+shift+/"
+  "app.thinking.cycle": "ctrl+shift+/",
+  "app.model.cycleForward": [],
+  "app.session.togglePath": "alt+p",
+  "app.models.toggleProvider": "alt+p"
 }

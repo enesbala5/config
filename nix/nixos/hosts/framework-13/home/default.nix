@@ -118,6 +118,11 @@
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/rewind.ts";
         };
 
+        # Ctrl+P inserts "/" into the prompt instead of cycling models.
+        ".pi/agent/extensions/ctrl-p-slash.ts" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/ctrl-p-slash.ts";
+        };
+
         # Modes is a directory extension (index.ts + utils.ts), so the whole
         # directory is symlinked recursively. It owns the normal/plan/ask mode
         # system (Shift+Tab) and replaces the standalone plan-mode extension.
