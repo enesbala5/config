@@ -8,7 +8,7 @@ name = "terminal"
 auto_switch = false
 
 [ui.toast]
-delivery = "terminal"
+delivery = "system"
 
 [ui.toast.herdr]
 position = "bottom-right"
@@ -20,9 +20,16 @@ enabled = true
 status_indicators = "symbols"
 prompt_new_tab_name = false
 
-# Agents panel: line 1 = status + tab title, line 2 = [spin] agent · workspace.
-# Tokens in one row are hard-separated with " · "; there is no per-row
-# separator setting, so " - " is not possible without faking a token.
+# Agents panel.
+#
+# Herdr's sidebar separator is hardcoded (src/ui/sidebar/tokens.rs): every pair
+# of adjacent tokens is joined with " · ", except a single space after the
+# built-in state_icon. There is no config key to change it, so a custom token
+# like $spin can never sit flush against the tab title.
+#
+# Therefore: state_icon owns the leading, divider-free icon slot (it renders
+# every state: working ◐, done ✓, idle ○, blocked ×, unknown ·), and the
+# animated $spin lives at the start of line 2.
 [ui.sidebar.agents]
 row_gap = 0
 rows = [
