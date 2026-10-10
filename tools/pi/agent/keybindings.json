@@ -1,4 +1,5 @@
 {
   "tui.editor.deleteWordBackward": ["ctrl+w", "alt+backspace", "ctrl+backspace"],
-  "app.session.deleteNoninvasive": []
+  "app.session.deleteNoninvasive": [],
+  "app.session.tree": "ctrl+shift+r"
 }

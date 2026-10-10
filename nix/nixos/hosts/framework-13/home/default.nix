@@ -104,6 +104,19 @@
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/attach-pasted-images.ts";
         };
 
+        # /rewind: pick a user message to branch the session from, with optional
+        # git worktree restore. Single file, so symlink it like the one above.
+        ".pi/agent/extensions/rewind.ts" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/rewind.ts";
+        };
+
+        # Plan mode is a directory extension (index.ts + utils.ts), so the
+        # whole directory is symlinked recursively.
+        ".pi/agent/extensions/plan-mode" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/plan-mode";
+          recursive = true;
+        };
+
         ".agents/skills" = {
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/misc/skills";
           recursive = true;
