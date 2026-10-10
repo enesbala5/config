@@ -9,7 +9,7 @@
     "npm:pi-sidebar-tui"
   ],
   "defaultThinkingLevel": "low",
-  "theme": "circus",
+  "theme": "circus-light/circus",
   "terminal": {
     "showImages": true,
     "imageWidthCells": 80,
