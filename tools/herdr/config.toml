@@ -24,17 +24,36 @@ prompt_new_tab_name = false
 #
 # Herdr's sidebar separator is hardcoded (src/ui/sidebar/tokens.rs): every pair
 # of adjacent tokens is joined with " · ", except a single space after the
-# built-in state_icon. There is no config key to change it, so a custom token
-# like $spin can never sit flush against the tab title.
+# built-in state_icon. So a custom glyph can never sit flush against the tab
+# title. The local `agent-head` plugin sidesteps this by emitting the glyph and
+# the title as ONE custom token ($head), so there is nothing to separate.
 #
-# Therefore: state_icon owns the leading, divider-free icon slot (it renders
-# every state: working ◐, done ✓, idle ○, blocked ×, unknown ·), and the
-# animated $spin lives at the start of line 2.
+# $head = "<state glyph> <tab title>", animated while working:
+#   working  braille spinner   done ✓   idle ○   blocked ×   unknown ·
+#
+# The per-state `rules` tint the whole token, title included. Delete the rules
+# (leave just { token = "$head" }) for a neutral title; the glyph shape still
+# distinguishes states.
 [ui.sidebar.agents]
 row_gap = 0
 rows = [
-  ["state_icon", "tab"],
-  [{ token = "$spin", fg = "#fab387", bold = true, dim = false }, "agent", "workspace"],
+  [
+    { token = "$head", rules = [
+      { starts_with = "⣾", fg = "#fab387" },
+      { starts_with = "⣽", fg = "#fab387" },
+      { starts_with = "⣻", fg = "#fab387" },
+      { starts_with = "⢿", fg = "#fab387" },
+      { starts_with = "⡿", fg = "#fab387" },
+      { starts_with = "⣟", fg = "#fab387" },
+      { starts_with = "⣯", fg = "#fab387" },
+      { starts_with = "⣷", fg = "#fab387" },
+      { starts_with = "✓", fg = "#a6e3a1" },
+      { starts_with = "×", fg = "#f38ba8" },
+      { starts_with = "○", fg = "#9399b2", dim = true },
+      { starts_with = "·", fg = "#6c7086", dim = true },
+    ] },
+  ],
+  ["agent", "workspace"],
 ]
 
 # [keys]
