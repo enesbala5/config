@@ -78,7 +78,7 @@
           progress_bar_max_width = 300
 
           # Corner radius for the progress bar. 0 disables rounded corners.
-          progress_bar_corner_radius = 7
+          progress_bar_corner_radius = 0
 
           # Define which corners to round when drawing the progress bar. If progress_bar_corner_radius
           # is set to 0 this option will be ignored.
@@ -280,7 +280,7 @@
           # corners.
           # The radius will be automatically lowered if it exceeds half of the
           # notification height to avoid clipping text and/or icons.
-          corner_radius = 10
+          corner_radius = 0
 
           # Define which corners to round when drawing the window. If the corner radius
           # is set to 0 this option will be ignored.

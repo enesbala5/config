@@ -272,7 +272,7 @@
             				background-color: transparent;
             				transition-property: background-color;
             				transition-duration: .5s;
-            				border-radius: 5px;
+            				border-radius: 0px;
                   }
 
                   #custom-separator {
@@ -371,7 +371,7 @@
                   #battery.dead {
                     background: red;
                     color: white;
-                    border-radius: 5px;
+                    border-radius: 0px;
                     padding: 0px 5px;
                   	animation: blinking .6s ease infinite;
                   }
