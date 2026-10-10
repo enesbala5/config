@@ -14,9 +14,11 @@
 //
 // pi has no auto-titling of its own: a session name is set by `/name`, by
 // `pi --name`, or by an extension. So when pi starts a session in Herdr with no
-// name, this seeds one from the opening prompt — the same fallback Claude Code
-// offers Auto Title — so tabs are useful without naming every session by hand.
-// A name the user sets is never overwritten.
+// name, this asks the active model for a short task title and sets it as the
+// session name, the way pi-sidebar-tui labels its panel. If generation is slow
+// or fails, the opening prompt is summarised instead, so Auto Title always gets
+// something. A name the user sets is never overwritten, and a name this hook
+// seeded earlier is re-generated on the next prompt after a reload or resume.
 //
 // Titles are reported with a TTL and refreshed on a heartbeat, so a pi that
 // dies without a clean shutdown stops naming its tab within the TTL instead of
@@ -64,7 +66,115 @@ function summarize(prompt: string): string | undefined {
 		return undefined;
 	}
 
-	return (stripped.charAt(0).toUpperCase() + stripped.slice(1)).slice(0, 60);
+	const title = (stripped.charAt(0).toUpperCase() + stripped.slice(1)).slice(0, 60).trim();
+	return title ? title : undefined;
+}
+
+// A short, action-first phrase with no trailing punctuation. Tighter than the
+// 5-7 words pi-sidebar-tui asks for its panel, because a tab is narrower than
+// the sidebar.
+const titlePrompt =
+	'Write a 3-5 word task title for this request. Start with an action verb. No punctuation. Output only the title.';
+
+// A generation that has not answered by now is slow enough that the prompt
+// summary is worth showing, and the model title can replace it later.
+const fallbackDelayMs = 4000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+	return new Promise((resolve, reject) => {
+		const timer = setTimeout(() => reject(new Error('title generation timed out')), ms);
+		timer.unref?.();
+		promise.then(
+			(value) => {
+				clearTimeout(timer);
+				resolve(value);
+			},
+			(error) => {
+				clearTimeout(timer);
+				reject(error);
+			}
+		);
+	});
+}
+
+function tidyTitle(text: string): string | undefined {
+	const cleaned = text
+		.replace(/^[\s"'`]+/, '')
+		.replace(/[\s"'`]+$/, '')
+		.replace(/[.!?]+$/, '')
+		.trim();
+	if (!cleaned || cleaned.length > 80) {
+		return undefined;
+	}
+
+	return cleaned.slice(0, 60);
+}
+
+// The model context is read loosely: this runs against whatever provider the
+// session is using, and none of it is worth failing a turn over.
+type TitleContext = {
+	modelRegistry?: {
+		getAll?: () => Array<{ id?: string }>;
+		streamSimple?: (model: unknown, context: unknown, options: unknown) => { result: () => Promise<unknown> };
+	};
+	model?: { id?: string };
+	sessionManager?: { getBranch?: () => unknown[] };
+};
+
+// The first thing the user typed, read back from the session. On a reload or
+// resume it is how a title this extension seeded earlier is recognised and
+// re-generated, rather than left as a raw prompt.
+function firstPrompt(ctx: TitleContext): string | undefined {
+	try {
+		const branch = (ctx.sessionManager?.getBranch?.() ?? []) as Array<{
+			type?: string;
+			message?: { role?: string; content?: unknown };
+		}>;
+		for (const entry of branch) {
+			if (entry?.type !== 'message' || entry?.message?.role !== 'user') {
+				continue;
+			}
+			const content = entry.message.content;
+			const text =
+				typeof content === 'string'
+					? content
+					: Array.isArray(content)
+						? ((content.find((part) => (part as { type?: string })?.type === 'text') as { text?: string } | undefined)
+								?.text ?? '')
+						: '';
+			if (text.trim()) {
+				return text;
+			}
+		}
+	} catch {
+		// A session without a readable branch simply has no opening prompt.
+	}
+
+	return undefined;
+}
+
+async function generateTitle(prompt: string, ctx: TitleContext): Promise<string | undefined> {
+	try {
+		const registry = ctx.modelRegistry;
+		const model = ctx.model;
+		if (!registry?.streamSimple || !model) {
+			return undefined;
+		}
+
+		const fullModel = registry.getAll?.().find((candidate) => candidate.id === model.id) ?? model;
+		const stream = registry.streamSimple(
+			fullModel,
+			{ messages: [{ role: 'user', content: `${titlePrompt}\n\n${prompt.slice(0, 500)}` }] },
+			{ maxTokens: 24, reasoning: 'off' }
+		);
+
+		const message = (await withTimeout(stream.result(), 12_000)) as
+			{ content?: Array<{ type?: string; text?: string }> } | undefined;
+		const text = message?.content?.find((part) => part?.type === 'text')?.text;
+		return text ? tidyTitle(text) : undefined;
+	} catch {
+		return undefined;
+	}
 }
 
 function sendRequest(request: unknown, timeoutMs = 1000): Promise<boolean> {
@@ -121,6 +231,10 @@ export default function herdrPiTitleExtension(pi: ExtensionAPI): void {
 	let reported: string | undefined;
 	let heartbeat: ReturnType<typeof setInterval> | undefined;
 	let active = false;
+	// The prompt summary this extension set, if the model was slow. It is the
+	// only name the model title is allowed to replace.
+	let seeded: string | undefined;
+	let generationStarted = false;
 
 	function currentName(): string | undefined {
 		try {
@@ -156,20 +270,70 @@ export default function herdrPiTitleExtension(pi: ExtensionAPI): void {
 	});
 
 	pi.on('before_agent_start', (event, ctx) => {
-		if (ctx?.mode !== 'tui' || currentName()) {
+		if (ctx?.mode !== 'tui') {
 			return;
 		}
-		const title = summarize(typeof event?.prompt === 'string' ? event.prompt : '');
-		if (!title) {
+
+		const existing = currentName();
+		const opener = firstPrompt(ctx);
+		// A name equal to the summary of the opening prompt is one an earlier run
+		// of this extension seeded: re-title it rather than keep the raw prompt.
+		const ours = existing !== undefined && opener !== undefined && existing === summarize(opener);
+		if (existing && !ours) {
+			// The user's or another extension's name: leave it be.
+			generationStarted = true;
 			return;
 		}
-		try {
-			// Fires session_info_changed, which reports it; the next poll of Auto
-			// Title names the tab.
-			pi.setSessionName(title);
-		} catch {
-			// A session that cannot be named yet is not worth failing the turn for.
+		if (generationStarted) {
+			return;
 		}
+		generationStarted = true;
+		if (ours) {
+			seeded = existing;
+		}
+
+		const prompt = (ours ? opener : typeof event?.prompt === 'string' ? event.prompt : '') ?? '';
+		const fallback = summarize(prompt);
+
+		// Only reach for the summary if the model has not answered in time, so
+		// the tab usually gets the short title and never flashes the raw prompt.
+		const timer =
+			!ours && fallback
+				? setTimeout(() => {
+						if (currentName()) {
+							return;
+						}
+						seeded = fallback;
+						try {
+							pi.setSessionName(fallback);
+						} catch {
+							// A session that cannot be named yet is not worth failing the turn for.
+						}
+					}, fallbackDelayMs)
+				: undefined;
+		timer?.unref?.();
+
+		void generateTitle(prompt, ctx).then((title) => {
+			if (timer) {
+				clearTimeout(timer);
+			}
+			const name = currentName();
+			// A name that is neither ours nor the seed was set while we generated.
+			if (name && name !== seeded) {
+				return;
+			}
+			const chosen = title ?? fallback;
+			if (!chosen) {
+				return;
+			}
+			try {
+				// Fires session_info_changed, which reports it; the next poll of Auto
+				// Title names the tab.
+				pi.setSessionName(chosen);
+			} catch {
+				// As above.
+			}
+		});
 	});
 
 	pi.on('session_info_changed', (event, ctx) => {

@@ -39,12 +39,14 @@ back to the static `π - <dir>` terminal title. The hook lives in a separate fil
 so an integration update cannot remove it, and reports with a TTL so a dead pi
 stops naming its tab.
 
-pi has no auto-titling of its own, so the extension also seeds a session name
-from the opening prompt when one is not set. It strips the usual lead-in ("can
-you please…") and caps the result, giving Auto Title the first thing the user
-actually asked for — the same fallback Claude Code offers it. A name set by hand
-with `/name <text>` or `pi --name <text>` is never overwritten, and is reported
-as-is.
+pi has no auto-titling of its own, so the extension also names an unnamed
+session from its opening prompt: it asks the active model for a short,
+action-first title (a tighter 3-5 word one than `pi-sidebar-tui` asks for its
+panel, since a tab is narrower) and sets that as the session name. If the model is slow or fails, the
+prompt itself is summarised instead, so Auto Title always gets something. A name
+set by hand with `/name <text>` or `pi --name <text>` is never overwritten, and
+is reported as-is. A seed from an earlier run is recognised on reload and
+generated again, so a raw-prompt title does not outlive the update that set it.
 
 The `pi` binary itself comes from the `pi` flake input
 (`github:earendil-works/pi/stable`) and is added to `home.packages` in
