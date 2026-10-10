@@ -16,6 +16,7 @@ tools/pi/agent/
 └── extensions/
     ├── attach-pasted-images.ts     # symlinked
     ├── ctrl-p-slash.ts             # symlinked
+    ├── herdr-pi-title.ts           # symlinked; pi title -> Herdr pane title
     ├── rewind.ts                   # symlinked
     ├── sidebar-toggle.ts           # symlinked
     └── modes/                      # symlinked, recursive
@@ -26,6 +27,24 @@ Home-manager (`nix/nixos/hosts/framework-13/home/default.nix`) symlinks
 into `~/.pi/agent`. It does **not** touch `auth.json`, `models-store.json`,
 `sessions/`, `sidebar-tui.json`, `trust.json`, or `extensions/herdr-agent-state.ts`:
 pi and Herdr write those at runtime.
+
+### Herdr tab titles
+
+`herdr-pi-title.ts` reports the pi session name to Herdr as the pane's agent
+*title* (`pane.report_metadata`), which is the source Herdr's Auto Title plugin
+ranks highest when naming tabs. Herdr's own pi integration
+(`herdr-agent-state.ts`, owned and overwritten by `herdr integration install pi`)
+reports state and session but never a title, which is why pi tabs otherwise fall
+back to the static `π - <dir>` terminal title. The hook lives in a separate file
+so an integration update cannot remove it, and reports with a TTL so a dead pi
+stops naming its tab.
+
+pi has no auto-titling of its own, so the extension also seeds a session name
+from the opening prompt when one is not set. It strips the usual lead-in ("can
+you please…") and caps the result, giving Auto Title the first thing the user
+actually asked for — the same fallback Claude Code offers it. A name set by hand
+with `/name <text>` or `pi --name <text>` is never overwritten, and is reported
+as-is.
 
 The `pi` binary itself comes from the `pi` flake input
 (`github:earendil-works/pi/stable`) and is added to `home.packages` in

@@ -131,6 +131,14 @@
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/sidebar-toggle.ts";
         };
 
+        # Reports the pi session name to Herdr as the pane's agent title, which
+        # Herdr's Auto Title plugin names tabs from. A sibling of
+        # herdr-agent-state.ts, not a replacement: Herdr rewrites that file on
+        # every integration install, so the title hook has to live beside it.
+        ".pi/agent/extensions/herdr-pi-title.ts" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/herdr-pi-title.ts";
+        };
+
         # Modes is a directory extension (index.ts + utils.ts), so the whole
         # directory is symlinked recursively. It owns the normal/plan/ask mode
         # system (Shift+Tab) and replaces the standalone plan-mode extension.
