@@ -97,6 +97,14 @@
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/keybindings.json";
         };
 
+        # Custom pi themes (e.g. circus.json, derived from the stylix base16
+        # scheme). Whole directory is symlinked so new themes just drop in;
+        # pi hot-reloads the active user theme from here.
+        ".pi/agent/themes" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/themes";
+          recursive = true;
+        };
+
         # Only the extension itself is symlinked; the extensions/ directory
         # also holds herdr-agent-state.ts, which Herdr writes at runtime and
         # must stay writable.
