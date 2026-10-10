@@ -136,12 +136,11 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
-    hyprland = {
-      url = "github:hyprwm/Hyprland/v0.51.1";
-
-      inputs = {
-        nixpkgs.follows = "nixpkgs-unstable";
-      };
+    # Hyprland 0.56.2 from nixpkgs, on cache.nixos.org. The Hyprland flake for
+    # this tag is not cached. Separate from nixpkgs-unstable, which is still
+    # on Hyprland 0.55.4.
+    nixpkgs-hyprland = {
+      url = "github:NixOS/nixpkgs/8edc0c72e3a38faf5434e40d1f19431125fe4b30";
     };
 
     hermes-agent = {

@@ -123,6 +123,14 @@
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/ctrl-p-slash.ts";
         };
 
+        # Ctrl+Shift+\ toggles the pi-sidebar-tui sidebar. The package hardcodes
+        # Ctrl+Shift+T; extension shortcuts cannot be remapped via
+        # keybindings.json, so this adds a second binding that re-dispatches
+        # the package's own /sidebar-tui command.
+        ".pi/agent/extensions/sidebar-toggle.ts" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/sidebar-toggle.ts";
+        };
+
         # Modes is a directory extension (index.ts + utils.ts), so the whole
         # directory is symlinked recursively. It owns the normal/plan/ask mode
         # system (Shift+Tab) and replaces the standalone plan-mode extension.

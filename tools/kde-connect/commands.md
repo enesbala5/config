@@ -47,7 +47,7 @@ loginctl lock-session
 - Clear Monitor Config
 
 ```bash
-sh -c '> ~/.config/hypr/monitors.conf' && pkill -9 -f hyprdynamicmonitors
+sh -c '> ~/.config/hypr/monitors.lua' && pkill -9 -f hyprdynamicmonitors
 ```
 
 - Run Hyprdynamicmonitors

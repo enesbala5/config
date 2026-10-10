@@ -90,7 +90,7 @@ toggle_hyprland() {
   case "$mode" in
     power-saver)
       log "Optimizing Hyprland for $mode"
-      run_hyprctl keyword misc:vfr true
+      run_hyprctl keyword debug:vfr true
       run_hyprctl keyword decoration:blur:enabled false
       run_hyprctl keyword decoration:blur:passes 0
       run_hyprctl keyword decoration:blur:size 0

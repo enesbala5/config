@@ -9,9 +9,6 @@
   hostname,
   ...
 }:
-let
-  hyprlandPackages = inputs.hyprland.packages.${system};
-in
 {
   # ------------------------------------------------------------------------------------------
   # NixOS / System
@@ -560,9 +557,9 @@ in
       enable = true;
       xwayland.enable = true;
 
-      package = hyprlandPackages.hyprland;
+      package = inputs.nixpkgs-hyprland.legacyPackages.${system}.hyprland;
 
-      portalPackage = hyprlandPackages.xdg-desktop-portal-hyprland;
+      portalPackage = inputs.nixpkgs-hyprland.legacyPackages.${system}.xdg-desktop-portal-hyprland;
     };
 
     nix-ld = {
@@ -575,7 +572,7 @@ in
     extraPortals = [
       pkgs.xdg-desktop-portal-gtk
       pkgs.kdePackages.xdg-desktop-portal-kde
-      # hyprlandPackages.xdg-desktop-portal-hyprland
+      # inputs.nixpkgs-hyprland.legacyPackages.${system}.xdg-desktop-portal-hyprland
     ];
 
     config = {

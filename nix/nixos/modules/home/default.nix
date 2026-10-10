@@ -44,12 +44,12 @@
   # Symlinks
   home = {
     file = {
-      ".config/hypr/hyprland.conf" = {
-        source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hyprland/configuration.conf";
+      ".config/hypr/hyprland.lua" = {
+        source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hyprland/hyprland.lua";
       };
 
-      ".config/hypr/host.conf" = {
-        source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hyprland/hosts/${osConfig.networking.hostName}.conf";
+      ".config/hypr/host.lua" = {
+        source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/hypr/hyprland/hosts/${osConfig.networking.hostName}.lua";
       };
 
       ".config/hyprdynamicmonitors/" = {

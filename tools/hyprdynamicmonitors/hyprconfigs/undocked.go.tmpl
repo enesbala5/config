@@ -1,27 +1,19 @@
-# Configure laptop screen
+-- Effective laptop mode from the old trailing TUI block (scale 2). The earlier 1.566 line lost.
 {{- $laptop := index .MonitorsByTag "laptop" -}}
 {{- if $laptop }}
+hl.monitor({
+	output = "desc:BOE 0x0BCA",
+	mode = "2256x1504@59.99900",
+	position = "0x0",
+	scale = 2,
+	transform = 0,
+	vrr = 0,
+})
 
-monitor={{$laptop.Name}},2256x1504@60.00000,0x0,1.56666667,transform,0,vrr,0
+hl.window_rule({ match = { class = "(code)$" }, opacity = "0.95 override 0.90 override 0.95 override" })
+hl.window_rule({ match = { title = ".*Cursor.*" }, opacity = "0.95 override 0.90 override 0.95 override" })
+hl.window_rule({ match = { class = "(dev.zed.Zed-Nightly)$" }, opacity = "0.95 override 0.90 override 0.95 override" })
+hl.window_rule({ match = { class = "(obsidian)$" }, opacity = "0.95 override 0.90 override 0.98 override" })
 
-# Adjust transparency for specific apps
-windowrule = opacity 0.95 override 0.90 override 0.95 override, class:(code)$
-windowrule = opacity 0.95 override 0.90 override 0.95 override, title:.*Cursor.*
-windowrule = opacity 0.95 override 0.90 override 0.95 override, class:(dev.zed.Zed-Nightly)$
-windowrule = opacity 0.95 override 0.90 override 0.98 override, class:(obsidian)$
-
-general {
-	gaps_out = 5
-}
-
+hl.config({ general = { gaps_out = 5 } })
 {{ end }}
-
-{{- if isOnBattery }}
-
-# Decrease brightness to 80% if it's greater than 80%
-# exec = brillo -O && brightness=$(brillo -G) && [ $(echo "$brightness > 80" | bc) -eq 1 ] && brillo -e -u 150000 -S 80
-
-{{end }}
-# <<<<< TUI AUTO START
-monitor=desc:BOE 0x0BCA,2256x1504@59.99900,0x0,2.00000000,transform,0,vrr,0
-# <<<<< TUI AUTO END
