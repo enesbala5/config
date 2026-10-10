@@ -434,6 +434,20 @@
 
   # Fonts
   fonts = {
+    enableDefaultPackages = true;
+
+    fontconfig = {
+      antialias = true;
+      hinting = {
+        enable = true;
+        style = "slight";
+      };
+      subpixel = {
+        rgba = "rgb";
+        lcdfilter = "default";
+      };
+    };
+
     packages = with pkgs; [
       corefonts
       vista-fonts
