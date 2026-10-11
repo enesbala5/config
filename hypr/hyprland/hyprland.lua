@@ -195,7 +195,7 @@ hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("~/config/scripts/music/play-pause.sh
 hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd("~/config/scripts/utilities/screenshot.sh"))
 hl.bind(mainMod .. " + CTRL + SHIFT + S", hl.dsp.exec_cmd("~/config/scripts/utilities/screen-record.sh"))
 hl.bind(mainMod .. " + CTRL + SHIFT + D", hl.dsp.exec_cmd("~/config/scripts/utilities/dnd-toggle.sh"))
-hl.bind(mainMod .. " + CTRL + SHIFT + I", hl.dsp.exec_cmd("~/config/scripts/utilities/color-picker.sh"))
+hl.bind(mainMod .. " + CTRL + SHIFT + I", hl.dsp.exec_cmd("hyprpicker -a"))
 
 hl.bind(mainMod .. " + F", hl.dsp.window.float())
 hl.bind(mainMod .. " + CTRL + F", hl.dsp.window.fullscreen())

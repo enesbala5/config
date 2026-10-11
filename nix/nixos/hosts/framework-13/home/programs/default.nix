@@ -91,6 +91,9 @@ in
       # TTS
       handy
 
+      # Hyprland
+      hyprpicker # screen color picker (stable nixpkgs ships 0.4.5, which crashes Hyprland)
+
     ])
     # Flakes
     # ---
