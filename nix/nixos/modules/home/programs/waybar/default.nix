@@ -167,7 +167,7 @@
 
         # wireplumber = {
         #   format = "VOL {volume}";
-        #   on-click = "hyprctl dispatch exec '[float;size 90% 80%;move 5% 10%;]' kitty pulsemixer";
+        #   on-click = "hyprctl dispatch 'hl.dsp.exec_cmd(\"kitty pulsemixer\", { float = true, size = { \"monitor_w * 0.9\", \"monitor_h * 0.8\" }, move = { \"monitor_w * 0.05\", \"monitor_h * 0.1\" } })'";
         # };
 
         "pulseaudio" = {
@@ -181,7 +181,7 @@
             portable = "♫";
           };
           on-click = "${data.configDirectory}/scripts/audio/mute_toggle.sh";
-          on-click-right = "hyprctl dispatch exec '[float;size 90% 80%;move 5% 10%;]' kitty pulsemixer";
+          on-click-right = "hyprctl dispatch 'hl.dsp.exec_cmd(\"kitty pulsemixer\", { float = true, size = { \"monitor_w * 0.9\", \"monitor_h * 0.8\" }, move = { \"monitor_w * 0.05\", \"monitor_h * 0.1\" } })'";
           # EasyEffects volume is virtual; show the hardware sink instead
           ignored-sinks = [ "Easy Effects Sink" ];
           # min-length = 8;
@@ -213,7 +213,7 @@
 
         "custom/power-consumption" = {
           exec = "${data.configDirectory}/scripts/power/get_wattage.sh";
-          on-click = "hyprctl dispatch exec '[float;size 90% 80%;move 5% 10%;]' kitty sudo powertop";
+          on-click = "hyprctl dispatch 'hl.dsp.exec_cmd(\"kitty sudo powertop\", { float = true, size = { \"monitor_w * 0.9\", \"monitor_h * 0.8\" }, move = { \"monitor_w * 0.05\", \"monitor_h * 0.1\" } })'";
           format = "{}";
           interval = 10;
           tooltip = false;

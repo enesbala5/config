@@ -90,11 +90,9 @@ toggle_hyprland() {
   case "$mode" in
     power-saver)
       log "Optimizing Hyprland for $mode"
-      run_hyprctl keyword debug:vfr true
-      run_hyprctl keyword decoration:blur:enabled false
-      run_hyprctl keyword decoration:blur:passes 0
-      run_hyprctl keyword decoration:blur:size 0
-      run_hyprctl keyword decoration:shadow:enabled false
+      run_hyprctl eval 'hl.config({ debug = { vfr = true } })'
+      run_hyprctl eval 'hl.config({ decoration = { blur = { enabled = false, passes = 0, size = 0 } } })'
+      run_hyprctl eval 'hl.config({ decoration = { shadow = { enabled = false } } })'
       ;;
     balanced)
       log "Restoring Hyprland settings for $mode"

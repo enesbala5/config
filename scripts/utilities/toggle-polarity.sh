@@ -38,4 +38,4 @@ pkill -9 waybar || true
 while pgrep waybar >/dev/null 2>&1; do
   sleep 0.05
 done
-hyprctl --instance 0 dispatch exec waybar || true
+hyprctl --instance 0 dispatch 'hl.dsp.exec_cmd("waybar")' || true

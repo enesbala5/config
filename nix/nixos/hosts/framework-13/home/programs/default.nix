@@ -479,7 +479,7 @@ in
           let
             heliumBin = "${inputs.helium-browser.packages.${system}.default}/bin/helium";
           in
-          "hyprctl dispatch exec \"${heliumBin} --remote-debugging-port=9222 --remote-debugging-address=127.0.0.1 --remote-allow-origins=*\"";
+          "hyprctl dispatch \"hl.dsp.exec_cmd('${heliumBin} --remote-debugging-port=9222 --remote-debugging-address=127.0.0.1 --remote-allow-origins=*')\"";
         type = "Application";
         terminal = false;
         mimeType = [

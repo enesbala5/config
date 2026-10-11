@@ -5,13 +5,13 @@
 - Rclone Start
 
 ```bash
-notify-send "🔃 Starting rclone service" && hyprctl dispatch exec '[float; size 90% 80%; move 5% 10%;]' kitty "zsh -c 'sudo systemctl start rclone.timer rclone.path rclone.service; journalctl -u rclone.service -f; zsh -i'"
+notify-send "🔃 Starting rclone service" && hyprctl dispatch 'hl.dsp.exec_cmd("kitty zsh -c \"sudo systemctl start rclone.timer rclone.path rclone.service; journalctl -u rclone.service -f; zsh -i\"", { float = true, size = { "monitor_w * 0.9", "monitor_h * 0.8" }, move = { "monitor_w * 0.05", "monitor_h * 0.1" } })'
 ```
 
 - Rclone Logs
 
 ```bash
-hyprctl dispatch exec '[float; size 90% 80%; move 5% 10%;]' kitty "journalctl -u rclone.service -f"
+hyprctl dispatch 'hl.dsp.exec_cmd("kitty journalctl -u rclone.service -f", { float = true, size = { "monitor_w * 0.9", "monitor_h * 0.8" }, move = { "monitor_w * 0.05", "monitor_h * 0.1" } })'
 ```
 
 - Suspend

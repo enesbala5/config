@@ -18,7 +18,7 @@ hl.workspace_rule({ workspace = "6", monitor = "{{$xiaomi.Name}}" })
 hl.workspace_rule({ workspace = "7", monitor = "{{$xiaomi.Name}}" })
 hl.workspace_rule({ workspace = "8", monitor = "{{$xiaomi.Name}}" })
 
-hl.exec_cmd("hyprctl keyword animation workspaces, 1, 0.8, default")
+hl.animation({ leaf = "workspaces", enabled = true, speed = 0.8, bezier = "default" })
 
 hl.window_rule({ match = { class = "(code)$" }, opacity = "1 override 0.90 override 1 override" })
 hl.window_rule({ match = { title = ".*Cursor.*" }, opacity = "1 override 0.90 override 1 override" })
