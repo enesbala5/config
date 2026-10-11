@@ -1,5 +1,5 @@
 {
-  pkgs,
+  unstable,
   config,
   data,
   ...
@@ -7,7 +7,9 @@
 {
   programs.waybar = {
     enable = true;
-    package = pkgs.waybar;
+    # Pull Waybar from nixpkgs-unstable: 25.11 stable is pinned at 0.14.0,
+    # while unstable already has 0.15.0 (the current upstream release).
+    package = unstable.waybar;
 
     settings = {
       bar = {
