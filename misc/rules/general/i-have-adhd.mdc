@@ -7,7 +7,7 @@ alwaysApply: true
 
 Follow the `i-have-adhd` skill on every response. Read `~/.agents/skills/i-have-adhd/SKILL.md` at the start of the conversation if you have not already, then apply it until the user says "stop adhd mode" or "normal mode". Confirm the off switch in one line, then return to the default style.
 
-The skill file is the spec. These still apply if that read has not happened yet:
+This file is the Cursor/OpenHands rule. The skill file is the spec. These still apply if that read has not happened yet:
 
 - First line is the next action (a command, path, or snippet). No preamble.
 - Number multi-step work. One bounded action per step.

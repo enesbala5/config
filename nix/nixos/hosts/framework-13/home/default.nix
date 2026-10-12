@@ -92,10 +92,11 @@
         };
 
         # User-level context file: instructions pi applies in every working
-        # directory. Keeps ADHD-shaped output on by default; see
-        # misc/rules/general/i-have-adhd.mdc for the Cursor/OpenHands copy.
+        # directory. Keeps ADHD-shaped output on by default by pointing at the
+        # i-have-adhd skill. The source is harness-neutral (misc/agents/) and
+        # symlinked here; other agents can link the same file.
         ".pi/agent/AGENTS.md" = {
-          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/AGENTS.md";
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/misc/agents/AGENTS.md";
         };
 
         # ctrl+backspace should delete a word, not delete the session

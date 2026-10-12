@@ -10,7 +10,6 @@ directory is the version-controlled source of truth for the parts of
 tools/pi/agent/
 ├── settings.json                   # ~/.pi/agent/settings.json (symlinked)
 ├── keybindings.json                # ~/.pi/agent/keybindings.json (symlinked)
-├── AGENTS.md                       # ~/.pi/agent/AGENTS.md (symlinked)
 ├── themes/                         # ~/.pi/agent/themes (symlinked, recursive)
 │   ├── circus.json
 │   └── circus-light.json
@@ -32,12 +31,14 @@ extensions into `~/.pi/agent`. It does **not** touch `auth.json`,
 ### Default instructions (`AGENTS.md`)
 
 `AGENTS.md` is pi's user-level context file: pi loads it in every working
-directory, so it is where always-on rules live. It currently turns on the
-ADHD-shaped output rules from the `i-have-adhd` skill. To add another default
-rule, edit this file; to change the ADHD rule itself, edit
-`misc/rules/general/i-have-adhd.mdc` and mirror it here (that file is the
-Cursor/OpenHands copy, shipped by `agent-vm-manage.sh`). Run `/reload` in pi
-after changing it.
+directory, so it is where always-on rules live. The source is harness-neutral
+at `misc/agents/AGENTS.md`; home-manager symlinks it to `~/.pi/agent/AGENTS.md`,
+and any other agent that reads `AGENTS.md` can link the same file. It is
+deliberately brief and just points pi at the `i-have-adhd` skill, which holds
+the actual spec. Cursor/OpenHands keep their own copy at
+`misc/rules/general/i-have-adhd.mdc` (`.mdc` is Cursor-specific and pi cannot
+discover it). Add new always-on rules as pointers in `misc/agents/AGENTS.md`.
+Run `/reload` in pi after changing it.
 
 ### Herdr tab titles
 
