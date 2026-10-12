@@ -91,6 +91,13 @@
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/settings.json";
         };
 
+        # User-level context file: instructions pi applies in every working
+        # directory. Keeps ADHD-shaped output on by default; see
+        # misc/rules/general/i-have-adhd.mdc for the Cursor/OpenHands copy.
+        ".pi/agent/AGENTS.md" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/AGENTS.md";
+        };
+
         # ctrl+backspace should delete a word, not delete the session
         # (pi's default binding for app.session.deleteNoninvasive).
         ".pi/agent/keybindings.json" = {

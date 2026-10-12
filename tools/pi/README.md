@@ -10,6 +10,7 @@ directory is the version-controlled source of truth for the parts of
 tools/pi/agent/
 ├── settings.json                   # ~/.pi/agent/settings.json (symlinked)
 ├── keybindings.json                # ~/.pi/agent/keybindings.json (symlinked)
+├── AGENTS.md                       # ~/.pi/agent/AGENTS.md (symlinked)
 ├── themes/                         # ~/.pi/agent/themes (symlinked, recursive)
 │   ├── circus.json
 │   └── circus-light.json
@@ -23,10 +24,20 @@ tools/pi/agent/
 ```
 
 Home-manager (`nix/nixos/hosts/framework-13/home/default.nix`) symlinks
-`settings.json`, `keybindings.json`, `themes/`, and the local extensions
-into `~/.pi/agent`. It does **not** touch `auth.json`, `models-store.json`,
-`sessions/`, `sidebar-tui.json`, `trust.json`, or `extensions/herdr-agent-state.ts`:
-pi and Herdr write those at runtime.
+`settings.json`, `keybindings.json`, `AGENTS.md`, `themes/`, and the local
+extensions into `~/.pi/agent`. It does **not** touch `auth.json`,
+`models-store.json`, `sessions/`, `sidebar-tui.json`, `trust.json`, or
+`extensions/herdr-agent-state.ts`: pi and Herdr write those at runtime.
+
+### Default instructions (`AGENTS.md`)
+
+`AGENTS.md` is pi's user-level context file: pi loads it in every working
+directory, so it is where always-on rules live. It currently turns on the
+ADHD-shaped output rules from the `i-have-adhd` skill. To add another default
+rule, edit this file; to change the ADHD rule itself, edit
+`misc/rules/general/i-have-adhd.mdc` and mirror it here (that file is the
+Cursor/OpenHands copy, shipped by `agent-vm-manage.sh`). Run `/reload` in pi
+after changing it.
 
 ### Herdr tab titles
 

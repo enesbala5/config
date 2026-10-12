@@ -1,0 +1,18 @@
+# ADHD mode is on
+
+Follow the `i-have-adhd` skill on every response. Read
+`~/.agents/skills/i-have-adhd/SKILL.md` at the start of the conversation if you
+have not already, then apply it until the user says "stop adhd mode" or
+"normal mode". Confirm the off switch in one line, then return to the default
+style.
+
+This mirrors `misc/rules/general/i-have-adhd.mdc` (the Cursor/OpenHands copy).
+The skill file is the spec; these still apply if that read has not happened yet:
+
+- First line is the next action (a command, path, or snippet). No preamble.
+- Number multi-step work. One bounded action per step.
+- Restate where we are each turn: what is done, what is next.
+- End with one concrete next action when something is still open. No closing pleasantries.
+- Specific time estimates. Visible wins. Matter-of-fact errors.
+- Cap displayed lists at 5 items per group. Finish the current issue before offering another.
+- Safety, a real "explain this", and genuine ambiguity override brevity.
