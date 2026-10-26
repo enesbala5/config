@@ -79,7 +79,7 @@
       # Hyprland / DE
       # ---------------
       reload-hyprlock = "${data.configDirectory}/scripts/utilities/reload-hyprlock.sh";
-      clear-monitor-config = "${data.configDirectory}/scripts/utilities/clear-monitor-config.sh";
+      clear-monitor-config = "${data.configDirectory}/scripts/utilities/clear-monitor-lua.sh";
       reload-waybar = "pkill -9 waybar && hyprctl --instance 0 dispatch 'hl.dsp.exec_cmd(\"waybar\")'";
       toggle-polarity = "${data.configDirectory}/scripts/utilities/toggle-polarity.sh";
       toggle-dnd = "${data.configDirectory}/scripts/utilities/dnd-toggle.sh";

@@ -163,7 +163,7 @@ hl.bind(mainMod .. " + CTRL + SHIFT + B", hl.dsp.exec_cmd("hyprdynamicmonitors r
 hl.bind(mainMod .. " + CTRL + SHIFT + L", hl.dsp.exec_cmd("hyprctl reload"))
 hl.bind(
 	mainMod .. " + CTRL + SHIFT + M",
-	hl.dsp.exec_cmd("kitty zsh -c '~/config/scripts/utilities/clear-monitor-config.sh; zsh -i'", {
+	hl.dsp.exec_cmd("kitty zsh -c '~/config/scripts/utilities/clear-monitor-lua.sh; zsh -i'", {
 		float = true,
 		size = { "monitor_w * 0.9", "monitor_h * 0.8" },
 		move = { "monitor_w * 0.05", "monitor_h * 0.1" },
