@@ -7,7 +7,6 @@
 }:
 {
   systemd.services.db-backup-dbflux = {
-    enable = true;
     description = "Backup DBFlux State to Cloudflare R2";
     after = [ "network-online.target" ];
     requires = [ "network-online.target" ];
@@ -90,12 +89,31 @@
     '';
   };
 
+  # Persistent calendar timers elapse the moment the machine wakes. Start a
+  # monotonic timer instead, so the backup waits out 10 minutes of awake time
+  # and does not run while Hyprland is still coming back from sleep.
+  systemd.services.db-backup-dbflux-defer = {
+    description = "Queue DBFlux backup after the machine has been awake";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.systemd}/bin/systemctl restart db-backup-dbflux-delayed.timer";
+    };
+  };
+
+  systemd.timers.db-backup-dbflux-delayed = {
+    timerConfig = {
+      OnActiveSec = "10min";
+      AccuracySec = "1s";
+      Unit = "db-backup-dbflux.service";
+    };
+  };
+
   systemd.timers.db-backup-dbflux = {
     wantedBy = [ "timers.target" ];
     timerConfig = {
       OnCalendar = "daily";
       Persistent = true;
-      Unit = "db-backup-dbflux.service";
+      Unit = "db-backup-dbflux-defer.service";
     };
   };
 }
