@@ -31,6 +31,9 @@ prompt_new_tab_name = false
 # $head = "<state glyph> <tab title>", animated while working:
 #   working  braille spinner   done ✓   idle ○   blocked ×   unknown ·
 #
+# $vendor = "<logo> <agent name>" (or the name alone when the icon font has
+# no mark). Same one-token trick, so the logo sits against the name.
+#
 # The per-state `rules` tint the whole token, title included. Delete the rules
 # (leave just { token = "$head" }) for a neutral title; the glyph shape still
 # distinguishes states.
@@ -53,7 +56,7 @@ rows = [
       { starts_with = "·", fg = "#6c7086", dim = true },
     ] },
   ],
-  ["agent", "workspace"],
+  ["$vendor", "workspace"],
 ]
 
 # [keys]

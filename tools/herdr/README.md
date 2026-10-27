@@ -76,7 +76,7 @@ Prerequisites on the machine: `go` (Auto Title), `node` (Agent Head).
 
 ```
 ⣾ pi - config          # $head = state glyph + tab title (no separator)
-  pi · config          # agent · workspace
+  [logo] pi · config   # $vendor = icon + agent name, then workspace
 ```
 
 `$head` is a single custom token written by the local **Agent Head** plugin:

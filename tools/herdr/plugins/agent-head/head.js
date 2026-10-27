@@ -23,6 +23,39 @@ const path = require("node:path");
 const HERDR = process.env.HERDR_BIN_PATH || process.env.HERDR_BIN || "herdr";
 const SOURCE = "local.agent-head";
 const TOKEN = "head";
+const VENDOR = "vendor";
+
+// Private-use marks from Herdr Agent Icons Max (herdr-radar 47c022d4).
+// Keyed by the agent id Herdr reports. No entry means the name is shown alone.
+const LOGO = {
+  claude: "\uE1A0",
+  codex: "\uE1A1",
+  opencode: "\uE1A2",
+  omp: "\uE1A3",
+  cline: "\uE1A4",
+  mastracode: "\uE1A5",
+  kimi: "\uE1A6",
+  kilo: "\uE1A7",
+  maki: "\uE1A8",
+  pi: "\uE1A9",
+  hermes: "\uE1AA",
+  cursor: "\uE1AB",
+  copilot: "\uE1AC",
+  deepseek: "\uE1AD",
+  gemini: "\uE1AE",
+  gpt: "\uE1AF",
+  qwen: "\uE1B0",
+  grok: "\uE1B1",
+  agy: "\uE1B2",
+  kiro: "\uE1B3",
+  amp: "\uE1B4",
+  devin: "\uE1B5",
+  qodercli: "\uE1B6",
+  glm: "\uE1B7",
+  kimchi: "\uE1B8",
+  muse: "\uE1B9",
+  crush: "\uE1BA",
+};
 
 const DEFAULTS = {
   // Braille ring: every frame is one cell, so rows never jitter.
@@ -89,10 +122,14 @@ function poll() {
         agent.agent ||
         "";
     }
-    next.set(agent.pane_id, { label: String(label || ""), status: agent.agent_status });
+    next.set(agent.pane_id, {
+      label: String(label || ""),
+      status: agent.agent_status,
+      vendor: vendorValue(agent),
+    });
   }
   for (const id of panes.keys()) {
-    if (!next.has(id)) report(id, ["--clear-token", TOKEN]);
+    if (!next.has(id)) report(id, ["--clear-token", TOKEN, "--clear-token", VENDOR]);
   }
   panes = next;
 }
@@ -101,20 +138,31 @@ function staticGlyph(status) {
   return cfg.staticGlyphs[status] || cfg.fallbackGlyph;
 }
 
+// Same fallback chain as the built-in `agent` token, with the logo in front
+// when this font has a mark. One token: Herdr would otherwise insert " · ".
+function vendorValue(agent) {
+  const label = String(agent.display_agent || agent.name || agent.agent || agent.title || "");
+  if (!label) return "";
+  const logo = LOGO[String(agent.agent || "")];
+  return logo ? `${logo} ${label}` : label;
+}
+
 function frame() {
   if (stopping || panes.size === 0) return;
   const moving = cfg.frames[tick++ % cfg.frames.length];
   for (const [id, info] of panes) {
     const glyph = info.status === "working" ? moving : staticGlyph(info.status);
     const value = info.label ? `${glyph} ${info.label}` : glyph;
-    report(id, ["--token", `${TOKEN}=${value}`, "--ttl-ms", String(TTL_MS)]);
+    const args = ["--token", `${TOKEN}=${value}`, "--ttl-ms", String(TTL_MS)];
+    if (info.vendor) args.push("--token", `${VENDOR}=${info.vendor}`);
+    report(id, args);
   }
 }
 
 function shutdown() {
   if (stopping) return;
   stopping = true;
-  for (const id of panes.keys()) report(id, ["--clear-token", TOKEN]);
+  for (const id of panes.keys()) report(id, ["--clear-token", TOKEN, "--clear-token", VENDOR]);
   // Give the clear calls a moment to reach the socket before we exit.
   setTimeout(() => process.exit(0), 200);
 }
@@ -125,7 +173,7 @@ function main() {
   if (!cfg.enabled) process.exit(0);
   for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(sig, shutdown);
   process.on("exit", () => {
-    for (const id of panes.keys()) report(id, ["--clear-token", TOKEN]);
+    for (const id of panes.keys()) report(id, ["--clear-token", TOKEN, "--clear-token", VENDOR]);
   });
   poll();
   setInterval(poll, cfg.pollMs);
