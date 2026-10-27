@@ -12,6 +12,13 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd("aw-watcher-window-hyprland")
 end)
 
+-- Opening the lid is not key/mouse activity, so hypridle will not turn the
+-- panel back on. locked: still runs while hyprlock is up.
+hl.bind("switch:off:Lid Switch", function()
+	hl.exec_cmd("brillo -e -u 0 -I || brillo -e -u 0 -S 50")
+	hl.dispatch(hl.dsp.dpms("on"))
+end, { locked = true })
+
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + SHIFT + Space", hl.dsp.exec_cmd("wofi --show run"))
 hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd("vicinae vicinae://launch/wm/switch-windows"))

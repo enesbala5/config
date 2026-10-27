@@ -76,6 +76,21 @@ in
     enable = true;
 
     # powertop.enable = true;
+
+    # The power button that woke the machine is delivered again on resume.
+    # Stamp the time so the acpid handler can ignore that press.
+    resumeCommands = ''
+      date +%s > /run/last-resume
+      sleep 0.5
+      for bl in /sys/class/backlight/*; do
+        if [ -e "$bl/bl_power" ]; then
+          echo 0 > "$bl/bl_power" || true
+        fi
+        if [ -e "$bl/brightness" ]; then
+          cat "$bl/brightness" > "$bl/brightness" || true
+        fi
+      done
+    '';
   };
 
   console = {
@@ -241,7 +256,10 @@ in
 
     # Power management.
     logind = {
-      settings.Login.HandlePowerKey = "suspend"; # Suspend on power button press
+      # acpid handles the short press, with a post-resume debounce.
+      # logind was also suspending, so the phantom wake press put the machine
+      # straight back to sleep.
+      settings.Login.HandlePowerKey = "ignore";
       settings.Login.HandlePowerKeyLongPress = "poweroff"; # Power off on long press
     };
 
@@ -250,19 +268,34 @@ in
       lidEventCommands = ''
         export PATH=$PATH:/run/current-system/sw/bin
 
-        lid_state=$(cat /proc/acpi/button/lid/LID0/state | awk '{print $NF}')
+        lid_state=$(awk '{print $NF}' /proc/acpi/button/lid/LID0/state)
+        runtime="/run/user/${toString data.uid}"
+        brillo=${pkgs.brillo}/bin/brillo
 
-        if [ $lid_state = "closed" ]; then
-          # Set brightness to zero
-          brillo -e -u 0 -S 10
+        light_panel() {
+          "$brillo" -e -u 0 -I || "$brillo" -e -u 0 -S 50
+          sig=$(ls -1 "$runtime/hypr" 2>/dev/null | head -1)
+          if [ -n "$sig" ]; then
+            ${pkgs.util-linux}/bin/runuser -u ${data.username} -- \
+              env XDG_RUNTIME_DIR="$runtime" HYPRLAND_INSTANCE_SIGNATURE="$sig" \
+              /run/current-system/sw/bin/hyprctl dispatch 'hl.dsp.dpms("on")' \
+              || true
+          fi
+        }
 
+        if [ "$lid_state" = "closed" ]; then
+          "$brillo" -e -u 0 -S 10
         else
-          # Reset the brightness
-          brillo -e -u 0 -S 50
+          light_panel
         fi
       '';
 
       powerEventCommands = ''
+        now=$(date +%s)
+        last=$(cat /run/last-resume 2>/dev/null || echo 0)
+        if [ $((now - last)) -lt 8 ]; then
+          exit 0
+        fi
         systemctl suspend
       '';
     };
