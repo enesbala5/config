@@ -37,7 +37,7 @@ let
     # mcp-sync reads for Cursor, Zed, and pi.
     mcp_secrets=${lib.escapeShellArg mcpSecretsFile}
     if [ -r "$mcp_secrets" ]; then
-      eval "$(${lib.getExe pkgs.jq} -r 'to_entries[] | select(.value|type=="string" and (.key|test("^[A-Za-z_][A-Za-z0-9_]*$"))) | "export \(.key)=\(.value|@sh)"' "$mcp_secrets")"
+      eval "$(${lib.getExe pkgs.jq} -r 'to_entries[] | select((.value|type)=="string" and (.key|test("^[A-Za-z_][A-Za-z0-9_]*$"))) | "export \(.key)=\(.value|@sh)"' "$mcp_secrets")"
     fi
     # opencode namespaces its session DB by release channel: only
     # latest/beta/prod use opencode.db, every other channel writes
