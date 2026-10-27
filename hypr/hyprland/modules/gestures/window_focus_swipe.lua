@@ -2,10 +2,13 @@
 -- current workspace in visual order (left to right, then top to bottom),
 -- clamped at both ends - it never wraps around. Hyprland's own movefocus falls
 -- back to other windows at the edge, which is why this is done explicitly.
+--
+-- Maximize (Super+Shift+F) and fullscreen rewrite the focused window's
+-- position, so the sort ping-pongs. The swipe does nothing in those modes.
 
 local function focusWindowBySwipe(direction)
 	local active = hl.get_active_window()
-	if not active then
+	if not active or (active.fullscreen or 0) ~= 0 then
 		return
 	end
 
