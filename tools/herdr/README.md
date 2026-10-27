@@ -11,6 +11,7 @@ tools/herdr/
 ├── config.toml                     # ~/.config/herdr/config.toml (symlinked)
 ├── plugins/
 │   ├── auto-title/config.env       # ~/.config/herdr-auto-title/config.env (symlinked)
+│   ├── herdr-bar/config.json       # ~/.config/herdr/plugins/config/herdr-bar/config.json (symlinked)
 │   └── agent-head/                 # local plugin: leading glyph + tab title
 │       ├── herdr-plugin.toml
 │       ├── run.sh
@@ -19,9 +20,10 @@ tools/herdr/
 ```
 
 Home-manager (`nix/nixos/modules/home/programs/herdr.nix`, enabled per host)
-symlinks `config.toml` and `plugins/auto-title/config.env` into place. It does
-**not** touch the rest of `~/.config/herdr`, because Herdr writes its own state
-there (`plugins.json`, socket, logs, `session.json`, plugin checkouts).
+symlinks `config.toml`, `plugins/auto-title/config.env`, and
+`plugins/herdr-bar/config.json` into place. It does **not** touch the rest of
+`~/.config/herdr`, because Herdr writes its own state there (`plugins.json`,
+socket, logs, `session.json`, plugin checkouts).
 
 ## New-machine setup
 
@@ -41,6 +43,17 @@ Nix-managed, because Herdr rewrites that file.
 herdr plugin install kryptamine/herdr-auto-title --yes
 
 herdr plugin list          # verify it is present and enabled
+```
+
+- **Bar** ([jeffarese/herdr-bar](https://github.com/jeffarese/herdr-bar)) is
+  installed from GitHub. The install downloads a prebuilt binary and falls
+  back to `cargo` only if that download fails. Settings are
+  `plugins/herdr-bar/config.json`. The open keybind (`prefix+k`, `ctrl+p` →
+  `herdr-bar.open`) is in `config.toml`. While Auto Title is enabled, Bar
+  skips its own automatic tab renames.
+
+```sh
+herdr plugin install jeffarese/herdr-bar --yes
 ```
 
 If you ever had the old spinner plugin, drop it — `$head` superseded it:

@@ -1,0 +1,12 @@
+{
+  "preview": "auto",
+  "mouse": true,
+  "refresh_ms": 900,
+  "workspaces": "auto",
+  "selection_background": "auto",
+  "colors": {
+    "accent": "#89b4fa",
+    "match": "#89b4fa",
+    "muted": "bright_black"
+  }
+}

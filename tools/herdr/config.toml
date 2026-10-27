@@ -59,3 +59,9 @@ rows = [
 # [keys]
 # next_tab = "prefix+ctrl+tab"
 # previous_tab = "prefix+ctrl+shift+tab"
+
+[[keys.command]]
+key = ["prefix+k", "ctrl+p"]
+type = "plugin_action"
+command = "herdr-bar.open"
+description = "command bar"
