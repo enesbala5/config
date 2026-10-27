@@ -45,6 +45,15 @@ herdr plugin install kryptamine/herdr-auto-title --yes
 herdr plugin list          # verify it is present and enabled
 ```
 
+The installed checkout is patched so a tab with an agent leads its title with
+that agent's Herdr Agent Icons mark. Copy
+`plugins/auto-title/agenticon.go` to `internal/resolver/agenticon.go` and, in
+`nameTab` after `Resolve`, set `decision.Name = logo + decision.Name` when
+`resolver.AgentLogo(tab.Context)` is non-empty. `herdr plugin update` rebuilds
+from upstream and drops both edits. Rebuild with
+`go build -o herdr-auto-title ./cmd/herdr-auto-title`, then
+`herdr plugin action invoke restart --plugin herdr.auto-title`.
+
 - **Bar** ([jeffarese/herdr-bar](https://github.com/jeffarese/herdr-bar)) is
   installed from GitHub. The install downloads a prebuilt binary and falls
   back to `cargo` only if that download fails. Settings are
