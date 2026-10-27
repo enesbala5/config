@@ -37,7 +37,6 @@ in
 
       # Development
       # ------------------------------------------------------------------------------------------
-      go # Go toolchain (herdr builds Go plugins like herdr.auto-title at install time)
       beekeeper-studio # Database Management
       insomnia # API Client
       neovim # Neovim
@@ -109,8 +108,6 @@ in
       inputs.grok-bot.packages.${pkgs.system}.default
       omacut.packages.${system}.default
       dbflux.packages.${system}.default
-      herdr.packages.${system}.default
-      herdr-gpui.packages.${system}.default
       pi.packages.${system}.pi
       antseed.packages.${system}.default
     ]);

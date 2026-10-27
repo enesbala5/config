@@ -120,6 +120,14 @@
       # herdr pins nixos-unstable and rust-overlay; don't force it onto our nixpkgs.
     };
 
+    dsh-nix = {
+      url = "github:Samuka007/dsh-nix";
+      # pkgs/dsh.nix sets fetchPnpmDeps.fetcherVersion = 4, which nixos-25.11
+      # rejects, and the pnpm-deps hash only matches the nixpkgs rev in
+      # dsh-nix's own flake.lock. A floating nixos-unstable recomputes it.
+      inputs.nixpkgs.url = "github:NixOS/nixpkgs/0e251e24a4f24e036a084b6b4b2d2491af4167f4";
+    };
+
     herdr-gpui = {
       url = "github:penso/herdr-gpui/v20261006.1";
       # Native GPUI client for the local herdr daemon; also pins its own nixpkgs + rust-overlay.

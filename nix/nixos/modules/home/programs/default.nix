@@ -20,6 +20,8 @@
 
     ./dunst.nix # notification daemon
     ./kitty.nix # terminal emulator
+    ./herdr.nix
+    ./dsh.nix
 
     # ./firefox # web browser
     # ./spicetify.nix # spotify retheming

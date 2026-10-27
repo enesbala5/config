@@ -18,10 +18,10 @@ tools/herdr/
 └── README.md
 ```
 
-Home-manager (`nix/nixos/hosts/framework-13/home/default.nix`) symlinks
-`config.toml` and `plugins/auto-title/config.env` into place. It does **not**
-touch the rest of `~/.config/herdr`, because Herdr writes its own state there
-(`plugins.json`, socket, logs, `session.json`, plugin checkouts).
+Home-manager (`nix/nixos/modules/home/programs/herdr.nix`, enabled per host)
+symlinks `config.toml` and `plugins/auto-title/config.env` into place. It does
+**not** touch the rest of `~/.config/herdr`, because Herdr writes its own state
+there (`plugins.json`, socket, logs, `session.json`, plugin checkouts).
 
 ## New-machine setup
 
@@ -30,7 +30,7 @@ Nix-managed, because Herdr rewrites that file.
 
 - **Agent Head** (local plugin) is linked automatically by a home-manager
   activation (`home.activation.herdrLinkAgentHead` in
-  `nix/nixos/hosts/framework-13/home/default.nix`). It is idempotent — it skips
+  `nix/nixos/modules/home/programs/herdr.nix`). It is idempotent — it skips
   when `local.agent-head` is already in `plugins.json`, and it never fails the
   activation — so a fresh machine gets it on the first `home-manager switch`.
   Nothing to run by hand.

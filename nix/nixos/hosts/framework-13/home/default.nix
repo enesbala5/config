@@ -34,6 +34,9 @@
   config = {
     modules.home.opencode.enable = true;
     modules.home.codex.enable = false;
+    modules.home.herdr.enable = true;
+    modules.home.herdr.gpui = true;
+    modules.home.dsh.enable = true;
 
     # Antseed buyer proxy
     modules.home.antseed.enable = false;
@@ -66,21 +69,6 @@
         ".config/zed" = {
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/zed";
           recursive = true;
-        };
-
-        # Herdr has no home-manager module, so version config.toml here.
-        # Only the config file is symlinked; the rest of ~/.config/herdr holds
-        # runtime state (sockets, logs, session.json) and must stay writable.
-        ".config/herdr/config.toml" = {
-          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/config.toml";
-        };
-
-        # Herdr Auto Title has no home-manager module, so its config is
-        # versioned beside Herdr's own. Only the config file is symlinked; the
-        # rest of ~/.config/herdr-auto-title holds runtime state (instances,
-        # manual-names.json) and must stay writable.
-        ".config/herdr-auto-title/config.env" = {
-          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/plugins/auto-title/config.env";
         };
 
         # Pi has no home-manager module, so version its agent config here.
@@ -169,22 +157,6 @@
         ".config/net.imput.helium/NativeMessagingHosts/org.kde.plasma.browser_integration.json".source =
           chromiumHost;
       };
-
-    # Herdr plugin registration lives in ~/.config/herdr/plugins.json, which
-    # Herdr rewrites, so home-manager cannot symlink it. Link the local plugin
-    # during activation instead, so a fresh machine gets it on first rebuild.
-    # Idempotent (only links when missing) and never fails the activation.
-    home.activation.herdrLinkAgentHead =
-      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        herdr_bin="${inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/herdr"
-        plugin_dir="${data.configDirectory}/tools/herdr/plugins/agent-head"
-        registry="$HOME/.config/herdr/plugins.json"
-        if [ -x "$herdr_bin" ] && [ -f "$plugin_dir/herdr-plugin.toml" ]; then
-          if ! grep -q 'local.agent-head' "$registry" 2>/dev/null; then
-            "$herdr_bin" plugin link "$plugin_dir" >/dev/null 2>&1 || true
-          fi
-        fi
-      '';
 
     systemd.user = {
       services = {
