@@ -1,9 +1,9 @@
 {
   config,
   lib,
+  osConfig,
   pkgs,
   unstable,
-  data,
   ...
 }:
 
@@ -14,7 +14,10 @@ let
   # lacks "$schema" and crashes on EACCES (the write is not caught). Unlike
   # rclone, that write does not need to persist, so copy onto tmpfs at launch
   # instead of seeding ~/.config.
-  secretsFile = "/run/user/${toString data.uid}/agenix/opencode-secrets.json";
+  # osConfig, not config.age: this is a home-manager module, and config.age
+  # is the /run/user copy. System secrets are at /run/agenix.
+  secretsFile = osConfig.age.secrets."opencode-secrets.json".path;
+  mcpSecretsFile = osConfig.age.secrets."mcp-secrets.json".path;
 
   # nixos-25.11 ships opencode 1.1.14, which predates the TUI "attention"
   # sounds feature (see tui.nix). unstable is 1.17+, so run that instead.
@@ -30,6 +33,12 @@ let
     install -d -m 700 "$runtime/opencode"
     install -m 600 "$src" "$dst"
     export OPENCODE_CONFIG="$dst"
+    # Bearer MCP servers in config.json use {env:VAR}. Same agenix file
+    # mcp-sync reads for Cursor, Zed, and pi.
+    mcp_secrets=${lib.escapeShellArg mcpSecretsFile}
+    if [ -r "$mcp_secrets" ]; then
+      eval "$(${lib.getExe pkgs.jq} -r 'to_entries[] | select(.value|type=="string" and (.key|test("^[A-Za-z_][A-Za-z0-9_]*$"))) | "export \(.key)=\(.value|@sh)"' "$mcp_secrets")"
+    fi
     # opencode namespaces its session DB by release channel: only
     # latest/beta/prod use opencode.db, every other channel writes
     # opencode-<channel>.db. The nix package is built as the "stable" channel,
@@ -37,7 +46,7 @@ let
     # lost, while prior installs had written opencode.db. Force the shared DB
     # so history survives channel/version switches.
     export OPENCODE_DISABLE_CHANNEL_DB=true
-    
+
     exec ${lib.getExe unstable.opencode} "$@"
   '';
 in

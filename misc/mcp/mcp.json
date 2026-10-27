@@ -1,0 +1,68 @@
+{
+	"_comment": "Canonical MCP server list. Edit this file, then run scripts/utilities/mcp-sync.mjs. Secrets use ${VAR} placeholders resolved from /run/agenix/mcp-secrets.json (agenix) or the environment. `enabled: false` hides a server from Zed/opencode; Cursor and pi keep the entry.",
+	"mcpServers": {
+		"Polar": {
+			"url": "https://mcp.polar.sh/mcp/polar-mcp",
+			"description": "Polar billing: products, subscriptions, orders, customers."
+		},
+		"axiom": {
+			"url": "https://mcp.axiom.co/mcp",
+			"description": "Axiom observability: query logs, traces and datasets."
+		},
+		"openseo": {
+			"url": "https://openseo.enesbala.com/mcp",
+			"description": "OpenSEO: keyword, backlink and SEO research."
+		},
+		"twenty-crm": {
+			"url": "https://twenty.enesbala.com/mcp",
+			"headers": {
+				"Authorization": "Bearer ${TWENTY_MCP_TOKEN}"
+			},
+			"description": "Twenty CRM: people, companies, opportunities, notes."
+		},
+		"coverlttr": {
+			"url": "https://mcp.coverlttr.com/mcp",
+			"description": "Coverlttr production MCP: companies, templates, cover letters."
+		},
+		"coverlttr-dev": {
+			"url": "http://localhost:5181/mcp",
+			"description": "Local Coverlttr dev MCP server."
+		},
+		"coolify-hetzner": {
+			"url": "https://server.enesbala.com/mcp",
+			"enabled": false,
+			"headers": {
+				"Authorization": "Bearer ${COOLIFY_HETZNER_TOKEN}"
+			},
+			"description": "Coolify on the Hetzner server: apps, deployments, logs."
+		},
+		"coolify-home": {
+			"url": "https://host.enesbala.com/mcp",
+			"headers": {
+				"Authorization": "Bearer ${COOLIFY_HOME_TOKEN}"
+			},
+			"description": "Coolify on the home server: apps, deployments, logs."
+		},
+		"astro-docs": {
+			"url": "https://mcp.docs.astro.build/mcp",
+			"description": "Astro documentation search and retrieval."
+		},
+		"inngest-dev": {
+			"url": "http://localhost:8288/mcp",
+			"enabled": false,
+			"description": "Local Inngest dev server event and function inspection."
+		},
+		"figma": {
+			"url": "https://mcp.figma.com/mcp",
+			"enabled": false,
+			"oauth": { "clientName": "Claude Code" },
+			"description": "Figma: design files, frames, components and tokens (OAuth)."
+		},
+		"playwright": {
+			"command": "/home/e/config/scripts/browser/playwright-mcp.sh",
+			"args": [],
+			"exposure": "deferred",
+			"description": "Browser automation over the running Helium CDP session."
+		}
+	}
+}

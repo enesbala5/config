@@ -224,6 +224,15 @@ if [ "$HAS_GIT" = true ] && [ "$HAS_NIXFMT" = true ] && [ "$NO_COMMIT" = false ]
     git commit -am "$current" || true
 fi
 
+# Sync the shared MCP server list into Cursor, pi and Zed. opencode reads it
+# directly through nix/nixos/modules/home/programs/opencode/mcp.nix.
+if [ -x "$HOME/config/scripts/utilities/mcp-sync.mjs" ]; then
+    echo "--------------------------------------"
+    echo "Syncing MCP configuration..."
+    echo "--------------------------------------"
+    "$HOME/config/scripts/utilities/mcp-sync.mjs" || echo "MCP sync failed (shared/mcp-sync.mjs)"
+fi
+
 # Return to the original directory
 popd || true
 
