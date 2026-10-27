@@ -83,6 +83,16 @@
 			"args": [],
 			"env": {},
 			"enabled": true
+		},
+		"DbFlux": {
+			"command": "/etc/profiles/per-user/e/bin/dbflux",
+			"args": [
+				"mcp",
+				"--client-id",
+				"fw-13"
+			],
+			"env": {},
+			"enabled": true
 		}
 	},
 	"inlay_hints": {

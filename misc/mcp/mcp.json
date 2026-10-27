@@ -63,6 +63,11 @@
 			"args": [],
 			"exposure": "deferred",
 			"description": "Browser automation over the running Helium CDP session."
+		},
+		"DbFlux": {
+			"command": "/etc/profiles/per-user/e/bin/dbflux",
+			"args": ["mcp", "--client-id", "fw-13"],
+			"description": "DBFlux: query and manage local database connections."
 		}
 	}
 }
