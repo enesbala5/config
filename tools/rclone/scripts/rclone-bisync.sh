@@ -64,7 +64,7 @@ if [ "${EXIT_CODE}" -eq 2 ]; then
   echo "ERROR: ${MSG}" >&2
 elif [ "${EXIT_CODE}" -ne 0 ]; then
   MSG="RClone bisync finished with errors (exit code ${EXIT_CODE}). Check logs with 'rclone-logs'."
-  notify-send --urgency=critical "🚨 RClone Sync Warning" "${MSG}" || true
+  notify-send --urgency=critical --expire-time=3000 "🚨 RClone Sync Warning" "${MSG}" || true
   echo "WARNING: ${MSG}" >&2
 fi
 
