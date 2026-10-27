@@ -153,7 +153,7 @@
 
           ### Text ###
 
-          font = Geist 12
+          font = Geist 11
 
           # The spacing between lines.  If the height is smaller than the
           # font height, it will get raised to the font height.
