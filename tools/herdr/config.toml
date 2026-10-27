@@ -64,7 +64,27 @@ rows = [
 # previous_tab = "prefix+ctrl+shift+tab"
 
 [[keys.command]]
-key = ["prefix+k", "ctrl+p"]
+key = "prefix+k"
 type = "plugin_action"
 command = "herdr-bar.open"
 description = "command bar"
+
+# Ctrl+P and Ctrl+Alt+P cannot share herdr-bar.open: that action has one
+# scope in config.json. open.sh copies that config and sets scope per chord.
+# Kitty turns physical Ctrl+Shift+P into this Ctrl+Alt+P sequence. Herdr does
+# not bind Ctrl+Shift+P. Popup size matches the plugin manifest (74% x 62%).
+[[keys.command]]
+key = "ctrl+p"
+type = "popup"
+command = 'root=$(dirname "$(readlink -f "$HOME/.config/herdr/config.toml")"); exec "$root/plugins/herdr-bar/open.sh" pane'
+description = "panes (%)"
+width = "74%"
+height = "62%"
+
+[[keys.command]]
+key = "ctrl+alt+p"
+type = "popup"
+command = 'root=$(dirname "$(readlink -f "$HOME/.config/herdr/config.toml")"); exec "$root/plugins/herdr-bar/open.sh" agent'
+description = "agents (@)"
+width = "74%"
+height = "62%"

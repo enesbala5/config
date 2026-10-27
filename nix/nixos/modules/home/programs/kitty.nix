@@ -17,6 +17,10 @@
       # Window Management
       "ctrl+n" = "new_os_window_with_cwd";
       "ctrl+shift+n" = "new_os_window";
+
+      # Physical Ctrl+Shift+P. Herdr binds ctrl+alt+p (CSI-u 112;7). Ctrl+P
+      # stays a raw ^P so shells, vim, and the bar's own movement still see it.
+      "ctrl+shift+p" = "send_text all \\x1b[112;7u";
     };
 
     # shellIntegration = {

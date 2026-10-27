@@ -57,8 +57,11 @@ from upstream and drops both edits. Rebuild with
 - **Bar** ([jeffarese/herdr-bar](https://github.com/jeffarese/herdr-bar)) is
   installed from GitHub. The install downloads a prebuilt binary and falls
   back to `cargo` only if that download fails. Settings are
-  `plugins/herdr-bar/config.json`. The open keybind (`prefix+k`, `ctrl+p` →
-  `herdr-bar.open`) is in `config.toml`. While Auto Title is enabled, Bar
+  `plugins/herdr-bar/config.json`. Keybinds in `config.toml`: `prefix+k` opens
+  everything (`herdr-bar.open`); `ctrl+p` opens `%` panes and `ctrl+alt+p`
+  opens `@` agents, via `plugins/herdr-bar/open.sh` (one config cannot hold
+  two scopes). Kitty maps physical Ctrl+Shift+P to that Ctrl+Alt+P sequence.
+  While Auto Title is enabled, Bar
   skips its own automatic tab renames.
 
 ```sh
