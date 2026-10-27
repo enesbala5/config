@@ -112,8 +112,12 @@ function poll() {
   const tabs = new Map((snap.tabs || []).map((t) => [t.tab_id, t.label]));
   const next = new Map();
   for (const agent of snap.agents || []) {
-    if (!agent.pane_id) continue;
-    let label = tabs.get(agent.tab_id);
+		if (!agent.pane_id) continue;
+
+    // Auto Title puts the vendor mark on the tab name. The agents list shows
+    // that mark on the name row, so drop it from the title row only.
+		let label = stripTitleLogo(tabs.get(agent.tab_id));
+
     if (!label && cfg.labelFallback) {
       label =
         agent.terminal_title_stripped ||
@@ -127,11 +131,20 @@ function poll() {
       status: agent.agent_status,
       vendor: vendorValue(agent),
     });
-  }
+	}
+
   for (const id of panes.keys()) {
     if (!next.has(id)) report(id, ["--clear-token", TOKEN, "--clear-token", VENDOR]);
-  }
+	}
+
   panes = next;
+}
+
+function stripTitleLogo(label) {
+  const text = String(label || "");
+  const first = text.codePointAt(0);
+  if (first >= 0xe1a0 && first <= 0xe1ba) return text.slice(1).replace(/^\s+/, "");
+  return text;
 }
 
 function staticGlyph(status) {
