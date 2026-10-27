@@ -11,50 +11,78 @@
 	// 	"background_coloring": "indent_aware",
 	// },
 	"auto_update_extensions": {
-  "activitywatch": false
- },
- "ssh_connections": [
-  {
-   "host": "192.168.0.40",
-   "username": "e",
-   "args": [
-    "-o",
-    "IdentitiesOnly=no"
-   ],
-   "projects": [
-    {
-     "paths": [
-      "/home/e/config"
-     ]
-    }
-   ]
-  },
-  {
-   "host": "home-server",
-   "args": [],
-   "projects": [
-    {
-     "paths": [
-      "/home/e/config"
-     ]
-    }
-   ]
-  }
- ],
- "disable_ai": false,
+		"activitywatch": false
+	},
+	"ssh_connections": [
+		{
+			"host": "192.168.0.40",
+			"username": "e",
+			"args": ["-o", "IdentitiesOnly=no"],
+			"projects": [
+				{
+					"paths": ["/home/e/config"]
+				}
+			]
+		},
+		{
+			"host": "home-server",
+			"args": [],
+			"projects": [
+				{
+					"paths": ["/home/e/config"]
+				}
+			]
+		}
+	],
+	"disable_ai": false,
 	"context_servers": {
-		"Coverlttr (Development)": {
-   "enabled": true,
-			"remote": false,
-			"command": "http://localhost:5181/",
-			"args": []
-		},
 		"Polar": {
-   "enabled": true,
-			"url": "https://mcp.polar.sh/mcp/polar-mcp"
+			"url": "https://mcp.polar.sh/mcp/polar-mcp",
+			"enabled": true
 		},
-		"Figma": {
-   "url": "https://mcp.figma.com/mcp"
+		"axiom": {
+			"url": "https://mcp.axiom.co/mcp",
+			"enabled": true
+		},
+		"openseo": {
+			"url": "https://openseo.enesbala.com/mcp",
+			"enabled": true
+		},
+		"twenty-crm": {
+			"command": "/home/e/config/scripts/utilities/mcp-http.sh",
+			"args": [
+				"https://twenty.enesbala.com/mcp",
+				"Authorization: Bearer ${TWENTY_MCP_TOKEN}"
+			],
+			"env": {},
+			"enabled": true
+		},
+		"coverlttr": {
+			"url": "https://mcp.coverlttr.com/mcp",
+			"enabled": true
+		},
+		"coverlttr-dev": {
+			"url": "http://localhost:5181/mcp",
+			"enabled": true
+		},
+		"coolify-home": {
+			"command": "/home/e/config/scripts/utilities/mcp-http.sh",
+			"args": [
+				"https://host.enesbala.com/mcp",
+				"Authorization: Bearer ${COOLIFY_HOME_TOKEN}"
+			],
+			"env": {},
+			"enabled": true
+		},
+		"astro-docs": {
+			"url": "https://mcp.docs.astro.build/mcp",
+			"enabled": true
+		},
+		"playwright": {
+			"command": "/home/e/config/scripts/browser/playwright-mcp.sh",
+			"args": [],
+			"env": {},
+			"enabled": true
 		}
 	},
 	"inlay_hints": {
@@ -82,44 +110,6 @@
 		"show_menus": false,
 		"button_layout": "platform_default"
 	},
-	// "theme_overrides": {
-	// 	"VSCode Dark Modern": {
-	// 		"background.appearance": "blurred",
-
-	// 		"accents": ["#FFD700", "#DA70D6", "#179FFF", "#FFD700", "#DA70D6", "#179FFF", "#FFD700", "#DA70D6", "#179FFF"],
-	// 		"border.focused": "#0078D4E6",
-	// 		"elevated_surface.background": "#1F1F1FF2",
-	// 		"background": "#1F1F1FE6",
-	// 		"element.background": "#383838FF",
-	// 		"element.hover": "#3B4445FF",
-	// 		"element.active": "#0076C4FF",
-	// 		"element.selected": "#09609FFF",
-	// 		"ghost_element.selected": "#09609FFF",
-	// 		"status_bar.background": "#181818E6",
-	// 		"title_bar.background": "#181818E6",
-	// 		"title_bar.inactive_background": "#1F1F1FE6",
-	// 		"tab_bar.background": "#18181899",
-	// 		"tab.inactive_background": "#18181880",
-	// 		"tab.active_background": "#3030304D",
-	// 		"panel.background": "#1C1C1C00",
-	// 		"panel.focused_border": "#0078D4E6",
-	// 		"pane.focused_border": null,
-	// 		"minimap.thumb.background": "#1A1A1A4D",
-	// 		"minimap.thumb.hover_background": "#1A1A1A26",
-	// 		"minimap.thumb.active_background": "#1A1A1A26",
-	// 		"editor.foreground": "#CCCCCCFF",
-	// 		"editor.background": "#1F1F1F00",
-	// 		"editor.gutter.background": "#1F1F1F1A",
-	// 		"editor.subheader.background": "#1A1A1AFF",
-	// 		"editor.active_line.background": "#17171733",
-	// 		"editor.highlighted_line.background": "#40404059",
-	// 		"terminal.foreground": "#CCCCCCFF",
-	// 		"syntax": {
-	// 			"predictive": {},
-	// 		},
-	// 		"element.selection_background": "#0ED1EB1A",
-	// 	},
-	// },
 	"use_system_prompts": true,
 	"use_system_path_prompts": true,
 	"prettier": {
@@ -136,21 +126,22 @@
 	},
 	"cli_default_open_behavior": "new_window",
 	"git_panel": {
+		"tree_view": true,
 		"folder_indicator": "icon",
-  "dock": "left"
+		"dock": "left"
 	},
 	"agent_servers": {
 		"pi-acp": {
-   "type": "registry"
-  },
-  "opencode": {
-   "default_config_options": {
-    "effort": "default",
-    "model": "deepseek/deepseek-flash"
-   },
-   "type": "registry"
-  },
-  "cursor": {
+			"type": "registry"
+		},
+		"opencode": {
+			"default_config_options": {
+				"effort": "default",
+				"model": "deepseek/deepseek-flash"
+			},
+			"type": "registry"
+		},
+		"cursor": {
 			"type": "registry"
 		}
 	},
@@ -196,7 +187,7 @@
 		},
 		"default_model": {
 			"effort": "medium",
-   "enable_thinking": true,
+			"enable_thinking": true,
 			"provider": "zed.dev",
 			"model": "claude-sonnet-4-6"
 		},

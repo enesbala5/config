@@ -6,7 +6,9 @@
 //
 //   -> ~/.pi/agent/mcp.json        Cursor-schema clone, pi keys kept
 //   -> ~/.cursor/mcp.json          same schema, pi-only keys stripped
-//   -> ~/.config/zed/settings.json "context_servers" replaced in place, comments preserved
+//   -> ~/.config/zed/settings.json "context_servers" replaced in place, comments preserved.
+//      Servers with headers become a local scripts/utilities/mcp-http.sh command.
+//      Header templates stay ${VAR}; the proxy fills them when the client connects.
 //
 // opencode is handled by nix: nix/nixos/modules/home/programs/opencode/mcp.nix reads
 // the canonical file at eval time and rewrites ${VAR} to {env:VAR}.
@@ -183,12 +185,24 @@ writeJson(piPath, { mcpServers: servers });
 // Cursor: identical schema minus pi-only keys
 writeJson(cursorPath, { mcpServers: Object.fromEntries(Object.entries(enabled).map(([n, s]) => [n, withoutKeys(s)])) });
 
-// Zed: context_servers live inside settings.json, which is JSONC and hand-edited
+// Zed: context_servers live inside settings.json, which is JSONC and hand-edited.
+// Header values are not expanded here. Zed would store the token in this repo file.
+const httpProxy = path.join(CONFIG_DIR, "scripts/utilities/mcp-http.sh");
 const zedServers = {};
 for (const [name, s] of Object.entries(enabled)) {
-  zedServers[name] = s.command
-    ? { command: s.command, args: s.args ?? [], env: s.env ?? {}, enabled: true }
-    : { url: s.url, ...(s.headers ? { headers: s.headers } : {}), enabled: true };
+  const rawHeaders = canonical.mcpServers[name]?.headers;
+  if (s.command) {
+    zedServers[name] = { command: s.command, args: s.args ?? [], env: s.env ?? {}, enabled: true };
+  } else if (rawHeaders && Object.keys(rawHeaders).length) {
+    zedServers[name] = {
+      command: httpProxy,
+      args: [s.url, ...Object.entries(rawHeaders).map(([key, value]) => `${key}: ${value}`)],
+      env: {},
+      enabled: true,
+    };
+  } else {
+    zedServers[name] = { url: s.url, enabled: true };
+  }
 }
 if (fs.existsSync(zedPath)) {
   const before = fs.readFileSync(zedPath, "utf8");

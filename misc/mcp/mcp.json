@@ -1,5 +1,5 @@
 {
-	"_comment": "Canonical MCP server list. Edit this file, then run scripts/utilities/mcp-sync.mjs. Secrets use ${VAR} placeholders resolved from /run/agenix/mcp-secrets.json (agenix) or the environment. `enabled: false` hides a server from Zed/opencode; Cursor and pi keep the entry.",
+	"_comment": "Canonical MCP server list. Edit this file, then run scripts/utilities/mcp-sync.mjs. Secrets use ${VAR} placeholders resolved from /run/agenix/mcp-secrets.json (agenix) or the environment. Zed starts servers that have headers via scripts/utilities/mcp-http.sh, which fills ${VAR} when it connects. `enabled: false` hides a server from Zed/opencode; Cursor and pi keep the entry.",
 	"mcpServers": {
 		"Polar": {
 			"url": "https://mcp.polar.sh/mcp/polar-mcp",
