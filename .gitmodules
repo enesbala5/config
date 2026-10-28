@@ -1,0 +1,6 @@
+[submodule "nix/nixos/hosts/framework-13/home/programs/zaku"]
+	path = nix/nixos/hosts/framework-13/home/programs/zaku
+	url = github-enesbala5:enesbala5/zaku-nix.git
+[submodule "nix/nixos/hosts/framework-13/home/programs/omacut"]
+	path = nix/nixos/hosts/framework-13/home/programs/omacut
+	url = github-enesbala5:enesbala5/omacut-nix.git
