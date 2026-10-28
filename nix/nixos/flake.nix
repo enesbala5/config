@@ -1,5 +1,10 @@
 {
   inputs = {
+    # Git exports of this repo omit submodule trees unless this is set.
+    # omacut is a path input inside a submodule; without this, its flake.nix
+    # is missing from the nix store copy of the repo.
+    self.submodules = true;
+
     # NixOS inputs
     # ------------------------------------------------------------------------------------------
 
