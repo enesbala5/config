@@ -81,15 +81,6 @@ in
     # Stamp the time so the acpid handler can ignore that press.
     resumeCommands = ''
       date +%s > /run/last-resume
-      sleep 0.5
-      for bl in /sys/class/backlight/*; do
-        if [ -e "$bl/bl_power" ]; then
-          echo 0 > "$bl/bl_power" || true
-        fi
-        if [ -e "$bl/brightness" ]; then
-          cat "$bl/brightness" > "$bl/brightness" || true
-        fi
-      done
     '';
   };
 
@@ -265,31 +256,6 @@ in
 
     acpid = {
       enable = true;
-      lidEventCommands = ''
-        export PATH=$PATH:/run/current-system/sw/bin
-
-        lid_state=$(awk '{print $NF}' /proc/acpi/button/lid/LID0/state)
-        runtime="/run/user/${toString data.uid}"
-        brillo=${pkgs.brillo}/bin/brillo
-
-        light_panel() {
-          "$brillo" -e -u 0 -I || "$brillo" -e -u 0 -S 50
-          sig=$(ls -1 "$runtime/hypr" 2>/dev/null | head -1)
-          if [ -n "$sig" ]; then
-            ${pkgs.util-linux}/bin/runuser -u ${data.username} -- \
-              env XDG_RUNTIME_DIR="$runtime" HYPRLAND_INSTANCE_SIGNATURE="$sig" \
-              /run/current-system/sw/bin/hyprctl dispatch 'hl.dsp.dpms("on")' \
-              || true
-          fi
-        }
-
-        if [ "$lid_state" = "closed" ]; then
-          "$brillo" -e -u 0 -S 10
-        else
-          light_panel
-        fi
-      '';
-
       powerEventCommands = ''
         now=$(date +%s)
         last=$(cat /run/last-resume 2>/dev/null || echo 0)
