@@ -1733,6 +1733,7 @@
         "stylix": "stylix",
         "vicinae": "vicinae",
         "vicinae-extensions": "vicinae-extensions",
+        "zaku": "zaku",
         "zed-editor": "zed-editor",
         "zen-browser": "zen-browser"
       }
@@ -2251,6 +2252,26 @@
       "original": {
         "owner": "vicinaehq",
         "repo": "vicinae",
+        "type": "github"
+      }
+    },
+    "zaku": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793198802,
+        "narHash": "sha256-xopKjXGiEFl/2nt1dlfjZS5UcIj1IxCfpz4S+nDK94c=",
+        "owner": "enesbala5",
+        "repo": "zaku-nix",
+        "rev": "9700ae892b0eca926a407e83284ab84eb1cc6c2f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "enesbala5",
+        "repo": "zaku-nix",
         "type": "github"
       }
     },

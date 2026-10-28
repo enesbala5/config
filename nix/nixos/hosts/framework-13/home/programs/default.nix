@@ -38,7 +38,6 @@ in
       # Development
       # ------------------------------------------------------------------------------------------
       beekeeper-studio # Database Management
-      insomnia # API Client
       neovim # Neovim
       vim # Vim
       sqlite # SQLite CLI
@@ -107,6 +106,7 @@ in
       antigravity-nix.packages.${system}.google-antigravity-cli
       inputs.grok-bot.packages.${pkgs.system}.default
       omacut.packages.${system}.default
+      zaku.packages.${system}.default # API Client
       dbflux.packages.${system}.default
       pi.packages.${system}.pi
       antseed.packages.${system}.default

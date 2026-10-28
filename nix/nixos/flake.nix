@@ -144,6 +144,11 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
+    zaku = {
+      url = "github:enesbala5/zaku-nix";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     # Hyprland 0.56.2 from nixpkgs, on cache.nixos.org. The Hyprland flake for
     # this tag is not cached. Separate from nixpkgs-unstable, which is still
     # on Hyprland 0.55.4.
