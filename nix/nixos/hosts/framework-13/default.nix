@@ -259,8 +259,21 @@ in
       powerEventCommands = ''
         now=$(date +%s)
         last=$(cat /run/last-resume 2>/dev/null || echo 0)
-        if [ $((now - last)) -lt 8 ]; then
+        age=$((now - last))
+        # The power press that woke the machine is delivered again on resume.
+        if [ "$age" -lt 8 ]; then
           exit 0
+        fi
+        # Long s2idle can come back with the panel still dark (DPMS off).
+        # That press is the user trying to see the screen, not a sleep request.
+        if [ "$age" -lt 180 ]; then
+          for dpms in /sys/class/drm/card*-eDP-*/dpms; do
+            [ -e "$dpms" ] || continue
+            if [ "$(cat "$dpms")" = "Off" ]; then
+              runuser -u ${data.username} -- env XDG_RUNTIME_DIR=/run/user/${toString data.uid} ${data.configDirectory}/scripts/hosts/framework-13/wake-panel.sh
+              exit 0
+            fi
+          done
         fi
         systemctl suspend
       '';
