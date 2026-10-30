@@ -97,7 +97,15 @@
   # ------------------------------------------------------------------------------------------
 
   virtualisation = {
-    docker.enable = true;
+    docker = {
+      enable = true;
+
+      # Keep up to 10GB of BuildKit build cache before garbage collection starts pruning it.
+      daemon.settings.builder.gc = {
+        enabled = true;
+        defaultKeepStorage = "10GB";
+      };
+    };
 
     libvirtd.enable = true;
 
