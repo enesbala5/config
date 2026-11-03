@@ -328,7 +328,9 @@
   boot = {
     resumeDevice = "/nix/store";
 
-    kernelPackages = pkgs.linuxPackages_latest;
+    # 6.18 LTS from nixos-26.05. CVE-2026-98432 is fixed in 6.18.56+.
+    # linuxPackages_latest on 25.11 was 6.19/7.1, which never got that fix.
+    kernelPackages = pkgs.linuxPackages;
 
     kernel.sysctl."vm.overcommit_memory" = "1";
 
