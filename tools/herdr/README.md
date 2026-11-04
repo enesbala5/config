@@ -134,16 +134,14 @@ TUI daemon, so it sees those sessions. The desktop app sees core sessions.
 | herdr-gpui | pinned flake | `modules.home.herdr.gpui` |
 | Ovis | 0.4.22 | `modules.home.herdr.mobile.enable` |
 
-`modules.home.herdr.desktop.enable` installs the app and the core. The app
-starts the core. On `framework-13` this is on next to gpui. `home-server` stays
-TUI-only: it has no desktop session.
+`modules.home.herdr.desktop.enable` installs the desktop app and herdr-core.
+It is off. `framework-13` keeps the TUI and gpui. `home-server` is TUI-only.
 
 ## Phone
 
-Ovis ([devswha/ovis](https://github.com/devswha/ovis)), because it can see the
-desktop app's terminals. Collie cannot. The TUI and the desktop app do not
-share sessions, so `plugins/ovis/env` sets `OVIS_RUNTIME=herdr-core`. TUI
-agents are not on the phone.
+Ovis ([devswha/ovis](https://github.com/devswha/ovis)) follows the TUI
+(`OVIS_RUNTIME=herdr` in `plugins/ovis/env`). The desktop app's core is a
+different socket, and this config does not use it.
 
 The relay stays off (`OVIS_TAILSCALE_SERVE_ONLY=1`). Anonymous usage counts
 are off (`OVIS_TELEMETRY=0`). Ovis binds `127.0.0.1:7317`. The phone reaches

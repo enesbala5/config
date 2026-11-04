@@ -24,7 +24,7 @@ in
     home.file.".local/bin/bun".source = lib.getExe bun;
 
     # Plugin settings. Ovis reads `env`, not `.env`.
-    # OVIS_RUNTIME=herdr-core: the desktop app's terminals, not the TUI.
+    # OVIS_RUNTIME=herdr follows the TUI. The desktop app is a separate core.
     # OVIS_TAILSCALE_SERVE_ONLY keeps the Ovis relay off.
     home.file.".config/herdr/plugins/config/devswha.ovis/env" = {
       source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/plugins/ovis/env";
