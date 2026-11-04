@@ -109,7 +109,7 @@
       "rule": {
         "type": "regex",
         "ignore_case": true,
-        "regex": "Figma|FigJam|Affinity|Inkscape|GIMP|nomacs|Converseen"
+        "regex": "Figma|FigJam|Inkscape|GIMP|nomacs|Converseen"
       },
       "data": { "color": "#A78BFA", "score": 10 }
     },
