@@ -20,7 +20,7 @@
 
     ./dunst.nix # notification daemon
     ./kitty.nix # terminal emulator
-    ./herdr.nix
+    ./herdr
     ./dsh.nix
     ./vicinae.nix
     ./figma-linux.nix

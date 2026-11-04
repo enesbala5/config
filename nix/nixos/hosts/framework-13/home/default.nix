@@ -21,6 +21,8 @@
     modules.home.codex.enable = false;
     modules.home.herdr.enable = true;
     modules.home.herdr.gpui = true;
+    modules.home.herdr.desktop.enable = true;
+    modules.home.herdr.mobile.enable = true;
     modules.home.dsh.enable = true;
     modules.home.vicinae.enable = true;
     modules.home.figmaLinux.enable = true;

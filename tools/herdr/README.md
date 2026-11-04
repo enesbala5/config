@@ -19,7 +19,7 @@ tools/herdr/
 └── README.md
 ```
 
-Home-manager (`nix/nixos/modules/home/programs/herdr.nix`, enabled per host)
+Home-manager (`nix/nixos/modules/home/programs/herdr/`, enabled per host)
 symlinks `config.toml`, `plugins/auto-title/config.env`, and
 `plugins/herdr-bar/config.json` into place. It does **not** touch the rest of
 `~/.config/herdr`, because Herdr writes its own state there (`plugins.json`,
@@ -32,7 +32,7 @@ Nix-managed, because Herdr rewrites that file.
 
 - **Agent Head** (local plugin) is linked automatically by a home-manager
   activation (`home.activation.herdrLinkAgentHead` in
-  `nix/nixos/modules/home/programs/herdr.nix`). It is idempotent — it skips
+  `nix/nixos/modules/home/programs/herdr/plugins.nix`). It is idempotent — it skips
   when `local.agent-head` is already in `plugins.json`, and it never fails the
   activation — so a fresh machine gets it on the first `home-manager switch`.
   Nothing to run by hand.
@@ -114,3 +114,48 @@ herdr plugin action invoke restart --plugin local.agent-head
 Tunables (spinner frames, intervals, static glyphs, disable) live in
 `$HERDR_PLUGIN_CONFIG_DIR/config.json`; see `DEFAULTS` in
 `plugins/agent-head/head.js`.
+
+## Clients
+
+The TUI and the desktop app do not share sessions. Checked against upstream
+[herdr-app#306](https://github.com/herdrdev/herdr-app/issues/306) and the two
+config directories: the TUI uses `~/.config/herdr` (this `config.toml`, the
+plugins, `herdr.sock`). `herdr-core` uses `~/.config/herdr-core/config.toml`
+and its own socket under `$XDG_RUNTIME_DIR/herdr-core/`. Agent Head, Auto
+Title, Bar, and `config.toml` apply to the TUI. herdr-gpui is a client of the
+TUI daemon, so it sees those sessions. The desktop app sees core sessions.
+
+| Piece | Version | Where |
+| --- | --- | --- |
+| TUI `herdr` | 0.9.5 | `nixpkgs-herdr` (cache.nixos.org). Latest release. The flake's master is newer and is not cached. |
+| `herdr-core` / `hc` | 0.1.18 | release tarball. The cached nixpkgs build is 0.1.15 and is missing the Linux fixes after that. |
+| `herdr-app` | 0.1.13 | release tarball. The cached nixpkgs build is 0.1.10. |
+| herdr-gpui | pinned flake | `modules.home.herdr.gpui` |
+| Collie | 1.26.1 | `modules.home.herdr.mobile.enable` |
+
+`modules.home.herdr.desktop.enable` installs the app and the core. The app
+starts the core. On `framework-13` this is on next to gpui. `home-server` stays
+TUI-only: it has no desktop session.
+
+## Phone
+
+Collie, not Ovis. Collie 1.26.1 drives `herdr-core` (`COLLIE_MUX=herdr-core`)
+as well as the TUI, and it stays on Tailscale. Ovis's relay is a third party.
+The user service sets `DO_NOT_TRACK=1` and binds `127.0.0.1:8787`. It does not
+run `collie serve`: that publishes a Tailscale HTTPS port, and on
+`home-server` :443 is already Caddy's.
+
+With the desktop module on, Collie follows herdr-core, so TUI agents are not
+on the phone. With only the TUI, it follows `herdr`.
+
+Pair once the core (or the TUI) is running:
+
+```sh
+collie serve
+collie qr
+```
+
+On a machine where Tailscale :443 is taken, set a port before `collie serve`
+(`COLLIE_SERVE_PORT` in the environment Collie reads; see Collie's
+`.env.example`). Scan the QR, then `collie pair` and enter the code under
+Settings → System → Paired devices.

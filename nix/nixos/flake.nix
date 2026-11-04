@@ -118,9 +118,13 @@
       # `inputs.nixpkgs.follows`.
     };
 
-    herdr = {
-      url = "github:herdrdev/herdr";
-      # herdr pins nixos-unstable and rust-overlay; don't force it onto our nixpkgs.
+    # herdr 0.9.5 from the nixpkgs-unstable channel on 2026-11-04, on
+    # cache.nixos.org. The herdr flake tracks master past that tag and has
+    # no binary cache. herdr-desktop / herdr-core in this pin are 0.1.10 /
+    # 0.1.15, behind the Linux fixes in the 0.1.13 / 0.1.18 release
+    # tarballs, so the desktop module does not use them.
+    nixpkgs-herdr = {
+      url = "github:NixOS/nixpkgs/9d3b8db48266c17be0b5f9c6360c3ecfbac3d1f5";
     };
 
     dsh-nix = {
