@@ -62,6 +62,9 @@ from upstream and drops both edits. Rebuild with
   everything (`herdr-bar.open`); `ctrl+p` opens `%` panes and `ctrl+alt+p`
   opens `@` agents, via `plugins/herdr-bar/open.sh` (one config cannot hold
   two scopes). Kitty maps physical Ctrl+Shift+P to that Ctrl+Alt+P sequence.
+  Kitty also owns Ctrl+Tab and Ctrl+Shift+Tab, so it forwards them as CSI-u
+  (`\x1b[9;5u`, `\x1b[9;6u`) and Herdr binds those to next / previous tab.
+  Kitty's own tabs stay on Ctrl+Shift+Left / Ctrl+Shift+Right.
   While Auto Title is enabled, Bar
   skips its own automatic tab renames.
 

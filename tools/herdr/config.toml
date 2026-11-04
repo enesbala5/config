@@ -59,9 +59,12 @@ rows = [
   ["$vendor", "workspace"],
 ]
 
-# [keys]
-# next_tab = "prefix+ctrl+tab"
-# previous_tab = "prefix+ctrl+shift+tab"
+# Ctrl+Tab / Ctrl+Shift+Tab. Kitty consumes those chords for its own tabs, so
+# kitty.nix send_text's the Kitty CSI-u sequences (Tab is codepoint 9;
+# modifier 5 = ctrl, 6 = ctrl+shift). prefix+n / prefix+p stay.
+[keys]
+next_tab = ["prefix+n", "ctrl+tab"]
+previous_tab = ["prefix+p", "ctrl+shift+tab"]
 
 [[keys.command]]
 key = "prefix+k"
