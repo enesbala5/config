@@ -65,6 +65,8 @@ rows = [
 [keys]
 next_tab = ["prefix+n", "ctrl+tab"]
 previous_tab = ["prefix+p", "ctrl+shift+tab"]
+new_tab = ["prefix+c", "ctrl+t"]
+close_tab = ["prefix+shift+x", "ctrl+w"]
 
 [[keys.command]]
 key = "prefix+k"

@@ -65,6 +65,7 @@ from upstream and drops both edits. Rebuild with
   Kitty also owns Ctrl+Tab and Ctrl+Shift+Tab, so it forwards them as CSI-u
   (`\x1b[9;5u`, `\x1b[9;6u`) and Herdr binds those to next / previous tab.
   Kitty's own tabs stay on Ctrl+Shift+Left / Ctrl+Shift+Right.
+  Ctrl+T creates a tab and Ctrl+W closes one. Kitty does not bind those.
   While Auto Title is enabled, Bar
   skips its own automatic tab renames.
 
