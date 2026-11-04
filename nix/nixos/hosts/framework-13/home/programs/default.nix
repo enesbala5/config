@@ -2,6 +2,7 @@
   pkgs,
   config,
   inputs,
+  lib,
   system,
   unstable,
   data,
@@ -96,7 +97,6 @@ in
     # Flakes
     # ---
     ++ (with inputs; [
-      affinity-nix.packages.${system}.default
       hyprshutdown.packages.${system}.default
       zed-editor.packages.${system}.default
       cursor-nix.packages.${system}.default
@@ -104,7 +104,7 @@ in
       antigravity-nix.packages.${system}.google-antigravity-no-fhs
       antigravity-nix.packages.${system}.google-antigravity-ide-no-fhs
       antigravity-nix.packages.${system}.google-antigravity-cli
-      inputs.grok-bot.packages.${pkgs.system}.default
+      grok-bot.packages.${system}.default
       omacut.packages.${system}.default
       zaku.packages.${system}.default # API Client
       dbflux.packages.${system}.default
@@ -130,18 +130,19 @@ in
 
     ssh = {
       enable = true;
+      enableDefaultConfig = false;
 
-      matchBlocks."*" = {
-        forwardAgent = false;
-        addKeysToAgent = "yes";
-        compression = false;
-        serverAliveInterval = 0;
-        serverAliveCountMax = 3;
-        hashKnownHosts = false;
-        userKnownHostsFile = "~/.ssh/known_hosts";
-        controlMaster = "no";
-        controlPath = "~/.ssh/master-%r@%n:%p";
-        controlPersist = "no";
+      settings."*" = {
+        ForwardAgent = false;
+        AddKeysToAgent = "yes";
+        Compression = false;
+        ServerAliveInterval = 0;
+        ServerAliveCountMax = 3;
+        HashKnownHosts = false;
+        UserKnownHostsFile = "~/.ssh/known_hosts";
+        ControlMaster = "no";
+        ControlPath = "~/.ssh/master-%r@%n:%p";
+        ControlPersist = "no";
       };
 
       includes = [ config.age.secrets.ssh-config.path ];
@@ -149,6 +150,8 @@ in
 
     yazi = {
       enable = true;
+      # 26.05 changes the default wrapper from yy to y. Keep yy.
+      shellWrapperName = "yy";
     };
 
     vicinae = {
@@ -193,18 +196,20 @@ in
 
         theme = {
           light = {
-            name = "nord-light";
+            # Stylix also sets this to "stylix". Keep nord-light.
+            name = lib.mkForce "nord-light";
             icon_theme = "Bibata-Modern-Classic";
           };
 
           dark = {
-            name = "stylix";
+            name = lib.mkForce "stylix";
             icon_theme = "Bibata-Modern-Classic";
           };
         };
 
         launcher_window = {
-          opacity = 0.85;
+          # Stylix sets this from stylix.opacity.popups (0.8).
+          opacity = lib.mkForce 0.85;
         };
 
         favorites = [
@@ -459,6 +464,8 @@ in
 
     userDirs = {
       enable = true;
+      # 26.05 defaults this to false. Keep session variables exported.
+      setSessionVariables = true;
       desktop = "${data.homeDirectory}/desktop";
       documents = "${data.homeDirectory}/documents";
       download = "${data.homeDirectory}/downloads";
