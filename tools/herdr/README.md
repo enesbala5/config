@@ -12,6 +12,7 @@ tools/herdr/
 ├── plugins/
 │   ├── auto-title/config.env       # ~/.config/herdr-auto-title/config.env (symlinked)
 │   ├── herdr-bar/config.json       # ~/.config/herdr/plugins/config/herdr-bar/config.json (symlinked)
+│   ├── ovis/env                    # ~/.config/herdr/plugins/config/devswha.ovis/env (symlinked)
 │   └── agent-head/                 # local plugin: leading glyph + tab title
 │       ├── herdr-plugin.toml
 │       ├── run.sh
@@ -20,8 +21,8 @@ tools/herdr/
 ```
 
 Home-manager (`nix/nixos/modules/home/programs/herdr/`, enabled per host)
-symlinks `config.toml`, `plugins/auto-title/config.env`, and
-`plugins/herdr-bar/config.json` into place. It does **not** touch the rest of
+symlinks `config.toml`, `plugins/auto-title/config.env`,
+`plugins/herdr-bar/config.json`, and `plugins/ovis/env` into place. It does **not** touch the rest of
 `~/.config/herdr`, because Herdr writes its own state there (`plugins.json`,
 socket, logs, `session.json`, plugin checkouts).
 
@@ -131,7 +132,7 @@ TUI daemon, so it sees those sessions. The desktop app sees core sessions.
 | `herdr-core` / `hc` | 0.1.18 | release tarball. The cached nixpkgs build is 0.1.15 and is missing the Linux fixes after that. |
 | `herdr-app` | 0.1.13 | release tarball. The cached nixpkgs build is 0.1.10. |
 | herdr-gpui | pinned flake | `modules.home.herdr.gpui` |
-| Collie | 1.26.1 | `modules.home.herdr.mobile.enable` |
+| Ovis | 0.4.22 | `modules.home.herdr.mobile.enable` |
 
 `modules.home.herdr.desktop.enable` installs the app and the core. The app
 starts the core. On `framework-13` this is on next to gpui. `home-server` stays
@@ -139,23 +140,29 @@ TUI-only: it has no desktop session.
 
 ## Phone
 
-Collie, not Ovis. Collie 1.26.1 drives `herdr-core` (`COLLIE_MUX=herdr-core`)
-as well as the TUI, and it stays on Tailscale. Ovis's relay is a third party.
-The user service sets `DO_NOT_TRACK=1` and binds `127.0.0.1:8787`. It does not
-run `collie serve`: that publishes a Tailscale HTTPS port, and on
-`home-server` :443 is already Caddy's.
+Ovis ([devswha/ovis](https://github.com/devswha/ovis)), because it can see the
+desktop app's terminals. Collie cannot. The TUI and the desktop app do not
+share sessions, so `plugins/ovis/env` sets `OVIS_RUNTIME=herdr-core`. TUI
+agents are not on the phone.
 
-With the desktop module on, Collie follows herdr-core, so TUI agents are not
-on the phone. With only the TUI, it follows `herdr`.
+The relay stays off (`OVIS_TAILSCALE_SERVE_ONLY=1`). Anonymous usage counts
+are off (`OVIS_TELEMETRY=0`). Ovis binds `127.0.0.1:7317`. The phone reaches
+it through Tailscale, which is already on `framework-13` and `home-server`.
+This module does not run `tailscale serve`: on `home-server`, :443 is Caddy's.
 
-Pair once the core (or the TUI) is running:
+A new machine still runs the install once. Home-manager does it on activation
+when `devswha.ovis` is missing from `plugins.json`. By hand:
 
 ```sh
-collie serve
-collie qr
+herdr plugin install devswha/ovis --yes
 ```
 
-On a machine where Tailscale :443 is taken, set a port before `collie serve`
-(`COLLIE_SERVE_PORT` in the environment Collie reads; see Collie's
-`.env.example`). Scan the QR, then `collie pair` and enter the code under
-Settings → System → Paired devices.
+`bun` is on the profile. Open http://127.0.0.1:7317. For the phone, once, on
+a machine whose Tailscale HTTPS port is free:
+
+```sh
+tailscale serve --bg --https=443 http://127.0.0.1:7317
+```
+
+Then scan the QR under Settings → Phone & devices. Do not turn on the Ovis
+relay.

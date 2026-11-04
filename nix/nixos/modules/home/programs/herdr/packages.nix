@@ -109,44 +109,4 @@ in
       mainProgram = "herdr-app";
     };
   });
-
-  collie = stdenv.mkDerivation (finalAttrs: {
-    pname = "collie";
-    version = "1.26.1";
-
-    src = fetchurl {
-      url = "https://github.com/AltanS/collie/releases/download/v${finalAttrs.version}/collie-${finalAttrs.version}-linux-x64.tar.gz";
-      hash = "sha256-JNXBkHS1iCAj7xa67TffumFQnd+Ynj0tJm/ZtFtlvAw=";
-    };
-
-    nativeBuildInputs = [ autoPatchelfHook ];
-
-    dontBuild = true;
-    dontConfigure = true;
-    # strip drops the Bun payload this binary dispatches commands from.
-    dontStrip = true;
-
-    installPhase = ''
-      runHook preInstall
-      mkdir -p $out/lib $out/bin
-      cp -a . $out/lib/collie
-      chmod 755 $out/lib/collie/bin/collie
-      ln -s $out/lib/collie/bin/collie $out/bin/collie
-      runHook postInstall
-    '';
-
-    doInstallCheck = true;
-    installCheckPhase = ''
-      $out/bin/collie version | grep -F "1.26.1"
-    '';
-
-    meta = {
-      description = "Phone client for Herdr and herdr-core, served on the tailnet";
-      homepage = "https://github.com/AltanS/collie";
-      license = lib.licenses.mit;
-      platforms = [ "x86_64-linux" ];
-      sourceProvenance = [ lib.sourceTypes.binaryNativeCode ];
-      mainProgram = "collie";
-    };
-  });
 }
