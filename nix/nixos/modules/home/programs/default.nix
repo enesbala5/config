@@ -23,6 +23,7 @@
     ./herdr.nix
     ./dsh.nix
     ./vicinae.nix
+    ./figma-linux.nix
 
     # ./firefox # web browser
     # ./spicetify.nix # spotify retheming
