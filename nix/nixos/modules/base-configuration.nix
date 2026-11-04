@@ -524,16 +524,13 @@
     thunar = {
       enable = true;
 
-      plugins =
-        (with pkgs.xfce; [
-          thunar-archive-plugin # Archive management
-          thunar-volman # Management of removable drives and media
-          thunar-media-tags-plugin # Media tag management
-          thunar-vcs-plugin # Git Support
-        ])
-        ++ (with unstable; [
-          thunar-shares-plugin
-        ]);
+      plugins = [
+        pkgs.thunar-archive-plugin # Archive management
+        pkgs.thunar-volman # Management of removable drives and media
+        pkgs.thunar-media-tags-plugin # Media tag management
+        pkgs.thunar-vcs-plugin # Git Support
+        unstable.thunar-shares-plugin
+      ];
     };
 
     seahorse.enable = true;

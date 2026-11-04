@@ -63,10 +63,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    affinity-nix = {
-      url = "github:mrshmllow/affinity-nix?rev=f76f97513153a753718aa1423e84b4cb8ea4c185";
-    };
-
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake/beta";
 
@@ -212,15 +208,11 @@
           # Fix thunar-archive-plugin not finding xarchiver.tap
           # https://github.com/NixOS/nixpkgs/issues/248192
           (final: prev: {
-            xfce = prev.xfce.overrideScope (
-              xfinal: xprev: {
-                thunar-archive-plugin = xprev.thunar-archive-plugin.overrideAttrs (old: {
-                  postInstall = (old.postInstall or "") + ''
-                    cp ${final.xarchiver}/libexec/thunar-archive-plugin/* $out/libexec/thunar-archive-plugin/
-                  '';
-                });
-              }
-            );
+            thunar-archive-plugin = prev.thunar-archive-plugin.overrideAttrs (old: {
+              postInstall = (old.postInstall or "") + ''
+                cp ${final.xarchiver}/libexec/thunar-archive-plugin/* $out/libexec/thunar-archive-plugin/
+              '';
+            });
           })
         ];
       };
