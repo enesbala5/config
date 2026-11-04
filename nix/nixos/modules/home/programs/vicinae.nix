@@ -161,15 +161,17 @@ in
       };
 
       extensions = with inputs.vicinae-extensions.packages.${system}; [
-        # bluetooth  # removed upstream: fails node-gyp / dbus-next
+        # Not in vicinae-extensions at this rev; installed from the Vicinae store:
+        # bluetooth, systemd, gif-search, google-fonts
         nix
         power-profile
         wifi-commander
-        # systemd
-        # player-pilot
+        player-pilot
         port-killer
-        # github
-        # flathub-search
+        github
+        flathub-search
+        case-converter
+        color-converter
 
         ssh
         zed-recents
