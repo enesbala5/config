@@ -13,3 +13,13 @@ Cursor does not load this file. Any rule added here also needs a matching
 Put git worktrees at `~/dev/misc/worktrees/<repo-name>/<branch-name>`.
 If that directory does not exist, create it first (`mkdir -p`).
 Cursor, pi, and every other agent use this path.
+
+After the worktree exists, copy the main checkout's local env files into it
+when that checkout has any. That is `.env` and any other gitignored `.env*`
+the main checkout actually has (`.env.dev`, `.env.prod`, `.env.local`, and so
+on). Leave tracked templates alone (`.env.example` and similar); they are
+already in git. If the main checkout has no env files, skip this.
+
+Copy only. Do not rewrite the copies with worktree-only ports, container
+names, or other overrides. The copies keep the same secrets and defaults as
+the main checkout. Do not create, fill, or rotate secrets.
