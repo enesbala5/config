@@ -30,15 +30,25 @@ extensions into `~/.pi/agent`. It does **not** touch `auth.json`,
 
 ### Default instructions (`AGENTS.md`)
 
-`AGENTS.md` is pi's user-level context file: pi loads it in every working
-directory, so it is where always-on rules live. The source is harness-neutral
-at `misc/agents/AGENTS.md`; home-manager symlinks it to `~/.pi/agent/AGENTS.md`,
-and any other agent that reads `AGENTS.md` can link the same file. It is
-deliberately brief and just points pi at the `i-have-adhd` skill, which holds
-the actual spec. Cursor/OpenHands keep their own copy at
-`misc/rules/general/i-have-adhd.mdc` (`.mdc` is Cursor-specific and pi cannot
-discover it). Add new always-on rules as pointers in `misc/agents/AGENTS.md`.
-Run `/reload` in pi after changing it.
+Always-on instructions are written in two places. They are not symlinked to
+each other:
+
+| Who | File |
+| --- | --- |
+| Pi, and any agent that reads `AGENTS.md` | `misc/agents/AGENTS.md`, symlinked to `~/.pi/agent/AGENTS.md` |
+| Cursor | `misc/rules/general/<name>.mdc` with `alwaysApply: true`, symlinked via `~/.cursor/rules` |
+
+Pi cannot load `.mdc` (Cursor frontmatter). Cursor does not load
+`misc/agents/AGENTS.md`. OpenHands does not need a third edit:
+`tools/incus/agent-vm-manage.sh push-rules` copies `misc/rules/**/*.mdc` into
+the agent VM.
+
+Change or add an always-on rule in both files in the same edit. Current pairs:
+
+- ADHD: `misc/agents/AGENTS.md` points at the skill; `misc/rules/general/i-have-adhd.mdc` is the Cursor copy.
+- Worktrees: `misc/agents/AGENTS.md` ("Git worktrees") and `misc/rules/general/worktrees.mdc`.
+
+Run `/reload` in pi after changing `AGENTS.md`.
 
 ### Herdr tab titles
 

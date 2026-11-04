@@ -22,6 +22,7 @@
     ./kitty.nix # terminal emulator
     ./herdr.nix
     ./dsh.nix
+    ./vicinae.nix
 
     # ./firefox # web browser
     # ./spicetify.nix # spotify retheming

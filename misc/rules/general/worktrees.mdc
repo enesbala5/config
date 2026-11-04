@@ -1,0 +1,12 @@
+---
+description: Put git worktrees under ~/dev/misc/worktrees/<repo>/<branch>
+alwaysApply: true
+---
+
+# Git worktrees
+
+Same text as the "Git worktrees" section in `misc/agents/AGENTS.md`. Keep both in sync. See `tools/pi/README.md` ("Default instructions").
+
+Put git worktrees at `~/dev/misc/worktrees/<repo-name>/<branch-name>`.
+If that directory does not exist, create it first (`mkdir -p`).
+Cursor, pi, and every other agent use this path.
