@@ -23,6 +23,7 @@
     modules.home.herdr.gpui = true;
     modules.home.dsh.enable = true;
     modules.home.vicinae.enable = true;
+    modules.home.figmaLinux.enable = true;
 
     # Antseed buyer proxy
     modules.home.antseed.enable = false;
