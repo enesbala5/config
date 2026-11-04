@@ -3,16 +3,11 @@
   pkgs,
   config,
   data,
-  lib,
   ...
 }:
 {
   imports = [
     inputs.zen-browser.homeModules.beta
-    # Prefer the flake module: it applies settings via VICINAE_OVERRIDES.
-    # HM 25.11's built-in module writes obsolete ~/.config/vicinae/vicinae.json
-    # which Vicinae >=0.17 no longer reads.
-    inputs.vicinae.homeManagerModules.default
     inputs.hermes-agent.homeManagerModules.default
     ./programs
 
@@ -21,22 +16,13 @@
     ../../../modules/home/programs/antseed
   ];
 
-  disabledModules = [ "programs/vicinae.nix" ];
-
-  # Flake module always assigns programs.google-chrome.nativeMessagingHosts when
-  # enable=true. HM 25.11 does not declare that option for proprietary Chrome.
-  options.programs.google-chrome.nativeMessagingHosts = lib.mkOption {
-    type = lib.types.listOf lib.types.package;
-    default = [ ];
-    internal = true;
-  };
-
   config = {
     modules.home.opencode.enable = true;
     modules.home.codex.enable = false;
     modules.home.herdr.enable = true;
     modules.home.herdr.gpui = true;
     modules.home.dsh.enable = true;
+    modules.home.vicinae.enable = true;
 
     # Antseed buyer proxy
     modules.home.antseed.enable = false;

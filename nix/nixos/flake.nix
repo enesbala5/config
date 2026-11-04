@@ -54,13 +54,15 @@
 
     # Framework-13
     # ---
+    # Do not set inputs.nixpkgs.follows here. That misses vicinae.cachix.org.
     vicinae = {
-      url = "github:vicinaehq/vicinae/v0.24.0";
+      url = "github:vicinaehq/vicinae/v0.29.2";
     };
 
     vicinae-extensions = {
-      url = "github:vicinaehq/extensions?rev=22bc47b8ad1907a8aaeec502696a8202fac64a00";
+      url = "github:vicinaehq/extensions?rev=0e3953058fb787d2a96e5ac0cec462440c07cd07";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.vicinae.follows = "vicinae";
     };
 
     zen-browser = {
