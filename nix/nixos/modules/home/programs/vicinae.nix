@@ -91,12 +91,14 @@ in
 
             preferences = {
               autoIndexing = true;
+              # No trailing slash. The indexer compares paths exactly, and
+              # "/home/e/.config/" does not match the directory "/home/e/.config".
               excludedIndexingPaths = [
-                "${data.homeDirectory}/.config/"
-                "${data.homeDirectory}/.local/"
-                "${data.homeDirectory}/.ssh/"
-                "${data.homeDirectory}/.cache/"
-                "${data.homeDirectory}/.cursor/"
+                "${data.homeDirectory}/.config"
+                "${data.homeDirectory}/.local"
+                "${data.homeDirectory}/.ssh"
+                "${data.homeDirectory}/.cache"
+                "${data.homeDirectory}/.cursor"
               ];
               indexingPaths = [ "${data.homeDirectory}/" ];
               watcherPaths = "";
@@ -111,6 +113,9 @@ in
             preferences = {
               encryption = false;
               eraseOnStartup = false;
+              # Seconds. "2592000" is one month. Default is "never", which left
+              # ~34k selections and a 1.3GB fuzzy index in clipboard.db.
+              evictionThreshold = "2592000";
               ignorePasswords = false;
               monitoring = true;
             };
