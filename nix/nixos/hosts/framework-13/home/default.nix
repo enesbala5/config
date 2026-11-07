@@ -3,16 +3,11 @@
   pkgs,
   config,
   data,
-  lib,
   ...
 }:
 {
   imports = [
     inputs.zen-browser.homeModules.beta
-    # Prefer the flake module: it applies settings via VICINAE_OVERRIDES.
-    # HM 25.11's built-in module writes obsolete ~/.config/vicinae/vicinae.json
-    # which Vicinae >=0.17 no longer reads.
-    inputs.vicinae.homeManagerModules.default
     inputs.hermes-agent.homeManagerModules.default
     ./programs
 
@@ -21,22 +16,15 @@
     ../../../modules/home/programs/antseed
   ];
 
-  disabledModules = [ "programs/vicinae.nix" ];
-
-  # Flake module always assigns programs.google-chrome.nativeMessagingHosts when
-  # enable=true. HM 25.11 does not declare that option for proprietary Chrome.
-  options.programs.google-chrome.nativeMessagingHosts = lib.mkOption {
-    type = lib.types.listOf lib.types.package;
-    default = [ ];
-    internal = true;
-  };
-
   config = {
     modules.home.opencode.enable = true;
     modules.home.codex.enable = false;
     modules.home.herdr.enable = true;
     modules.home.herdr.gpui = true;
+    modules.home.herdr.mobile.enable = true;
     modules.home.dsh.enable = true;
+    modules.home.vicinae.enable = true;
+    modules.home.figmaLinux.enable = true;
 
     # Antseed buyer proxy
     modules.home.antseed.enable = false;
@@ -45,7 +33,7 @@
       # Allow all GTK apps to find the xfsettingsd GTK sync module so they
       # don't emit "Failed to load module xfsettingsd-gtk-settings-sync" warnings
       # when xfsettingsd broadcasts the Gtk/Modules XSetting.
-      GTK_PATH = "${pkgs.xfce.xfce4-settings}/lib/gtk-3.0";
+      GTK_PATH = "${pkgs.xfce4-settings}/lib/gtk-3.0";
     };
 
     home.file =
@@ -172,9 +160,9 @@
           Service = {
             Environment = [
               "PATH=${data.homeDirectory}/bin"
-              "GTK_PATH=${pkgs.xfce.xfce4-settings}/lib/gtk-3.0"
+              "GTK_PATH=${pkgs.xfce4-settings}/lib/gtk-3.0"
             ];
-            ExecStart = "${pkgs.xfce.xfce4-settings}/bin/xfsettingsd";
+            ExecStart = "${pkgs.xfce4-settings}/bin/xfsettingsd";
             Restart = "on-abort";
           };
         };

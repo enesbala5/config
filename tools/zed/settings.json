@@ -145,7 +145,10 @@
 	},
 	"agent_servers": {
 		"pi-acp": {
-			"type": "registry"
+			"default_config_options": {
+    "thought_level": "high"
+   },
+   "type": "registry"
 		},
 		"opencode": {
 			"default_config_options": {

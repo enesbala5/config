@@ -215,6 +215,10 @@
 
     # Enable automatic login for the user.
     displayManager = {
+      # GDM's fallback otherwise picks gnome-greeter (Exec=gnome-session).
+      # gnome-session is only on the greeter PATH, so the user session dies
+      # immediately and GDM returns to the login screen.
+      defaultSession = "hyprland";
       autoLogin = {
         enable = true;
         user = data.username;
@@ -326,9 +330,9 @@
   # ------------------------------------------------------------------------------------------
 
   boot = {
-    resumeDevice = "/nix/store";
-
-    kernelPackages = pkgs.linuxPackages_latest;
+    # 6.18 LTS from nixos-26.05. CVE-2026-98432 is fixed in 6.18.56+.
+    # linuxPackages_latest on 25.11 was 6.19/7.1, which never got that fix.
+    kernelPackages = pkgs.linuxPackages;
 
     kernel.sysctl."vm.overcommit_memory" = "1";
 
@@ -522,16 +526,13 @@
     thunar = {
       enable = true;
 
-      plugins =
-        (with pkgs.xfce; [
-          thunar-archive-plugin # Archive management
-          thunar-volman # Management of removable drives and media
-          thunar-media-tags-plugin # Media tag management
-          thunar-vcs-plugin # Git Support
-        ])
-        ++ (with unstable; [
-          thunar-shares-plugin
-        ]);
+      plugins = [
+        pkgs.thunar-archive-plugin # Archive management
+        pkgs.thunar-volman # Management of removable drives and media
+        pkgs.thunar-media-tags-plugin # Media tag management
+        pkgs.thunar-vcs-plugin # Git Support
+        unstable.thunar-shares-plugin
+      ];
     };
 
     seahorse.enable = true;

@@ -48,7 +48,7 @@ hl.bind(super .. " + CTRL + L", hl.dsp.exec_cmd("pidof hyprlock --no-fade-in || 
 hl.bind(super .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(super .. " + SHIFT + E", hl.dsp.exec_cmd(fileManagerSecondary))
 hl.bind(super .. " + N", hl.dsp.exec_cmd(textEditor))
-hl.bind(super .. " + M", hl.dsp.exec_cmd("vicinae vicinae://launch/@dagimg-dot/store.vicinae.player-pilot/player-pilot"))
+hl.bind(super .. " + M", hl.dsp.exec_cmd("vicinae vicinae://launch/@dagimg-dot/vicinae-extension-player-pilot-0/player-pilot"))
 hl.bind(super .. " + P", hl.dsp.exec_cmd("~/config/scripts/music/play-pause.sh"))
 
 hl.bind(super .. " + SHIFT + S", hl.dsp.exec_cmd("~/config/scripts/utilities/screenshot.sh"))

@@ -11,7 +11,7 @@
     # Base
     # ---
     nixpkgs = {
-      url = "github:NixOS/nixpkgs/nixos-25.11";
+      url = "github:NixOS/nixpkgs/nixos-26.05";
     };
 
     nixpkgs-unstable = {
@@ -28,7 +28,7 @@
     # Base
     # ---
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -44,7 +44,7 @@
     };
 
     stylix = {
-      url = "github:nix-community/stylix/release-25.11";
+      url = "github:nix-community/stylix/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -54,17 +54,15 @@
 
     # Framework-13
     # ---
+    # Do not set inputs.nixpkgs.follows here. That misses vicinae.cachix.org.
     vicinae = {
-      url = "github:vicinaehq/vicinae/v0.24.0";
+      url = "github:vicinaehq/vicinae/v0.29.2";
     };
 
     vicinae-extensions = {
-      url = "github:vicinaehq/extensions?rev=22bc47b8ad1907a8aaeec502696a8202fac64a00";
+      url = "github:vicinaehq/extensions?rev=0e3953058fb787d2a96e5ac0cec462440c07cd07";
       inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    affinity-nix = {
-      url = "github:mrshmllow/affinity-nix?rev=f76f97513153a753718aa1423e84b4cb8ea4c185";
+      inputs.vicinae.follows = "vicinae";
     };
 
     zen-browser = {
@@ -120,9 +118,13 @@
       # `inputs.nixpkgs.follows`.
     };
 
-    herdr = {
-      url = "github:herdrdev/herdr";
-      # herdr pins nixos-unstable and rust-overlay; don't force it onto our nixpkgs.
+    # herdr 0.9.5 from the nixpkgs-unstable channel on 2026-11-04, on
+    # cache.nixos.org. The herdr flake tracks master past that tag and has
+    # no binary cache. herdr-desktop / herdr-core in this pin are 0.1.10 /
+    # 0.1.15, behind the Linux fixes in the 0.1.13 / 0.1.18 release
+    # tarballs, so the desktop module does not use them.
+    nixpkgs-herdr = {
+      url = "github:NixOS/nixpkgs/9d3b8db48266c17be0b5f9c6360c3ecfbac3d1f5";
     };
 
     dsh-nix = {
@@ -212,15 +214,26 @@
           # Fix thunar-archive-plugin not finding xarchiver.tap
           # https://github.com/NixOS/nixpkgs/issues/248192
           (final: prev: {
-            xfce = prev.xfce.overrideScope (
-              xfinal: xprev: {
-                thunar-archive-plugin = xprev.thunar-archive-plugin.overrideAttrs (old: {
-                  postInstall = (old.postInstall or "") + ''
-                    cp ${final.xarchiver}/libexec/thunar-archive-plugin/* $out/libexec/thunar-archive-plugin/
-                  '';
-                });
-              }
-            );
+            thunar-archive-plugin = prev.thunar-archive-plugin.overrideAttrs (old: {
+              postInstall = (old.postInstall or "") + ''
+                cp ${final.xarchiver}/libexec/thunar-archive-plugin/* $out/libexec/thunar-archive-plugin/
+              '';
+            });
+          })
+          # Passwordless keyrings are GKeyFile text. g_key_file_set_value()
+          # writes a secret with a raw newline, and the next daemon start
+          # rejects the whole file ("invalid or unrecognized format").
+          # g_key_file_set_string() escapes newlines; the reader already uses
+          # g_key_file_get_string(). Proton SSO is what writes those newlines.
+          (final: prev: {
+            gnome-keyring = prev.gnome-keyring.overrideAttrs (old: {
+              postPatch = (old.postPatch or "") + ''
+                substituteInPlace pkcs11/secret-store/gkm-secret-textual.c \
+                  --replace-fail \
+                  'g_key_file_set_value (file, identifier, "secret", (gchar*)secret);' \
+                  'g_key_file_set_string (file, identifier, "secret", (gchar*)secret);'
+              '';
+            });
           })
         ];
       };
