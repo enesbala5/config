@@ -1,6 +1,6 @@
 ---
 name: worktree-pr-test
-description: Check out a branch or pull request in ~/dev/misc/worktrees, merge dev into it, duplicate the worktree env, and run that repo's worktree steps. Use when testing a PR, branch, or local change for coverlttr or any repo that uses this worktree layout and a worktree env example.
+description: Check out a branch or pull request in ~/dev/misc/worktrees, merge dev into it, duplicate the worktree env, run that repo's worktree steps, and prepare the database with the commands that repo's AGENT.md or AGENTS.md documents. Use when testing a PR, branch, or local change for coverlttr or any repo that uses this worktree layout and a worktree env example.
 ---
 
 # Worktree PR test
@@ -46,7 +46,14 @@ git merge origin/dev
 
 5. Run the app from the worktree using the worktree run steps in that repo's AGENT.md or AGENTS.md (coverlttr: the worktrees section). Do not invent a different compose project, port, or start command.
 
-6. Exercise the change in that worktree. The main checkout stays on its current branch.
+6. Prepare the database for this worktree when that repo's AGENT.md or AGENTS.md documents it.
+
+- Read that file for migrate, seed, or other database setup commands. Run those against the worktree stack (its env file, compose project, and containers).
+- Do not copy commands from another repo, and do not hardcode one project's targets in this skill.
+- A new worktree database starts empty. Do this before exercising the change when the doc has those steps.
+- If the doc has database commands only for the main checkout, and nothing for a second stack or worktree, say so and stop. Do not guess ports, container names, or seed commands.
+
+7. Exercise the change in that worktree. The main checkout stays on its current branch.
 
 ## Do not
 
