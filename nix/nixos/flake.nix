@@ -220,6 +220,21 @@
               '';
             });
           })
+          # Passwordless keyrings are GKeyFile text. g_key_file_set_value()
+          # writes a secret with a raw newline, and the next daemon start
+          # rejects the whole file ("invalid or unrecognized format").
+          # g_key_file_set_string() escapes newlines; the reader already uses
+          # g_key_file_get_string(). Proton SSO is what writes those newlines.
+          (final: prev: {
+            gnome-keyring = prev.gnome-keyring.overrideAttrs (old: {
+              postPatch = (old.postPatch or "") + ''
+                substituteInPlace pkcs11/secret-store/gkm-secret-textual.c \
+                  --replace-fail \
+                  'g_key_file_set_value (file, identifier, "secret", (gchar*)secret);' \
+                  'g_key_file_set_string (file, identifier, "secret", (gchar*)secret);'
+              '';
+            });
+          })
         ];
       };
 
