@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   config,
   inputs,
   system,
@@ -8,6 +9,12 @@
   ...
 }:
 let
+  hyperframesAppImage = "${data.homeDirectory}/programs/hyperframes/hyperframes.AppImage";
+  # CLI `hyperframes open` execs launcher.json's appImage directly and ignores stdio.
+  # The raw AppImage has no NixOS libglib; this wrapper is the only launch path.
+  hyperframesOpen = pkgs.writeShellScript "hyperframes-open" ''
+    exec ${pkgs.appimage-run}/bin/appimage-run ${hyperframesAppImage} "$@"
+  '';
 in
 {
   imports = [
@@ -170,6 +177,13 @@ in
   systemd.user.services.easyeffects.Service.ExecStartPre =
     "${data.configDirectory}/scripts/audio/ensure-easyeffects-auto.sh";
 
+  home.file."programs/hyperframes/open".source = hyperframesOpen;
+
+  # AppImage install drops this with Exec= the raw binary and the same scheme handlers.
+  home.activation.removeHyperframesAppImageDesktop = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD rm -f ${data.homeDirectory}/.local/share/applications/dev.hyperframes.desktop.desktop
+  '';
+
   xdg = {
     mimeApps = {
       enable = true;
@@ -245,6 +259,14 @@ in
     };
 
     configFile."mimeapps.list".force = true;
+
+    # hyperframes CLI reads this and spawns appImage. Must be the wrapper, not the raw AppImage.
+    configFile."HyperFrames/launcher.json" = {
+      force = true;
+      text = builtins.toJSON {
+        appImage = "${data.homeDirectory}/programs/hyperframes/open";
+      };
+    };
 
     # Workaround to support "Open in Terminal" in Thunar
     configFile."xfce4/helpers.rc".text = ''
@@ -324,7 +346,7 @@ in
         name = "HyperFrames";
         genericName = "Video Editor";
         icon = "${data.configDirectory}/tools/hyperframes/icon.png";
-        exec = "appimage-run ${data.homeDirectory}/programs/hyperframes/hyperframes.AppImage %U";
+        exec = "${data.homeDirectory}/programs/hyperframes/open %U";
         type = "Application";
         terminal = false;
         mimeType = [
