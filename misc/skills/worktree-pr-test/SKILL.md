@@ -55,6 +55,8 @@ git merge origin/dev
 
 7. Exercise the change in that worktree. The main checkout stays on its current branch.
 
+8. After setup finishes, tell the user to run the `worktree-cleanup` skill on this worktree when they are done.
+
 ## Do not
 
 - Run commands on a remote host unless the user asks in that same turn.
