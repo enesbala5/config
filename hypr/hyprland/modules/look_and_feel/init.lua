@@ -79,6 +79,11 @@ hl.config({
 			scroll_factor = 0.25,
 		},
 	},
+
+	-- Super+N / swipe / etc. hide magic so the target workspace is visible.
+	binds = {
+		hide_special_on_workspace_change = true,
+	},
 })
 
 hl.curve("windows-in-bezier", { type = "bezier", points = { { 0.05, 0.9 }, { 0.1, 1.05 } } })
