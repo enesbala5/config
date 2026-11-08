@@ -185,6 +185,8 @@ in
           "helium.desktop"
           "google-chrome.desktop"
         ];
+        "x-scheme-handler/hyperframes-signin" = "hyperframes.desktop";
+        "x-scheme-handler/hyperframes-open" = "hyperframes.desktop";
         "text/html" = [
           "helium.desktop"
           "zen-beta.desktop"
@@ -315,6 +317,23 @@ in
         categories = [
           "Utility"
           "Graphics"
+        ];
+      };
+
+      hyperframes = {
+        name = "HyperFrames";
+        genericName = "Video Editor";
+        icon = "${data.configDirectory}/tools/hyperframes/icon.png";
+        exec = "appimage-run ${data.homeDirectory}/programs/hyperframes/hyperframes.AppImage %U";
+        type = "Application";
+        terminal = false;
+        mimeType = [
+          "x-scheme-handler/hyperframes-signin"
+          "x-scheme-handler/hyperframes-open"
+        ];
+        categories = [
+          "AudioVideo"
+          "Video"
         ];
       };
 
