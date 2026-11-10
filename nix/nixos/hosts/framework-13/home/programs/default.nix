@@ -115,7 +115,6 @@ in
       zaku.packages.${system}.default # API Client
       dbflux.packages.${system}.default
       pi.packages.${system}.pi
-      antseed.packages.${system}.default
     ]);
 
   programs = {
