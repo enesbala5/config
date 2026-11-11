@@ -18,8 +18,9 @@
       "ctrl+n" = "new_os_window_with_cwd";
       "ctrl+shift+n" = "new_os_window";
 
-      # Ctrl+Shift+/ is commonly reported as Ctrl+_ by terminals. Encode the
-      # physical chord as CSI-u so pi can distinguish it.
+      # Encode these separately: legacy Ctrl+/ can otherwise look like Ctrl+-
+      # (Pi's undo), while Ctrl+Shift+/ selects the thinking level.
+      "ctrl+/" = "send_text all \\x1b[47;5u";
       "ctrl+shift+/" = "send_text all \\x1b[47;6u";
 
       # Physical Ctrl+Shift+P. Herdr binds ctrl+alt+p (CSI-u 112;7). Ctrl+P

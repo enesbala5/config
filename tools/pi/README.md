@@ -62,13 +62,19 @@ so an integration update cannot remove it, and reports with a TTL so a dead pi
 stops naming its tab.
 
 pi has no auto-titling of its own, so the extension also names an unnamed
-session from its opening prompt: it asks the active model for a short,
-action-first title (a tighter 3-5 word one than `pi-sidebar-tui` asks for its
-panel, since a tab is narrower) and sets that as the session name. If the model is slow or fails, the
-prompt itself is summarised instead, so Auto Title always gets something. A name
-set by hand with `/name <text>` or `pi --name <text>` is never overwritten, and
-is reported as-is. A seed from an earlier run is recognised on reload and
-generated again, so a raw-prompt title does not outlive the update that set it.
+session from its opening prompt. The prompt's first line is cut to a four-word
+label and set as the session name straight away, so the tab never carries the
+raw prompt or the static terminal title; then the session's model is asked for
+a 2-4 word action-first title, which replaces the label when it arrives. If that
+model cannot answer, a cheap model on a configured provider is tried, and if no
+model answers the four-word label stays. Every path goes through the same
+four-word cut, so a title is never longer than four words whatever the model
+returns.
+
+A name set by hand with `/name <text>` or `pi --name <text>` is never
+overwritten, and is reported as-is. A seed from an earlier run — including the
+raw-prompt titles the previous version left behind — is recognised on reload and
+replaced, so a long title does not outlive the update that fixed it.
 
 The `pi` binary itself comes from the `pi` flake input
 (`github:earendil-works/pi/stable`) and is added to `home.packages` in
@@ -125,7 +131,8 @@ pi auth check --provider deepseek
 | --- | --- |
 | `Ctrl+Shift+\` | Toggle the sidebar (`sidebar-toggle.ts`) |
 | `Ctrl+Shift+T` | Toggle the sidebar (built into `pi-sidebar-tui`) |
-| `Ctrl+P` | Insert `/` to open the slash-command menu (`ctrl-p-slash.ts`) |
+| `Ctrl+/` | Open the model selector (`keybindings.json`) |
+| `Ctrl+Shift+/` | Cycle thinking level (`keybindings.json`) |
 | `Shift+Tab` | Cycle normal → plan → ask mode (`modes/`) |
 | `Ctrl+Alt+P` | Jump to/from plan mode (`modes/`) |
 | `Ctrl+Backspace` | Delete a word instead of deleting the session (`keybindings.json`) |
@@ -137,15 +144,20 @@ it cannot remap them. The extension instead reads the sidebar's persisted
 `enabled` state and re-dispatches the package's `/sidebar-tui on|off` command,
 leaving the package in charge of the toggle logic and compositor lifecycle.
 
-Some `keybindings.json` entries deliberately clear pi defaults — for example
-`app.model.cycleForward` is unbound so `ctrl-p-slash.ts` can own `Ctrl+P`.
+`Ctrl+P` is unbound in the main editor. Kitty encodes `Ctrl+/` and
+`Ctrl+Shift+/` separately so Pi can distinguish them from legacy `Ctrl+-`.
+Apply changes to `kitty.nix` with Home Manager and reload Kitty's configuration.
 
 ## Extensions
 
 - **attach-pasted-images.ts** — previews pasted image paths above the editor and
   turns them into real image attachments on submit.
-- **ctrl-p-slash.ts** — `Ctrl+P` inserts `/` (slash-command helper) instead of
-  cycling models.
+- **ctrl-p-slash.ts** — shows slash suggestions at word boundaries throughout
+  the prompt; Enter or Tab inserts the selection without submitting. Pi only expands a
+  `/skill:name` command automatically at the start of a message; inline skill
+  references are text for the model, not native command expansion. This editor
+  extension uses Pi's internal autocomplete trigger and may need adjustment
+  after a Pi upgrade.
 - **rewind.ts** — `/rewind` picker over user messages; branches the session and
   optionally restores a `git stash create` checkpoint of the worktree.
 - **sidebar-toggle.ts** — `Ctrl+Shift+\` toggles the `pi-sidebar-tui` sidebar.
