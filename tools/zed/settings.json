@@ -36,6 +36,10 @@
 	],
 	"disable_ai": false,
 	"context_servers": {
+		"synthesia": {
+			"url": "https://mcp.synthesia.io/mcp",
+			"enabled": true
+		},
 		"Polar": {
 			"url": "https://mcp.polar.sh/mcp/polar-mcp",
 			"enabled": true
