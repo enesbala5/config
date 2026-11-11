@@ -36,6 +36,10 @@
 	],
 	"disable_ai": false,
 	"context_servers": {
+		"cloudflare": {
+			"url": "https://mcp.cloudflare.com/mcp",
+			"enabled": true
+		},
 		"synthesia": {
 			"url": "https://mcp.synthesia.io/mcp",
 			"enabled": true
