@@ -18,7 +18,7 @@
 
   config = {
     modules.home.opencode.enable = true;
-    modules.home.codex.enable = false;
+    modules.home.codex.enable = true;
     modules.home.herdr.enable = true;
     modules.home.herdr.gpui = true;
     modules.home.herdr.mobile.enable = true;

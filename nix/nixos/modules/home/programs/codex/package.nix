@@ -8,7 +8,7 @@
 let
   cfg = config.modules.home.codex;
 
-  version = "0.160.1";
+  version = "0.164.0";
 
   # OpenAI ships and signs a static-pie musl binary per release. Their Nix flake
   # is a *development* flake whose `packages` output does not build — its
@@ -25,7 +25,7 @@ let
 
     src = pkgs.fetchurl {
       url = "https://github.com/openai/codex/releases/download/rust-v${version}/codex-x86_64-unknown-linux-musl.tar.gz";
-      hash = "sha256-kiZYG+WS0Y9+f3QKNS/bY6ph5F459+ubCdOIjIS7oz8=";
+      hash = "sha256-kN0LA7KK/Lf6czpPc7QT2ykWpHNH79Q/tmnMHHdO6OQ=";
     };
 
     # The tarball holds a single bare file, not a wrapping directory.
