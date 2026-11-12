@@ -29,7 +29,8 @@ in
     name = "Caffeinate";
     genericName = "Keep awake";
     comment = "Toggle one hour without idle dimming, locking or suspend";
-    icon = "preferences-desktop-screensaver";
+    # Absolute path avoids depending on the launcher's icon-theme lookup.
+    icon = "${pkgs.papirus-icon-theme}/share/icons/Papirus/64x64/apps/caffeine.svg";
     exec = lib.getExe caffeinate;
     terminal = false;
     categories = [ "Utility" ];
