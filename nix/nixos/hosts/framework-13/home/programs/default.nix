@@ -19,6 +19,7 @@ in
 {
   imports = [
     ./activitywatch
+    ./caffeinate
     ./hermes-agent
     ./piper-tts
     ./plasma
