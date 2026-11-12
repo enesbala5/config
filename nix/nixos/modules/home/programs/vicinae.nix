@@ -36,6 +36,8 @@ in
       };
 
       settings = {
+        tray.enabled = false;
+
         close_on_focus_loss = false;
         consider_preedit = true;
         pop_to_root_on_close = true;
