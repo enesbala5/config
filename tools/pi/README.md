@@ -153,11 +153,10 @@ Apply changes to `kitty.nix` with Home Manager and reload Kitty's configuration.
 - **attach-pasted-images.ts** — previews pasted image paths above the editor and
   turns them into real image attachments on submit.
 - **ctrl-p-slash.ts** — shows slash suggestions at word boundaries throughout
-  the prompt; Enter or Tab inserts the selection without submitting. Pi only expands a
-  `/skill:name` command automatically at the start of a message; inline skill
-  references are text for the model, not native command expansion. This editor
-  extension uses Pi's internal autocomplete trigger and may need adjustment
-  after a Pi upgrade.
+  the prompt. Enter runs the highlighted built-in or extension command immediately;
+  Tab only inserts its name. Inline execution removes just the command token and
+  preserves the surrounding draft, cursor, paste markers and undo. See the behavior
+  and checks below.
 - **rewind.ts** — `/rewind` picker over user messages; branches the session and
   optionally restores a `git stash create` checkpoint of the worktree.
 - **sidebar-toggle.ts** — `Ctrl+Shift+\` toggles the `pi-sidebar-tui` sidebar.
@@ -165,6 +164,56 @@ Apply changes to `kitty.nix` with Home Manager and reload Kitty's configuration.
   restrictions, todo tracking); replaces the standalone plan-mode extension.
 - **herdr-agent-state.ts** — *not* in this repo; written by Herdr into
   `~/.pi/agent/extensions/` at runtime. See `tools/herdr/README.md`.
+
+### Slash-command behavior and checks
+
+Type `/mod` and press Enter once to open the native model selector. This works
+at the start of the prompt, after draft text, or on a later line. Only the
+selected command is dispatched; surrounding text is never sent along with it.
+For example, confirming `Explain this /mod` opens the picker and leaves
+`Explain this ` ready to continue after selection or cancellation. Whitespace
+around the removed token is left unchanged.
+
+Tab inserts `/model ` without executing it, so you can add arguments. Argument
+completion retains Pi's native behavior: Enter accepts an argument suggestion;
+Enter again submits the completed command. A command at the start of the first
+line owns that line's arguments; slash-looking arguments are not reinterpreted
+as inline commands. Paths and URLs keep their normal completion behavior.
+
+Skills and prompt templates are insert-only on completion, with either Enter
+or Tab. A subsequent explicit submission invokes them normally. Pi only expands
+`/skill:name` automatically at the start of a message; inline skill references
+are text for the model, not native command expansion.
+
+Session-changing commands (`/new`, `/resume`, `/fork`, `/clone`, `/tree`,
+`/import`, `/reload`, `/quit`) retain their native draft-clearing behavior.
+Command-controlled non-empty editor replacements are honored. While another
+command dispatch is pending, Enter does not start a second dispatch or send the
+draft; typing can continue. Reload invalidates the old editor's draft protection.
+
+Run the regression suite from the config repository with Node.js 24 or newer
+and Pi installed:
+
+```sh
+node --test tools/pi/tests/ctrl-p-slash.test.mjs
+```
+
+It uses the installed Pi editor, autocomplete provider, interactive dispatcher,
+and selector focus lifecycle, with fake session data and no model requests.
+Tests live outside `agent/extensions/` so Pi will not auto-load them. The harness
+finds Nix/npm installations automatically; set `PI_NODE_MODULES` to Pi's
+`node_modules` directory for another layout. Node may print an experimental
+warning for its TypeScript-stripping API.
+
+After changing the extension, run `/reload` in Pi. Check `/mod` → Enter, an inline
+`draft /mod` → Enter → Escape, and `draft /mod` → Tab. The first two should open
+the picker with one Enter; the inline draft should survive; Tab should only
+insert text. `Ctrl+/` should still open the model selector directly.
+
+The editor retains one internal Pi compatibility hook (`tryTriggerAutocomplete`)
+for inline triggering. Built-ins are absent from `pi.getCommands()`, so the
+extension keeps a built-in allowlist; a test compares it to the installed Pi
+release. Rerun the suite after upgrading Pi.
 
 ## Runtime state (not versioned)
 
