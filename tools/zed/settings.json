@@ -40,6 +40,14 @@
 			"url": "https://mcp.cloudflare.com/mcp",
 			"enabled": true
 		},
+		"heygen": {
+			"url": "https://mcp.heygen.com/mcp/v1/",
+			"enabled": true
+		},
+		"elevenlabs": {
+			"url": "https://api.elevenlabs.io/v1/mcp",
+			"enabled": true
+		},
 		"synthesia": {
 			"url": "https://mcp.synthesia.io/mcp",
 			"enabled": true

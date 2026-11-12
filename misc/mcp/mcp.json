@@ -5,6 +5,14 @@
 			"url": "https://mcp.cloudflare.com/mcp",
 			"description": "Cloudflare MCP server."
 		},
+		"heygen": {
+			"url": "https://mcp.heygen.com/mcp/v1/",
+			"description": "HeyGen: AI video creation and management."
+		},
+		"elevenlabs": {
+			"url": "https://api.elevenlabs.io/v1/mcp",
+			"description": "ElevenLabs MCP server."
+		},
 		"synthesia": {
 			"url": "https://mcp.synthesia.io/mcp",
 			"description": "Synthesia: AI video creation and management."
