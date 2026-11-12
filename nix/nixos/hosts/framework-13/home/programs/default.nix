@@ -21,6 +21,7 @@ in
     ./activitywatch
     ./caffeinate
     ./hermes-agent
+    ./lid-inhibit
     ./piper-tts
     ./plasma
     ./playwright

@@ -54,6 +54,7 @@
           "custom/screen-record"
           "custom/dnd"
           "custom/caffeinate"
+          "custom/lid-inhibit"
           "clock#date"
           "custom/separator"
           "clock#time"
@@ -116,6 +117,17 @@
           return-type = "json";
           interval = 15;
           signal = 11;
+          hide-empty-text = true;
+          tooltip = true;
+          exec-on-event = false;
+        };
+        "custom/lid-inhibit" = {
+          exec = "${config.home.profileDirectory}/bin/lid-inhibit status";
+          on-click = "${config.home.profileDirectory}/bin/lid-inhibit off";
+          on-click-right = "${config.home.profileDirectory}/bin/lid-inhibit menu";
+          return-type = "json";
+          interval = 15;
+          signal = 12;
           hide-empty-text = true;
           tooltip = true;
           exec-on-event = false;
@@ -313,14 +325,14 @@
 	                  opacity: 0.7;
                   }
 
-                  #custom-caffeinate {
+                  #custom-caffeinate, #custom-lid-inhibit {
                     font-size: 12px;
                     padding: 0 4px;
                     margin: 0 2px;
                     opacity: 0.85;
                   }
 
-                  #custom-caffeinate:hover {
+                  #custom-caffeinate:hover, #custom-lid-inhibit:hover {
                     background-color: rgba(127, 127, 127, 0.15);
                     opacity: 1;
                   }

@@ -1,0 +1,229 @@
+#!/usr/bin/env bash
+# Temporarily ignore logind lid events without inhibiting idle or manual sleep.
+# Lifecycle mirrors caffeinate; keep the services and runtime state independent.
+# Usage: lid-inhibit [toggle | on [30m|1h|2h|infinity] | off | menu | status]
+set -euo pipefail
+
+UNIT=lid-inhibit.service
+WAYBAR_SIGNAL=12
+SELF=$(readlink -f "${BASH_SOURCE[0]}")
+
+refresh_waybar() {
+	pkill -u "$UID" -x -RTMIN+"$WAYBAR_SIGNAL" waybar 2>/dev/null || true
+}
+
+notify() {
+	notify-send -a 'Ignore Lid' -i preferences-desktop-screensaver "Ignore Lid" "$1" 2>/dev/null || true
+}
+
+die() {
+	printf 'lid-inhibit: %s\n' "$1" >&2
+	notify "$1"
+	exit 1
+}
+
+usage() {
+	printf '%s\n' \
+		'Usage: lid-inhibit [toggle | on [DURATION] | off | menu | status]' \
+		'No arguments: toggle one hour without lid-close suspension.' \
+		'DURATION: positive seconds, or a number followed by s, m or h (maximum 7 days).' \
+		'Use "on infinity" to ignore lid events until stopped or the Hyprland session ends.'
+}
+
+# /proc/uptime is monotonic and includes suspend time, unlike a wall-clock timer.
+boot_seconds() {
+	local uptime rest
+	read -r uptime rest </proc/uptime
+	printf '%s\n' "${uptime%%.*}"
+}
+
+active() {
+	systemctl --user is-active --quiet "$UNIT"
+}
+
+empty_status() {
+	printf '{"text":"","class":"inactive","tooltip":""}\n'
+}
+
+status() {
+	local deadline remaining text tooltip end
+	if ! active || [[ ! -f "$STATE_FILE" ]]; then
+		empty_status
+		return
+	fi
+	# Expiry/stop can remove the file between the existence check and read.
+	if ! IFS= read -r deadline 2>/dev/null <"$STATE_FILE" || [[ ! "$deadline" =~ ^[0-9]+$ ]]; then
+		empty_status
+		return
+	fi
+	if ((deadline == 0)); then
+		text='LID ∞'
+		tooltip='Lid-close suspension suppressed until turned off.'
+	else
+		remaining=$((deadline - $(boot_seconds)))
+		if ((remaining <= 0)); then
+			empty_status
+			return
+		fi
+		text="LID $(((remaining + 59) / 60))m"
+		end=$(date -d "+$remaining seconds" +%H:%M)
+		tooltip="Lid-close suspension suppressed until $end."
+	fi
+	tooltip+=$'\nClick to stop; right-click for duration.\nIdle locking and suspend still work.\nDo not put the running laptop in a bag.\nExpiry or stop with the lid closed may suspend the laptop.'
+	jq -cn --arg text "$text" --arg tooltip "$tooltip" \
+		'{text: $text, class: "active", tooltip: $tooltip}'
+}
+
+parse_duration() {
+	local value=$1 number multiplier=1
+	if [[ "$value" == infinity ]]; then
+		seconds=0
+		return
+	fi
+	[[ "$value" =~ ^([0-9]{1,6})([smh]?)$ ]] || die 'Invalid duration. Use 30m, 1h, 2h or infinity.'
+	number=$((10#${BASH_REMATCH[1]}))
+	case "${BASH_REMATCH[2]}" in
+		m) multiplier=60 ;;
+		h) multiplier=3600 ;;
+	esac
+	seconds=$((number * multiplier))
+	((seconds > 0 && seconds <= 604800)) || die 'Duration must be between 1 second and 7 days.'
+}
+
+# Run only as systemd-inhibit's child: reaching this point means the inhibitor
+# was acquired. The atomic state file is the launcher's readiness handshake.
+hold() {
+	local socket=$1 pid=$2 identity=$3 seconds=$4 deadline=0
+	trap 'rm -f "$STATE_FILE" "$STATE_FILE.tmp"; refresh_waybar' EXIT
+	trap 'exit 0' TERM INT HUP
+	if ((seconds > 0)); then
+		deadline=$(($(boot_seconds) + seconds))
+	fi
+	printf '%s\n' "$deadline" >"$STATE_FILE.tmp"
+	mv "$STATE_FILE.tmp" "$STATE_FILE"
+	refresh_waybar
+	while [[ -S "$socket" ]] && [[ "$(stat -Lc %i "/proc/$pid" 2>/dev/null)" == "$identity" ]]; do
+		if ((deadline > 0 && $(boot_seconds) >= deadline)); then
+			break
+		fi
+		sleep 1
+	done
+}
+
+find_session() {
+	local instance=${HYPRLAND_INSTANCE_SIGNATURE:-} candidate
+	socket="$XDG_RUNTIME_DIR/hypr/$instance/.socket.sock"
+	if [[ -z "$instance" || ! -S "$socket" ]]; then
+		# A launcher service may not inherit Hyprland's environment. Only choose
+		# automatically when there is exactly one live compositor instance.
+		local -a sockets=()
+		for candidate in "$XDG_RUNTIME_DIR"/hypr/*/.socket.sock; do
+			[[ -S "$candidate" ]] || continue
+			read -r session_pid <"${candidate%/*}/hyprland.lock" || continue
+			kill -0 "$session_pid" 2>/dev/null && sockets+=("$candidate")
+		done
+		((${#sockets[@]} == 1)) || die 'Run Ignore Lid from a single active Hyprland session.'
+		socket=${sockets[0]}
+	fi
+	read -r session_pid <"${socket%/*}/hyprland.lock" || die 'Cannot read the Hyprland session PID.'
+	[[ "$session_pid" =~ ^[0-9]+$ ]] || die 'Invalid Hyprland session PID.'
+	identity=$(stat -Lc %i "/proc/$session_pid") || die 'The Hyprland session has ended.'
+}
+
+stop() {
+	if active; then
+		systemctl --user stop "$UNIT" || die 'Could not stop Ignore Lid. Check the user journal.'
+	fi
+	rm -f "$STATE_FILE"
+	refresh_waybar
+}
+
+start() {
+	local seconds=$1 socket session_pid identity ready=false attempt duration unit
+	find_session
+	stop
+	if ! systemd-run --user --quiet --collect --unit="$UNIT" \
+		--description='Ignore Lid lid-switch inhibitor' --service-type=exec \
+		--property=TimeoutStartSec=10s --property=TimeoutStopSec=3s \
+		--setenv="PATH=$PATH" --setenv="XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" \
+		systemd-inhibit --no-ask-password --what=handle-lid-switch --mode=block \
+		--who='Ignore Lid' --why='Temporarily ignore lid-close suspension' \
+		bash "$SELF" _hold "$socket" "$session_pid" "$identity" "$seconds"; then
+		die 'Could not acquire the lid-switch inhibitor. Run: journalctl --user -u lid-inhibit.service'
+	fi
+	# systemd-inhibit forks before running its child. Wait for the child, not
+	# just an active unit: authorization/inhibitor acquisition can still fail.
+	for ((attempt = 0; attempt < 50; attempt++)); do
+		active || break
+		if [[ -f "$STATE_FILE" ]]; then ready=true; break; fi
+		sleep 0.1
+	done
+	if [[ "$ready" != true ]]; then
+		stop
+		die 'Could not acquire the lid-switch inhibitor. Run: journalctl --user -u lid-inhibit.service'
+	fi
+	if ((seconds == 0)); then
+		notify 'Lid-close suspension suppressed until turned off. Idle suspend still works. Do not put the running laptop in a bag.'
+	else
+		if ((seconds % 3600 == 0)); then
+			duration=$((seconds / 3600)); unit=hour
+		elif ((seconds % 60 == 0)); then
+			duration=$((seconds / 60)); unit=minute
+		else
+			duration=$seconds; unit=second
+		fi
+		if ((duration != 1)); then unit+=s; fi
+		notify "Lid-close suspension suppressed for $duration $unit. Idle suspend still works. Do not put the running laptop in a bag."
+	fi
+}
+
+command=${1:-toggle}
+case "$command" in
+	-h|--help|help) usage; exit 0 ;;
+	toggle|off|menu|status) (($# <= 1)) || die 'Unexpected arguments. Run lid-inhibit --help.' ;;
+	on) (($# <= 2)) || die 'Unexpected arguments. Run lid-inhibit --help.' ;;
+	_hold) (($# == 5)) || die 'Internal worker arguments missing.' ;;
+	*) usage >&2; exit 1 ;;
+esac
+
+[[ -n "${XDG_RUNTIME_DIR:-}" && -d "$XDG_RUNTIME_DIR" ]] || die 'XDG_RUNTIME_DIR is not available.'
+STATE_DIR="$XDG_RUNTIME_DIR/lid-inhibit"
+STATE_FILE="$STATE_DIR/deadline"
+
+if [[ "$command" == status ]]; then
+	status
+	exit 0
+fi
+umask 077
+mkdir -p "$STATE_DIR"
+if [[ "$command" == _hold ]]; then
+	hold "$2" "$3" "$4" "$5"
+	exit 0
+fi
+
+seconds=3600
+if [[ "$command" == menu ]]; then
+	choice=$(printf '%s\n' '1 hour' '30 minutes' '2 hours' 'Until turned off' 'Restore lid handling' \
+		| vicinae dmenu --placeholder 'Ignore lid-close suspension') || exit 0
+	case "$choice" in
+		'1 hour') seconds=3600; command=on ;;
+		'30 minutes') seconds=1800; command=on ;;
+		'2 hours') seconds=7200; command=on ;;
+		'Until turned off') seconds=0; command=on ;;
+		'Restore lid handling') command=off ;;
+		*) exit 0 ;;
+	esac
+elif [[ "$command" == on ]]; then
+	parse_duration "${2:-1h}"
+fi
+
+# Do not hold the control lock while the picker is open or inside the worker.
+exec 9>"$STATE_DIR/control.lock"
+flock -x 9
+case "$command" in
+	toggle)
+		if active; then stop; notify 'Normal lid handling restored; a closed lid may now suspend the laptop.'; else start 3600; fi
+		;;
+	on) start "$seconds" ;;
+	off) stop; notify 'Normal lid handling restored; a closed lid may now suspend the laptop.' ;;
+esac
