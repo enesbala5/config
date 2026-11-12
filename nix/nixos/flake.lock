@@ -1233,14 +1233,18 @@
         ]
       },
       "locked": {
-        "path": "./hosts/framework-13/home/programs/omacut",
-        "type": "path"
+        "lastModified": 1789032065,
+        "narHash": "sha256-GN7wQOlzGx6zTCSXMO/JF2/CRZ9jTgXaW6z/55rqS1g=",
+        "owner": "enesbala5",
+        "repo": "omacut-nix",
+        "rev": "849dffbfbe544c7838ccf2af8152f1a45d9ef7e8",
+        "type": "github"
       },
       "original": {
-        "path": "./hosts/framework-13/home/programs/omacut",
-        "type": "path"
-      },
-      "parent": []
+        "owner": "enesbala5",
+        "repo": "omacut-nix",
+        "type": "github"
+      }
     },
     "pi": {
       "inputs": {
