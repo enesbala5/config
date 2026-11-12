@@ -11,6 +11,7 @@
 		},
 		"elevenlabs": {
 			"url": "https://api.elevenlabs.io/v1/mcp",
+			"oauth": { "clientRegistration": "cimd" },
 			"description": "ElevenLabs MCP server."
 		},
 		"synthesia": {
