@@ -85,6 +85,32 @@ The home server configuration provisions base system dependencies, firewall rule
 
 ### Framework 13
 
+#### Sleep and Wake
+
+- **logind** owns lid-close and power-button events: closing the lid or a short power-button press requests suspend; a long press requests power-off. Default dock/external-monitor handling and post-resume holdoff are unchanged.
+- **hypridle** owns idle timers, locks the session before suspend, and sends a plain Hyprland DPMS-on command after resume or activity following idle screen-off.
+- **hyprlock** provides the lock screen. There are no compositor lid bindings, acpid power handlers, panel-recovery scripts, or custom resume debounce timers.
+
+After changing this setup, rebuild NixOS, reload Hyprland (`hyprctl reload`), and restart the idle daemon (`systemctl --user restart hypridle`). Test a lid-close/open cycle; if Linux resumes but the display remains dark, investigate the compositor/GPU path rather than adding another suspend handler.
+
+#### Caffeinate
+
+Search **Caffeinate** in Vicinae to toggle one hour of idle inhibition. While active, Waybar shows `CAF 60m` beside the DND indicator (or `CAF ∞` for indefinite mode). Click it to stop; right-click for a duration picker. The indicator disappears when inactive. Vicinae also exposes a **Choose duration** application action.
+
+```bash
+caffeinate               # Toggle one hour
+caffeinate on 30m        # Replace the current duration
+caffeinate on infinity   # Until stopped or the Hyprland session ends
+caffeinate menu          # Vicinae duration picker; Escape leaves state unchanged
+caffeinate off           # Restore normal idle behavior
+```
+
+A transient `caffeinate.service` holds only a systemd **idle** inhibitor. Hypridle stays running: idle dimming, automatic locking, display-off and idle suspend are paused, but manual locking, manual suspend and logind's lid handling remain available. **Automatic locking is paused, so lock manually before leaving the laptop unattended.** Existing brightness/display state is not reset when enabling Caffeinate.
+
+The worker releases its inhibitor on expiry, stop, failure or Hyprland exit; no disabled state survives reboot. It watches the compositor process/socket rather than `graphical-session.target`, which this session does not start. Other applications' inhibitors are not affected. Use `journalctl --user -u caffeinate.service` to investigate startup failures. State is runtime-only under `$XDG_RUNTIME_DIR/caffeinate`; Waybar uses signal 11 and a 15-second fallback refresh.
+
+After adding the module, make sure the new files are tracked by Git before the normal flake rebuild, then rebuild NixOS and restart Waybar. Validate idle suppression, timer expiry, manual locking, and a lid-close/open cycle locally before relying on it. Run the isolated regression tests with `node --test scripts/power/tests/caffeinate.test.mjs`.
+
 #### Audio Setup
 
 In order to have good audio, we need to install Easyeffects (configured through Nix) and also the [Framework DSP](https://github.com/cab404/framework-dsp).

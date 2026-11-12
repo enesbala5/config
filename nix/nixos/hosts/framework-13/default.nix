@@ -61,17 +61,7 @@ in
     };
   };
 
-  powerManagement = {
-    enable = true;
-
-    # powertop.enable = true;
-
-    # The power button that woke the machine is delivered again on resume.
-    # Stamp the time so the acpid handler can ignore that press.
-    resumeCommands = ''
-      date +%s > /run/last-resume
-    '';
-  };
+  powerManagement.enable = true;
 
   console = {
     font = "ter-132n";
@@ -234,38 +224,13 @@ in
       enable = true;
     };
 
-    # Power management.
-    logind = {
-      # acpid handles the short press, with a post-resume debounce.
-      # logind was also suspending, so the phantom wake press put the machine
-      # straight back to sleep.
-      settings.Login.HandlePowerKey = "ignore";
-      settings.Login.HandlePowerKeyLongPress = "poweroff"; # Power off on long press
-    };
-
-    acpid = {
-      enable = true;
-      powerEventCommands = ''
-        now=$(date +%s)
-        last=$(cat /run/last-resume 2>/dev/null || echo 0)
-        age=$((now - last))
-        # The power press that woke the machine is delivered again on resume.
-        if [ "$age" -lt 8 ]; then
-          exit 0
-        fi
-        # Long s2idle can come back with the panel still dark (DPMS off).
-        # That press is the user trying to see the screen, not a sleep request.
-        if [ "$age" -lt 180 ]; then
-          for dpms in /sys/class/drm/card*-eDP-*/dpms; do
-            [ -e "$dpms" ] || continue
-            if [ "$(cat "$dpms")" = "Off" ]; then
-              runuser -u ${data.username} -- env XDG_RUNTIME_DIR=/run/user/${toString data.uid} ${data.configDirectory}/scripts/hosts/framework-13/wake-panel.sh
-              exit 0
-            fi
-          done
-        fi
-        systemctl suspend
-      '';
+    # logind is the sole owner of lid and power-button events.
+    # Keep its default dock/external-monitor policy and post-resume holdoff.
+    # hypridle handles locking before sleep and display wake after resume.
+    logind.settings.Login = {
+      HandleLidSwitch = "suspend";
+      HandlePowerKey = "suspend";
+      HandlePowerKeyLongPress = "poweroff";
     };
   };
 
@@ -529,7 +494,6 @@ in
       killall
       cloc
       acpi
-      acpid
       acpilight
       evtest
       piper

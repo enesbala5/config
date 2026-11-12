@@ -12,21 +12,8 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd("aw-watcher-window-hyprland")
 end)
 
--- s2idle leaves the backlight on, and logind ignores the lid for 30s
--- after resume. Turn the panel off here, then lock and suspend.
-hl.bind(
-	"switch:on:Lid Switch",
-	hl.dsp.exec_cmd("~/config/scripts/hosts/framework-13/lid-close.sh"),
-	{ locked = true }
-)
-
--- Opening the lid is not key/mouse activity, so hypridle will not turn the
--- panel back on. locked: still runs on hyprlock.
-hl.bind(
-	"switch:off:Lid Switch",
-	hl.dsp.exec_cmd("~/config/scripts/hosts/framework-13/wake-panel.sh"),
-	{ locked = true }
-)
+-- Lid and power-button events belong to logind, not compositor bindings.
+-- hypridle handles locking and display wake around suspend.
 
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + SHIFT + Space", hl.dsp.exec_cmd("wofi --show run"))
