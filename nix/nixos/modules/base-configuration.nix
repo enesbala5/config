@@ -559,6 +559,11 @@
         help = {
           autocorrect = true;
         };
+
+        # nixos-rebuild as root (esp. systemd-run HOME=/root) opens this flake
+        # via git+file://; libgit2 rejects user-owned trees without this.
+        # Written to /etc/gitconfig (protected config).
+        safe.directory = [ data.configDirectory ];
       };
     };
 
