@@ -30,6 +30,16 @@ in
       source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/desktop/keys.json";
     };
 
+    # Cursor → herdr-core OSC 7501 bridge (Desktop Agents sidebar). See
+    # tools/herdr/integrations/cursor/README.md. Owns ~/.cursor/hooks.json on
+    # desktop hosts; herdr-agent-state.sh stays managed by `herdr integration`.
+    home.file.".cursor/herdr-desktop-status.sh" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/integrations/cursor/desktop-status.sh";
+    };
+    home.file.".cursor/hooks.json" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/integrations/cursor/hooks.json";
+    };
+
     xdg.dataFile."icons/hicolor/scalable/apps/herdr-app.svg".source = herdrIcon;
 
     xdg.desktopEntries.herdr-app = {

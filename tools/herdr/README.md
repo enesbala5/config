@@ -11,6 +11,11 @@ tools/herdr/
 ├── config.toml                     # ~/.config/herdr/config.toml (symlinked)
 ├── desktop/
 │   └── keys.json                   # ~/.config/herdr-app/keys.json (symlinked)
+├── integrations/
+│   └── cursor/                     # Cursor → herdr-core OSC 7501 bridge
+│       ├── desktop-status.sh       # ~/.cursor/herdr-desktop-status.sh
+│       ├── hooks.json              # ~/.cursor/hooks.json (desktop hosts)
+│       └── README.md
 ├── plugins/
 │   ├── auto-title/config.env       # ~/.config/herdr-auto-title/config.env (symlinked)
 │   ├── herdr-bar/config.json       # ~/.config/herdr/plugins/config/herdr-bar/config.json (symlinked)
@@ -25,7 +30,8 @@ tools/herdr/
 Home-manager (`nix/nixos/modules/home/programs/herdr/`, enabled per host)
 symlinks `config.toml`, `plugins/auto-title/config.env`,
 `plugins/herdr-bar/config.json`, `plugins/ovis/env`, and (when desktop is
-on) `desktop/keys.json` into place. It does **not** touch the rest of
+on) `desktop/keys.json` plus the Cursor desktop bridge
+(`integrations/cursor/`) into place. It does **not** touch the rest of
 `~/.config/herdr` or `~/.config/herdr-app`, because those apps write their
 own state there (`plugins.json`, sockets, logs, `session.json`, mods).
 
@@ -148,6 +154,15 @@ cycling, Ctrl+P / Ctrl+Alt+P for the picker, Ctrl+Shift+K / Ctrl+Shift+P
 for the command palette. Ctrl+W steals readline word-delete inside panes
 (same tradeoff as the TUI). `framework-13` enables desktop + gpui;
 `home-server` is TUI-only.
+
+### Desktop Agents sidebar (Cursor)
+
+Desktop only lists agents that emit OSC 7501. Cursor CLI does not, so tabs
+started from **+ → Cursor** stay invisible in the Agents panel while the TUI
+still detects them. Cursor hooks also have no controlling tty, so a bare
+`printf > /dev/tty` never reaches the pane. `integrations/cursor/` resolves
+the pane pts via `hc get $HC_TERMINAL_ID` and writes OSC 7501 there. Details:
+`integrations/cursor/README.md`.
 
 ## Phone
 
