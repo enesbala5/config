@@ -39,14 +39,15 @@ function badge(level, t) {
   const key = TONE[level] ?? "accent";
   const tone = t[key] ?? t.accent;
   const name = GLYPH[level] ?? "info";
+  // Match title line-height (20) so the glyph sits on the title row.
   return h_flex()
-    .size(32)
+    .size(20)
     .flex_none()
     .items_center()
     .justify_center()
     .rounded_full()
     .bg(withAlpha(tone, 0.12))
-    .child(svg(`mods/toast/${name}.svg`).size(16).flex_none().text_color(tone));
+    .child(svg(`mods/toast/${name}.svg`).size(12).flex_none().text_color(tone));
 }
 
 export default class Toast extends View {
@@ -58,15 +59,16 @@ export default class Toast extends View {
       .id("toast")
       .size_full()
       .px(12)
-      .gap(12)
-      .items_center()
+      .py(10)
+      .gap(10)
+      .items_start()
       .cursor_pointer()
       .hover((s) => s.bg(t.hover))
       .on_click(() => {
         if (p.action?.name) run(p.action.name, p.action.args ?? {});
         closeOverlay(p.overlay);
       })
-      .child(p.icon ? image(p.icon).w(32).h(32).flex_none().rounded(16) : badge(p.level, t))
+      .child(p.icon ? image(p.icon).w(20).h(20).flex_none().rounded(10) : badge(p.level, t))
       .child(
         v_flex()
           .flex_1()
