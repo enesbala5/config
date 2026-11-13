@@ -10,7 +10,8 @@ worth keeping; everything else there is runtime state.
 tools/herdr/
 ├── config.toml                     # ~/.config/herdr/config.toml (symlinked)
 ├── desktop/
-│   └── keys.json                   # ~/.config/herdr-app/keys.json (symlinked)
+│   ├── keys.json                   # ~/.config/herdr-app/keys.json (symlinked)
+│   └── mods/toast/                 # glass toast UI; desktop entry re-copies after start
 ├── integrations/
 │   └── cursor/                     # Cursor → herdr-core OSC 7501 bridge
 │       ├── desktop-status.sh       # ~/.cursor/herdr-desktop-status.sh
@@ -34,6 +35,9 @@ on) `desktop/keys.json` plus the Cursor desktop bridge
 (`integrations/cursor/`) into place. It does **not** touch the rest of
 `~/.config/herdr` or `~/.config/herdr-app`, because those apps write their
 own state there (`plugins.json`, sockets, logs, `session.json`, mods).
+When desktop is on, the Herdr Desktop launcher wraps `herdr-app` so it
+re-copies `desktop/mods/toast/` into `~/.config/herdr-app/mods/toast`
+after start (Herdr restores the shipped toast mod every launch).
 
 ## New-machine setup
 
