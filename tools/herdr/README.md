@@ -9,6 +9,8 @@ worth keeping; everything else there is runtime state.
 ```
 tools/herdr/
 ├── config.toml                     # ~/.config/herdr/config.toml (symlinked)
+├── desktop/
+│   └── keys.json                   # ~/.config/herdr-app/keys.json (symlinked)
 ├── plugins/
 │   ├── auto-title/config.env       # ~/.config/herdr-auto-title/config.env (symlinked)
 │   ├── herdr-bar/config.json       # ~/.config/herdr/plugins/config/herdr-bar/config.json (symlinked)
@@ -22,9 +24,10 @@ tools/herdr/
 
 Home-manager (`nix/nixos/modules/home/programs/herdr/`, enabled per host)
 symlinks `config.toml`, `plugins/auto-title/config.env`,
-`plugins/herdr-bar/config.json`, and `plugins/ovis/env` into place. It does **not** touch the rest of
-`~/.config/herdr`, because Herdr writes its own state there (`plugins.json`,
-socket, logs, `session.json`, plugin checkouts).
+`plugins/herdr-bar/config.json`, `plugins/ovis/env`, and (when desktop is
+on) `desktop/keys.json` into place. It does **not** touch the rest of
+`~/.config/herdr` or `~/.config/herdr-app`, because those apps write their
+own state there (`plugins.json`, sockets, logs, `session.json`, mods).
 
 ## New-machine setup
 
@@ -138,8 +141,13 @@ TUI daemon, so it sees those sessions. The desktop app sees core sessions.
 | herdr-gpui | pinned flake | `modules.home.herdr.gpui` |
 | Ovis | 0.4.22 | `modules.home.herdr.mobile.enable` |
 
-`modules.home.herdr.desktop.enable` installs the desktop app and herdr-core.
-It is off. `framework-13` keeps the TUI and gpui. `home-server` is TUI-only.
+`modules.home.herdr.desktop.enable` installs the desktop app and herdr-core,
+and symlinks `desktop/keys.json`. Those keys mirror the TUI's prefix-free
+chords: Ctrl+T / Ctrl+W for new / close tab, Ctrl+Tab family for tab
+cycling, Ctrl+P / Ctrl+Alt+P for the picker, Ctrl+Shift+K / Ctrl+Shift+P
+for the command palette. Ctrl+W steals readline word-delete inside panes
+(same tradeoff as the TUI). `framework-13` enables desktop + gpui;
+`home-server` is TUI-only.
 
 ## Phone
 
