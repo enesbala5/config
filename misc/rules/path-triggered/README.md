@@ -8,7 +8,6 @@ extra OpenHands-specific path info:
 
 | File | `paths:` |
 | --- | --- |
-| `svelte-state-typing.md` | `**/*.svelte`, `**/*.svelte.ts`, `**/*.svelte.js` |
 | `component-folder-structure.md` | `frontend/**/*.svelte` |
 
 Everything else is not duplicated here. Their Cursor sources become always-on
@@ -25,18 +24,12 @@ OpenHands rules directly, because a file without a trigger is always active:
 | `general/worktrees.mdc` | always-on (same text as `misc/agents/AGENTS.md`) |
 | `general/principles.mdc` | always-on |
 | `web/prefer-undefined-over-null.mdc` | always-on |
-| `web/svelte-state-typing.mdc` | overridden by `svelte-state-typing.md` here |
 | `web/component-folder-structure.mdc` | overridden by `component-folder-structure.md` here |
-| `web/frontend-design.mdc` | not a rule: it is the skill `misc/skills/frontend-design/` |
 
 `alwaysApply` and `globs` are Cursor-only keys. OpenHands ignores unknown
 frontmatter keys, so the sources need no rewriting: a rule is scoped only when it
 declares `paths:` (or `triggers:`). The `paths:` files here override their
 same-named Cursor source at push time.
-
-`frontend-design` is excluded from the push (see `EXCLUDED_RULES` in
-`tools/incus/agent-vm-manage.sh`) because it is already a skill under
-`misc/skills/`.
 
 ## Syncing
 

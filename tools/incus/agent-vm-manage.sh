@@ -29,9 +29,8 @@ RULES_PATH="${RULES_PATH:-$(dirname "$0")/../../misc/rules}"
 SKILLS_PATH="${SKILLS_PATH:-$(dirname "$0")/../../misc/skills}"
 # Shared helper that syncs a local tree into the guest.
 PUSH_FILES="${PUSH_FILES:-$(dirname "$0")/utils/push-files.sh}"
-# Rule basenames not to push. `frontend-design` already ships as a skill under
-# misc/skills/; shipping the .mdc copy would duplicate it as an always-on rule.
-EXCLUDED_RULES="${EXCLUDED_RULES-frontend-design}"
+# Rule basenames not to push (space-separated). Empty by default.
+EXCLUDED_RULES="${EXCLUDED_RULES-}"
 
 usage() {
   cat >&2 <<'EOF'
