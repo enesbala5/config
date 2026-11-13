@@ -112,6 +112,12 @@
 				"DISPLAY": ":0"
 			},
 			"enabled": true
+		},
+		"hypruse": {
+			"command": "/etc/profiles/per-user/e/bin/hypruse",
+			"args": [],
+			"env": {},
+			"enabled": true
 		}
 	},
 	"inlay_hints": {

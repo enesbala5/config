@@ -164,6 +164,13 @@
       url = "github:NousResearch/hermes-agent";
       # Do NOT `follows` another nixpkgs.
     };
+
+    # Computer use MCP for Hyprland (screenshot + pointer/keyboard). See
+    # hosts/framework-13/home/programs/hypruse and issue #108.
+    hypruse = {
+      url = "github:IlyasKhallouki/hypruse";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

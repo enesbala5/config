@@ -749,6 +749,26 @@
         "type": "github"
       }
     },
+    "hypruse": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794309770,
+        "narHash": "sha256-I2+u0CfMjync3cf+h38LForHuOGeb63uguk08HOZQIc=",
+        "owner": "IlyasKhallouki",
+        "repo": "hypruse",
+        "rev": "5f644fcf31a77417aa2c6f373954300f4d949846",
+        "type": "github"
+      },
+      "original": {
+        "owner": "IlyasKhallouki",
+        "repo": "hypruse",
+        "type": "github"
+      }
+    },
     "hyprutils": {
       "inputs": {
         "nixpkgs": [
@@ -1355,6 +1375,7 @@
         "home-manager": "home-manager_2",
         "hyprdynamicmonitors": "hyprdynamicmonitors",
         "hyprshutdown": "hyprshutdown",
+        "hypruse": "hypruse",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_11",
         "nixpkgs-herdr": "nixpkgs-herdr",

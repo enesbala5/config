@@ -207,6 +207,9 @@ in
       enable = true;
     };
 
+    # AT-SPI bus for hypruse click_ui / ui / marks (issue #108).
+    gnome.at-spi2-core.enable = true;
+
     # udev
     udev = {
       enable = true;
