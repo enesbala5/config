@@ -12,6 +12,7 @@ tools/herdr/
 ├── plugins/
 │   ├── auto-title/config.env       # ~/.config/herdr-auto-title/config.env (symlinked)
 │   ├── herdr-bar/config.json       # ~/.config/herdr/plugins/config/herdr-bar/config.json (symlinked)
+│   ├── ovis/env                    # ~/.config/herdr/plugins/config/devswha.ovis/env (symlinked)
 │   └── agent-head/                 # local plugin: leading glyph + tab title
 │       ├── herdr-plugin.toml
 │       ├── run.sh
@@ -19,9 +20,9 @@ tools/herdr/
 └── README.md
 ```
 
-Home-manager (`nix/nixos/modules/home/programs/herdr.nix`, enabled per host)
-symlinks `config.toml`, `plugins/auto-title/config.env`, and
-`plugins/herdr-bar/config.json` into place. It does **not** touch the rest of
+Home-manager (`nix/nixos/modules/home/programs/herdr/`, enabled per host)
+symlinks `config.toml`, `plugins/auto-title/config.env`,
+`plugins/herdr-bar/config.json`, and `plugins/ovis/env` into place. It does **not** touch the rest of
 `~/.config/herdr`, because Herdr writes its own state there (`plugins.json`,
 socket, logs, `session.json`, plugin checkouts).
 
@@ -32,7 +33,7 @@ Nix-managed, because Herdr rewrites that file.
 
 - **Agent Head** (local plugin) is linked automatically by a home-manager
   activation (`home.activation.herdrLinkAgentHead` in
-  `nix/nixos/modules/home/programs/herdr.nix`). It is idempotent — it skips
+  `nix/nixos/modules/home/programs/herdr/plugins.nix`). It is idempotent — it skips
   when `local.agent-head` is already in `plugins.json`, and it never fails the
   activation — so a fresh machine gets it on the first `home-manager switch`.
   Nothing to run by hand.
@@ -61,6 +62,10 @@ from upstream and drops both edits. Rebuild with
   everything (`herdr-bar.open`); `ctrl+p` opens `%` panes and `ctrl+alt+p`
   opens `@` agents, via `plugins/herdr-bar/open.sh` (one config cannot hold
   two scopes). Kitty maps physical Ctrl+Shift+P to that Ctrl+Alt+P sequence.
+  Kitty also owns Ctrl+Tab and Ctrl+Shift+Tab, so it forwards them as CSI-u
+  (`\x1b[9;5u`, `\x1b[9;6u`) and Herdr binds those to next / previous tab.
+  Kitty's own tabs stay on Ctrl+Shift+Left / Ctrl+Shift+Right.
+  Ctrl+T creates a tab and Ctrl+W closes one. Kitty does not bind those.
   While Auto Title is enabled, Bar
   skips its own automatic tab renames.
 
@@ -114,3 +119,52 @@ herdr plugin action invoke restart --plugin local.agent-head
 Tunables (spinner frames, intervals, static glyphs, disable) live in
 `$HERDR_PLUGIN_CONFIG_DIR/config.json`; see `DEFAULTS` in
 `plugins/agent-head/head.js`.
+
+## Clients
+
+The TUI and the desktop app do not share sessions. Checked against upstream
+[herdr-app#306](https://github.com/herdrdev/herdr-app/issues/306) and the two
+config directories: the TUI uses `~/.config/herdr` (this `config.toml`, the
+plugins, `herdr.sock`). `herdr-core` uses `~/.config/herdr-core/config.toml`
+and its own socket under `$XDG_RUNTIME_DIR/herdr-core/`. Agent Head, Auto
+Title, Bar, and `config.toml` apply to the TUI. herdr-gpui is a client of the
+TUI daemon, so it sees those sessions. The desktop app sees core sessions.
+
+| Piece | Version | Where |
+| --- | --- | --- |
+| TUI `herdr` | 0.9.5 | `nixpkgs-herdr` (cache.nixos.org). Latest release. The flake's master is newer and is not cached. |
+| `herdr-core` / `hc` | 0.1.18 | release tarball. The cached nixpkgs build is 0.1.15 and is missing the Linux fixes after that. |
+| `herdr-app` | 0.1.13 | release tarball. The cached nixpkgs build is 0.1.10. |
+| herdr-gpui | pinned flake | `modules.home.herdr.gpui` |
+| Ovis | 0.4.22 | `modules.home.herdr.mobile.enable` |
+
+`modules.home.herdr.desktop.enable` installs the desktop app and herdr-core.
+It is off. `framework-13` keeps the TUI and gpui. `home-server` is TUI-only.
+
+## Phone
+
+Ovis ([devswha/ovis](https://github.com/devswha/ovis)) follows the TUI
+(`OVIS_RUNTIME=herdr` in `plugins/ovis/env`). The desktop app's core is a
+different socket, and this config does not use it.
+
+The relay stays off (`OVIS_TAILSCALE_SERVE_ONLY=1`). Anonymous usage counts
+are off (`OVIS_TELEMETRY=0`). Ovis binds `127.0.0.1:7317`. The phone reaches
+it through Tailscale, which is already on `framework-13` and `home-server`.
+This module does not run `tailscale serve`: on `home-server`, :443 is Caddy's.
+
+A new machine still runs the install once. Home-manager does it on activation
+when `devswha.ovis` is missing from `plugins.json`. By hand:
+
+```sh
+herdr plugin install devswha/ovis --yes
+```
+
+`bun` is on the profile. Open http://127.0.0.1:7317. For the phone, once, on
+a machine whose Tailscale HTTPS port is free:
+
+```sh
+tailscale serve --bg --https=443 http://127.0.0.1:7317
+```
+
+Then scan the QR under Settings → Phone & devices. Do not turn on the Ovis
+relay.

@@ -36,6 +36,22 @@
 	],
 	"disable_ai": false,
 	"context_servers": {
+		"cloudflare": {
+			"url": "https://mcp.cloudflare.com/mcp",
+			"enabled": true
+		},
+		"heygen": {
+			"url": "https://mcp.heygen.com/mcp/v1/",
+			"enabled": true
+		},
+		"elevenlabs": {
+			"url": "https://api.elevenlabs.io/v1/mcp",
+			"enabled": true
+		},
+		"synthesia": {
+			"url": "https://mcp.synthesia.io/mcp",
+			"enabled": true
+		},
 		"Polar": {
 			"url": "https://mcp.polar.sh/mcp/polar-mcp",
 			"enabled": true
@@ -134,7 +150,7 @@
 	},
 	"edit_predictions": {
 		"mode": "eager",
-		"provider": "zed",
+		"provider": "codestral",
 		"allow_data_collection": "no"
 	},
 	"cli_default_open_behavior": "new_window",
@@ -145,7 +161,10 @@
 	},
 	"agent_servers": {
 		"pi-acp": {
-			"type": "registry"
+			"default_config_options": {
+    "thought_level": "high"
+   },
+   "type": "registry"
 		},
 		"opencode": {
 			"default_config_options": {

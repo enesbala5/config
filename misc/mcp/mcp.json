@@ -1,6 +1,23 @@
 {
 	"_comment": "Canonical MCP server list. Edit this file, then run scripts/utilities/mcp-sync.mjs. Secrets use ${VAR} placeholders resolved from /run/agenix/mcp-secrets.json (agenix) or the environment. Zed starts servers that have headers via scripts/utilities/mcp-http.sh, which fills ${VAR} when it connects. `enabled: false` hides a server from Zed/opencode; Cursor and pi keep the entry.",
 	"mcpServers": {
+		"cloudflare": {
+			"url": "https://mcp.cloudflare.com/mcp",
+			"description": "Cloudflare MCP server."
+		},
+		"heygen": {
+			"url": "https://mcp.heygen.com/mcp/v1/",
+			"description": "HeyGen: AI video creation and management."
+		},
+		"elevenlabs": {
+			"url": "https://api.elevenlabs.io/v1/mcp",
+			"oauth": { "clientRegistration": "cimd" },
+			"description": "ElevenLabs MCP server."
+		},
+		"synthesia": {
+			"url": "https://mcp.synthesia.io/mcp",
+			"description": "Synthesia: AI video creation and management."
+		},
 		"Polar": {
 			"url": "https://mcp.polar.sh/mcp/polar-mcp",
 			"description": "Polar billing: products, subscriptions, orders, customers."

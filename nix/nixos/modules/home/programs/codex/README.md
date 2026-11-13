@@ -32,7 +32,7 @@ The extraction is deliberately brittle: if DeepSeek renames the heredoc marker
 
 ## Updating the Codex client pin
 
-`package.nix` pins the official release binary for `rust-v0.160.1`, the
+`package.nix` pins the official release binary for `rust-v0.164.0`, the
 `codex-x86_64-unknown-linux-musl.tar.gz` asset on the GitHub release. It is a
 statically linked musl binary, so it needs no compiler and no upstream binary
 cache — we just fetch and install it.

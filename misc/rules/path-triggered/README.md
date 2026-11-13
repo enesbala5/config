@@ -22,6 +22,7 @@ OpenHands rules directly, because a file without a trigger is always active:
 | `general/ask-before-remote-hosts.mdc` | always-on |
 | `general/no-agent-prefixes.mdc` | always-on |
 | `general/i-have-adhd.mdc` | always-on |
+| `general/worktrees.mdc` | always-on (same text as `misc/agents/AGENTS.md`) |
 | `general/principles.mdc` | always-on |
 | `web/prefer-undefined-over-null.mdc` | always-on |
 | `web/svelte-state-typing.mdc` | overridden by `svelte-state-typing.md` here |

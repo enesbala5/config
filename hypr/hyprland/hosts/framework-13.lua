@@ -12,14 +12,8 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd("aw-watcher-window-hyprland")
 end)
 
--- Opening the lid is not key/mouse activity, so hypridle will not turn the
--- panel back on. Force a modeset; a plain dpms on is a no-op when Hyprland
--- already thinks the panel is on. locked: still runs on hyprlock.
-hl.bind(
-	"switch:off:Lid Switch",
-	hl.dsp.exec_cmd("~/config/scripts/hosts/framework-13/wake-panel.sh"),
-	{ locked = true }
-)
+-- Lid and power-button events belong to logind, not compositor bindings.
+-- hypridle handles locking and display wake around suspend.
 
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + SHIFT + Space", hl.dsp.exec_cmd("wofi --show run"))

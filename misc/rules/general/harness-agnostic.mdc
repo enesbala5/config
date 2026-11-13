@@ -1,0 +1,11 @@
+---
+description: Use the management skills when creating or updating agent rules or skills, or when asked to manage MCP servers
+---
+
+Read the relevant skill's `SKILL.md` before making changes:
+- `manage-rule` for persistent agent rules.
+- `manage-skill` for creating, installing, or updating skills.
+- `manage-mcp` when explicitly asked to manage MCP servers.
+
+Look in `.agents/skills/` or `~/.agents/skills/`; this config repo's sources
+are in `misc/skills/`.

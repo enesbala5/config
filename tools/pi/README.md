@@ -30,15 +30,25 @@ extensions into `~/.pi/agent`. It does **not** touch `auth.json`,
 
 ### Default instructions (`AGENTS.md`)
 
-`AGENTS.md` is pi's user-level context file: pi loads it in every working
-directory, so it is where always-on rules live. The source is harness-neutral
-at `misc/agents/AGENTS.md`; home-manager symlinks it to `~/.pi/agent/AGENTS.md`,
-and any other agent that reads `AGENTS.md` can link the same file. It is
-deliberately brief and just points pi at the `i-have-adhd` skill, which holds
-the actual spec. Cursor/OpenHands keep their own copy at
-`misc/rules/general/i-have-adhd.mdc` (`.mdc` is Cursor-specific and pi cannot
-discover it). Add new always-on rules as pointers in `misc/agents/AGENTS.md`.
-Run `/reload` in pi after changing it.
+Always-on instructions are written in two places. They are not symlinked to
+each other:
+
+| Who | File |
+| --- | --- |
+| Pi, and any agent that reads `AGENTS.md` | `misc/agents/AGENTS.md`, symlinked to `~/.pi/agent/AGENTS.md` |
+| Cursor | `misc/rules/general/<name>.mdc` with `alwaysApply: true`, symlinked via `~/.cursor/rules` |
+
+Pi cannot load `.mdc` (Cursor frontmatter). Cursor does not load
+`misc/agents/AGENTS.md`. OpenHands does not need a third edit:
+`tools/incus/agent-vm-manage.sh push-rules` copies `misc/rules/**/*.mdc` into
+the agent VM.
+
+Change or add an always-on rule in both files in the same edit. Current pairs:
+
+- ADHD: `misc/agents/AGENTS.md` points at the skill; `misc/rules/general/i-have-adhd.mdc` is the Cursor copy.
+- Worktrees: `misc/agents/AGENTS.md` ("Git worktrees") and `misc/rules/general/worktrees.mdc`.
+
+Run `/reload` in pi after changing `AGENTS.md`.
 
 ### Herdr tab titles
 
@@ -52,13 +62,19 @@ so an integration update cannot remove it, and reports with a TTL so a dead pi
 stops naming its tab.
 
 pi has no auto-titling of its own, so the extension also names an unnamed
-session from its opening prompt: it asks the active model for a short,
-action-first title (a tighter 3-5 word one than `pi-sidebar-tui` asks for its
-panel, since a tab is narrower) and sets that as the session name. If the model is slow or fails, the
-prompt itself is summarised instead, so Auto Title always gets something. A name
-set by hand with `/name <text>` or `pi --name <text>` is never overwritten, and
-is reported as-is. A seed from an earlier run is recognised on reload and
-generated again, so a raw-prompt title does not outlive the update that set it.
+session from its opening prompt. The prompt's first line is cut to a four-word
+label and set as the session name straight away, so the tab never carries the
+raw prompt or the static terminal title; then the session's model is asked for
+a 2-4 word action-first title, which replaces the label when it arrives. If that
+model cannot answer, a cheap model on a configured provider is tried, and if no
+model answers the four-word label stays. Every path goes through the same
+four-word cut, so a title is never longer than four words whatever the model
+returns.
+
+A name set by hand with `/name <text>` or `pi --name <text>` is never
+overwritten, and is reported as-is. A seed from an earlier run — including the
+raw-prompt titles the previous version left behind — is recognised on reload and
+replaced, so a long title does not outlive the update that fixed it.
 
 The `pi` binary itself comes from the `pi` flake input
 (`github:earendil-works/pi/stable`) and is added to `home.packages` in
@@ -115,7 +131,8 @@ pi auth check --provider deepseek
 | --- | --- |
 | `Ctrl+Shift+\` | Toggle the sidebar (`sidebar-toggle.ts`) |
 | `Ctrl+Shift+T` | Toggle the sidebar (built into `pi-sidebar-tui`) |
-| `Ctrl+P` | Insert `/` to open the slash-command menu (`ctrl-p-slash.ts`) |
+| `Ctrl+/` | Open the model selector (`keybindings.json`) |
+| `Ctrl+Shift+/` | Cycle thinking level (`keybindings.json`) |
 | `Shift+Tab` | Cycle normal → plan → ask mode (`modes/`) |
 | `Ctrl+Alt+P` | Jump to/from plan mode (`modes/`) |
 | `Ctrl+Backspace` | Delete a word instead of deleting the session (`keybindings.json`) |
@@ -127,15 +144,19 @@ it cannot remap them. The extension instead reads the sidebar's persisted
 `enabled` state and re-dispatches the package's `/sidebar-tui on|off` command,
 leaving the package in charge of the toggle logic and compositor lifecycle.
 
-Some `keybindings.json` entries deliberately clear pi defaults — for example
-`app.model.cycleForward` is unbound so `ctrl-p-slash.ts` can own `Ctrl+P`.
+`Ctrl+P` is unbound in the main editor. Kitty encodes `Ctrl+/` and
+`Ctrl+Shift+/` separately so Pi can distinguish them from legacy `Ctrl+-`.
+Apply changes to `kitty.nix` with Home Manager and reload Kitty's configuration.
 
 ## Extensions
 
 - **attach-pasted-images.ts** — previews pasted image paths above the editor and
   turns them into real image attachments on submit.
-- **ctrl-p-slash.ts** — `Ctrl+P` inserts `/` (slash-command helper) instead of
-  cycling models.
+- **ctrl-p-slash.ts** — shows slash suggestions at word boundaries throughout
+  the prompt. Enter runs the highlighted built-in or extension command immediately;
+  Tab only inserts its name. Inline execution removes just the command token and
+  preserves the surrounding draft, cursor, paste markers and undo. See the behavior
+  and checks below.
 - **rewind.ts** — `/rewind` picker over user messages; branches the session and
   optionally restores a `git stash create` checkpoint of the worktree.
 - **sidebar-toggle.ts** — `Ctrl+Shift+\` toggles the `pi-sidebar-tui` sidebar.
@@ -143,6 +164,56 @@ Some `keybindings.json` entries deliberately clear pi defaults — for example
   restrictions, todo tracking); replaces the standalone plan-mode extension.
 - **herdr-agent-state.ts** — *not* in this repo; written by Herdr into
   `~/.pi/agent/extensions/` at runtime. See `tools/herdr/README.md`.
+
+### Slash-command behavior and checks
+
+Type `/mod` and press Enter once to open the native model selector. This works
+at the start of the prompt, after draft text, or on a later line. Only the
+selected command is dispatched; surrounding text is never sent along with it.
+For example, confirming `Explain this /mod` opens the picker and leaves
+`Explain this ` ready to continue after selection or cancellation. Whitespace
+around the removed token is left unchanged.
+
+Tab inserts `/model ` without executing it, so you can add arguments. Argument
+completion retains Pi's native behavior: Enter accepts an argument suggestion;
+Enter again submits the completed command. A command at the start of the first
+line owns that line's arguments; slash-looking arguments are not reinterpreted
+as inline commands. Paths and URLs keep their normal completion behavior.
+
+Skills and prompt templates are insert-only on completion, with either Enter
+or Tab. A subsequent explicit submission invokes them normally. Pi only expands
+`/skill:name` automatically at the start of a message; inline skill references
+are text for the model, not native command expansion.
+
+Session-changing commands (`/new`, `/resume`, `/fork`, `/clone`, `/tree`,
+`/import`, `/reload`, `/quit`) retain their native draft-clearing behavior.
+Command-controlled non-empty editor replacements are honored. While another
+command dispatch is pending, Enter does not start a second dispatch or send the
+draft; typing can continue. Reload invalidates the old editor's draft protection.
+
+Run the regression suite from the config repository with Node.js 24 or newer
+and Pi installed:
+
+```sh
+node --test tools/pi/tests/ctrl-p-slash.test.mjs
+```
+
+It uses the installed Pi editor, autocomplete provider, interactive dispatcher,
+and selector focus lifecycle, with fake session data and no model requests.
+Tests live outside `agent/extensions/` so Pi will not auto-load them. The harness
+finds Nix/npm installations automatically; set `PI_NODE_MODULES` to Pi's
+`node_modules` directory for another layout. Node may print an experimental
+warning for its TypeScript-stripping API.
+
+After changing the extension, run `/reload` in Pi. Check `/mod` → Enter, an inline
+`draft /mod` → Enter → Escape, and `draft /mod` → Tab. The first two should open
+the picker with one Enter; the inline draft should survive; Tab should only
+insert text. `Ctrl+/` should still open the model selector directly.
+
+The editor retains one internal Pi compatibility hook (`tryTriggerAutocomplete`)
+for inline triggering. Built-ins are absent from `pi.getCommands()`, so the
+extension keeps a built-in allowlist; a test compares it to the installed Pi
+release. Rerun the suite after upgrading Pi.
 
 ## Runtime state (not versioned)
 

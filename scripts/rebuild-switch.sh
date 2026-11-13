@@ -179,8 +179,13 @@ if [ -n "${SSH_CONNECTION:-}" ]; then
     echo "(if connection drops: journalctl -fu nixos-rebuild-switch)"
     echo "--------------------------------------"
 
-    # flake git+file:// as root needs this (sudo normally keeps HOME=/home/e)
-    sudo git config --file /root/.gitconfig --add safe.directory "${HOME}/config"
+    # Bootstrap only: before /etc/gitconfig from programs.git.safe.directory
+    # exists, root still needs this for git+file:// flake eval (HOME=/root).
+    if ! sudo git config --file /root/.gitconfig --get-all safe.directory 2>/dev/null |
+        grep -Fxq "${HOME}/config"
+    then
+        sudo git config --file /root/.gitconfig --add safe.directory "${HOME}/config"
+    fi
 
     journalctl -u nixos-rebuild-switch -f -n 0 --no-pager -o cat |
         tee nixos-switch.log &

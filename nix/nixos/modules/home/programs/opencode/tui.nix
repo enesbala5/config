@@ -1,29 +1,23 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 
 let
   cfg = config.modules.home.opencode;
-
-  tuiFormat = pkgs.formats.json { };
 in
 {
-  # OpenCode 1.17+ reads TUI settings (theme, attention sounds, …) from a
-  # dedicated tui.json, separate from the server config the home-manager module
-  # writes to config.json. The legacy theme/keybinds keys in config.json are
-  # deprecated and migrated away, so theme lives here now.
+  # Home-manager writes this to ~/.config/opencode/tui.json. Writing that
+  # file ourselves conflicts with programs.opencode.tui on 26.05.
   #
   # attention.enabled is off by default; turning it on plays the built-in sound
   # pack (and fires desktop notifications when the terminal is blurred) for
   # questions, permissions, errors, completed sessions, and finished subagents.
   config = lib.mkIf cfg.enable {
-    xdg.configFile."opencode/tui.json".source = tuiFormat.generate "opencode-tui.json" {
-      "$schema" = "https://opencode.ai/tui.json";
-
-      theme = "github";
+    programs.opencode.tui = {
+      # Stylix 26.05 also sets this to "stylix". Keep github as the active theme.
+      theme = lib.mkForce "github";
 
       attention = {
         enabled = true;

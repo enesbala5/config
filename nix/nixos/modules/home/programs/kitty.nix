@@ -18,9 +18,20 @@
       "ctrl+n" = "new_os_window_with_cwd";
       "ctrl+shift+n" = "new_os_window";
 
+      # Encode these separately: legacy Ctrl+/ can otherwise look like Ctrl+-
+      # (Pi's undo), while Ctrl+Shift+/ selects the thinking level.
+      "ctrl+/" = "send_text all \\x1b[47;5u";
+      "ctrl+shift+/" = "send_text all \\x1b[47;6u";
+
       # Physical Ctrl+Shift+P. Herdr binds ctrl+alt+p (CSI-u 112;7). Ctrl+P
       # stays a raw ^P so shells, vim, and the bar's own movement still see it.
       "ctrl+shift+p" = "send_text all \\x1b[112;7u";
+
+      # Kitty's defaults are ctrl+tab next_tab and ctrl+shift+tab previous_tab.
+      # Hand those chords to Herdr (Tab = codepoint 9; 5 = ctrl, 6 = ctrl+shift).
+      # Kitty tabs stay on ctrl+shift+left / ctrl+shift+right.
+      "ctrl+tab" = "send_text all \\x1b[9;5u";
+      "ctrl+shift+tab" = "send_text all \\x1b[9;6u";
     };
 
     # shellIntegration = {

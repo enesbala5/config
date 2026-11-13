@@ -53,6 +53,7 @@
         modules-center = [
           "custom/screen-record"
           "custom/dnd"
+          "custom/caffeinate"
           "clock#date"
           "custom/separator"
           "clock#time"
@@ -107,6 +108,17 @@
           signal = 10;
           hide-empty-text = true;
           tooltip = true;
+        };
+        "custom/caffeinate" = {
+          exec = "${config.home.profileDirectory}/bin/caffeinate status";
+          on-click = "${config.home.profileDirectory}/bin/caffeinate off";
+          on-click-right = "${config.home.profileDirectory}/bin/caffeinate menu";
+          return-type = "json";
+          interval = 15;
+          signal = 11;
+          hide-empty-text = true;
+          tooltip = true;
+          exec-on-event = false;
         };
         "custom/screen-record" = {
           exec = "${data.configDirectory}/scripts/utilities/screen-record.sh status";
@@ -299,6 +311,18 @@
 	                  font-size: 9pt;
 	                  margin-top: 3px;
 	                  opacity: 0.7;
+                  }
+
+                  #custom-caffeinate {
+                    font-size: 12px;
+                    padding: 0 4px;
+                    margin: 0 2px;
+                    opacity: 0.85;
+                  }
+
+                  #custom-caffeinate:hover {
+                    background-color: rgba(127, 127, 127, 0.15);
+                    opacity: 1;
                   }
 
                   #custom-screen-record {

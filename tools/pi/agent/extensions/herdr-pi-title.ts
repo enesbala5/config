@@ -14,11 +14,11 @@
 //
 // pi has no auto-titling of its own: a session name is set by `/name`, by
 // `pi --name`, or by an extension. So when pi starts a session in Herdr with no
-// name, this asks the active model for a short task title and sets it as the
-// session name, the way pi-sidebar-tui labels its panel. If generation is slow
-// or fails, the opening prompt is summarised instead, so Auto Title always gets
-// something. A name the user sets is never overwritten, and a name this hook
-// seeded earlier is re-generated on the next prompt after a reload or resume.
+// name, this names the tab from the opening prompt and then asks a model for a
+// better one. Both are cut to four words here, so no title reaches the tab
+// longer than that. A name the user sets is never overwritten, and a name this
+// hook seeded earlier is re-generated on the next prompt after a reload or
+// resume.
 //
 // Titles are reported with a TTL and refreshed on a heartbeat, so a pi that
 // dies without a clean shutdown stops naming its tab within the TTL instead of
@@ -50,8 +50,72 @@ function enabled(): boolean {
 const fillerPrefix =
 	/^(can you |could you |please |i want you to |i'd like you to |i need you to |help me |i need to |let's |let us )+/i;
 const wrapperPrefix =
-	/^(use|create|run|make|build|write|add|generate|implement|spawn|start)\s+(?:(?:a|an|the|some|my|one)\s+)?(?:\w+\s+){0,3}(?:to|that|which|for)\s+/i;
+	/^(use|create|run|make|build|write|add|generate|implement|spawn|start)\s+(?:(?:a|an|the|some|my|one)\s+)?(?:\S+\s+){0,4}(?:to|that|which|for)\s+/i;
 
+// A tab is a few characters wide, so the ceiling is words, not characters. Four
+// is the widest that still reads in the sidebar, and both the model title and
+// the prompt fallback are cut here, so no title can arrive longer than that.
+const maxTitleWords = 4;
+const maxTitleChars = 40;
+
+// Words that carry no task. Dropped at the start of a title, and again at the
+// end after the cut, so a title never ends on "and", "for", or "to".
+const stopWords = new Set(
+	('a an the and or but then to for with of in on at by from into as if is are was were be been being it its this that these those ' +
+		'i me my we our you your he she they them do does did can could would should will just so ok okay also about how what when where why please help need want like')
+		.split(' ')
+);
+
+// A token worth keeping in a title: it starts with a letter or digit and holds
+// no path, URL, slash command, or flag.
+const titleToken = /^[\p{L}\p{N}][\p{L}\p{N}'’.+&-]*$/u;
+
+// A title holds words, so quotes, backticks, and a slash command's leading
+// punctuation come off before the token is judged. A path keeps its last
+// segment, which is the part that names the work.
+function bareWord(token: string): string | undefined {
+	let word = token;
+	if (word.includes('/')) {
+		const segments = word.split('/').filter((segment) => segment.length > 0);
+		if (segments.length < 2) {
+			return undefined;
+		}
+		word = segments[segments.length - 1]!;
+	}
+
+	const bare = word.replace(/^[^\p{L}\p{N}]+/u, '').replace(/[^\p{L}\p{N}]+$/u, '');
+	return bare && titleToken.test(bare) ? bare : undefined;
+}
+
+// Caps a title at maxTitleWords and makes it read as a label: no code, no
+// paths, no slash commands, no trailing punctuation.
+function shorten(text: string): string | undefined {
+	const tokens = text
+		.replace(/`[^`]*`/g, ' ')
+		.split(/\s+/)
+		.map(bareWord)
+		.filter((token): token is string => token !== undefined);
+
+	while (tokens.length > 0 && stopWords.has(tokens[0]!.toLowerCase())) {
+		tokens.shift();
+	}
+
+	const kept = tokens.slice(0, maxTitleWords);
+	while (kept.length > 1 && stopWords.has(kept[kept.length - 1]!.toLowerCase())) {
+		kept.pop();
+	}
+
+	const words = kept.map((word) => word.replace(/[-.]+$/, '')).filter((word) => word.length > 0);
+	if (words.length === 0) {
+		return undefined;
+	}
+
+	const title = words.join(' ');
+	return (title.charAt(0).toUpperCase() + title.slice(1)).slice(0, maxTitleChars).trim() || undefined;
+}
+
+// The prompt's first line, cut down to a tab-sized label. Used as the name the
+// tab carries before the model answers, and as the one it falls back to.
 function summarize(prompt: string): string | undefined {
 	const firstLine = prompt
 		.split('\n')
@@ -62,23 +126,40 @@ function summarize(prompt: string): string | undefined {
 	}
 
 	const stripped = firstLine.replace(fillerPrefix, '').replace(wrapperPrefix, '').trim();
-	if (!stripped) {
-		return undefined;
+	return shorten(stripped || firstLine);
+}
+
+// A name that is a leading slice of the opening prompt is one an older version
+// of this hook wrote: the model title never arrived, so the raw prompt was cut
+// to fit. Recognising it lets the tab be re-titled instead of keeping it.
+function seededFromPrompt(name: string, opener: string | undefined): boolean {
+	const firstLine = opener
+		?.split('\n')
+		.map((line) => line.trim())
+		.find((line) => line.length > 0);
+	if (!firstLine) {
+		return false;
 	}
 
-	const title = (stripped.charAt(0).toUpperCase() + stripped.slice(1)).slice(0, 60).trim();
-	return title ? title : undefined;
+	// Short names are the user's; a cut prompt is long by definition.
+	if (name.length < 12) {
+		return false;
+	}
+
+	const bare = firstLine.replace(fillerPrefix, '').replace(wrapperPrefix, '').trim() || firstLine;
+	const named = name.toLowerCase();
+	return bare.toLowerCase().startsWith(named) || firstLine.toLowerCase().startsWith(named);
 }
 
 // A short, action-first phrase with no trailing punctuation. Tighter than the
 // 5-7 words pi-sidebar-tui asks for its panel, because a tab is narrower than
 // the sidebar.
 const titlePrompt =
-	'Write a 3-5 word task title for this request. Start with an action verb. No punctuation. Output only the title.';
+	'Write a 2-4 word task title for this request. Never more than 4 words. Start with an action verb. No punctuation, no quotes. Output only the title.';
 
-// A generation that has not answered by now is slow enough that the prompt
-// summary is worth showing, and the model title can replace it later.
-const fallbackDelayMs = 4000;
+// A generation that has not answered by now is not worth waiting for: the tab
+// already carries the prompt summary, and a late title would only flicker it.
+const titleTimeoutMs = 8000;
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 	return new Promise((resolve, reject) => {
@@ -97,27 +178,30 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 	});
 }
 
+// The model is asked for four words, this is what makes that true.
 function tidyTitle(text: string): string | undefined {
 	const cleaned = text
 		.replace(/^[\s"'`]+/, '')
 		.replace(/[\s"'`]+$/, '')
-		.replace(/[.!?]+$/, '')
+		.split('\n')[0]!
 		.trim();
-	if (!cleaned || cleaned.length > 80) {
+	if (!cleaned || cleaned.length > 120) {
 		return undefined;
 	}
 
-	return cleaned.slice(0, 60);
+	return shorten(cleaned);
 }
 
 // The model context is read loosely: this runs against whatever provider the
 // session is using, and none of it is worth failing a turn over.
+type TitleMessage = { content?: Array<{ type?: string; text?: string }> };
+
 type TitleContext = {
 	modelRegistry?: {
-		getAll?: () => Array<{ id?: string }>;
-		streamSimple?: (model: unknown, context: unknown, options: unknown) => { result: () => Promise<unknown> };
+		complete?: (model: unknown, context: unknown, options: unknown) => Promise<TitleMessage>;
+		getAvailable?: () => TitleModel[];
 	};
-	model?: { id?: string };
+	model?: TitleModel;
 	sessionManager?: { getBranch?: () => unknown[] };
 };
 
@@ -153,28 +237,65 @@ function firstPrompt(ctx: TitleContext): string | undefined {
 	return undefined;
 }
 
+type TitleModel = { id?: string; provider?: string };
+
+// The cheaper end of the catalog, tried after the session's own model. A title
+// is a two-dollar question; a flash or mini model answers it in a second and
+// does not compete with the turn the user is waiting on.
+const cheapModel = /(flash|mini|nano|haiku|lite|fast|small)/i;
+
+// The session's model first, then a cheap model on a provider that has
+// credentials. The second rung exists because the session model can be one
+// whose provider cannot answer a direct call at all.
+function titleCandidates(ctx: TitleContext): TitleModel[] {
+	const own = ctx.model;
+	const others = (ctx.modelRegistry?.getAvailable?.() ?? []).filter(
+		(candidate) => !own || candidate.id !== own.id || candidate.provider !== own.provider
+	);
+	const cheap = others.filter((candidate) => cheapModel.test(candidate.id ?? ''));
+	const ordered = [...cheap, ...others].slice(0, 2);
+	return own ? [own, ...ordered] : ordered;
+}
+
 async function generateTitle(prompt: string, ctx: TitleContext): Promise<string | undefined> {
-	try {
-		const registry = ctx.modelRegistry;
-		const model = ctx.model;
-		if (!registry?.streamSimple || !model) {
-			return undefined;
-		}
-
-		const fullModel = registry.getAll?.().find((candidate) => candidate.id === model.id) ?? model;
-		const stream = registry.streamSimple(
-			fullModel,
-			{ messages: [{ role: 'user', content: `${titlePrompt}\n\n${prompt.slice(0, 500)}` }] },
-			{ maxTokens: 24, reasoning: 'off' }
-		);
-
-		const message = (await withTimeout(stream.result(), 12_000)) as
-			{ content?: Array<{ type?: string; text?: string }> } | undefined;
-		const text = message?.content?.find((part) => part?.type === 'text')?.text;
-		return text ? tidyTitle(text) : undefined;
-	} catch {
+	const registry = ctx.modelRegistry;
+	if (!registry?.complete) {
 		return undefined;
 	}
+
+	// `complete` rather than `streamSimple`: one promise, no stream to drain.
+	//
+	// A candidate is used as the registry hands it over. Model ids repeat across
+	// providers (`gpt-6.1-sol` is both an `openai` and an `azure` entry), so
+	// looking one up by id alone returns the other provider and fails with
+	// "provider is not configured" — which is why titles used to fall back to the
+	// raw prompt. The budget is generous because a reasoning model spends part of
+	// it before the title, and a tight one returns no text at all.
+	for (const model of titleCandidates(ctx)) {
+		try {
+			const message = await withTimeout(
+				registry.complete(
+					model,
+					{
+						systemPrompt: titlePrompt,
+						messages: [{ role: 'user', content: [{ type: 'text', text: prompt.slice(0, 500) }], timestamp: Date.now() }]
+					},
+					{ maxTokens: 256 }
+				),
+				titleTimeoutMs
+			);
+
+			const title = tidyTitle(message?.content?.find((part) => part?.type === 'text')?.text ?? '');
+			if (title) {
+				return title;
+			}
+		} catch {
+			// A provider that cannot answer is not worth failing a turn over; the
+			// next candidate, or the prompt summary already on the tab, stands in.
+		}
+	}
+
+	return undefined;
 }
 
 function sendRequest(request: unknown, timeoutMs = 1000): Promise<boolean> {
@@ -276,9 +397,11 @@ export default function herdrPiTitleExtension(pi: ExtensionAPI): void {
 
 		const existing = currentName();
 		const opener = firstPrompt(ctx);
-		// A name equal to the summary of the opening prompt is one an earlier run
-		// of this extension seeded: re-title it rather than keep the raw prompt.
-		const ours = existing !== undefined && opener !== undefined && existing === summarize(opener);
+		// A name equal to the summary of the opening prompt, or a leading slice of
+		// it, is one an earlier run of this extension seeded: re-title it rather
+		// than keep the raw prompt.
+		const ours =
+			existing !== undefined && (seededFromPrompt(existing, opener) || existing === summarize(opener ?? ''));
 		if (existing && !ours) {
 			// The user's or another extension's name: leave it be.
 			generationStarted = true;
@@ -295,28 +418,19 @@ export default function herdrPiTitleExtension(pi: ExtensionAPI): void {
 		const prompt = (ours ? opener : typeof event?.prompt === 'string' ? event.prompt : '') ?? '';
 		const fallback = summarize(prompt);
 
-		// Only reach for the summary if the model has not answered in time, so
-		// the tab usually gets the short title and never flashes the raw prompt.
-		const timer =
-			!ours && fallback
-				? setTimeout(() => {
-						if (currentName()) {
-							return;
-						}
-						seeded = fallback;
-						try {
-							pi.setSessionName(fallback);
-						} catch {
-							// A session that cannot be named yet is not worth failing the turn for.
-						}
-					}, fallbackDelayMs)
-				: undefined;
-		timer?.unref?.();
+		// Name the tab immediately with the prompt summary, then let the model
+		// replace it. Waiting for the model is what used to leave the tab on the
+		// raw first line whenever generation failed or was slow.
+		if (fallback) {
+			seeded = fallback;
+			try {
+				pi.setSessionName(fallback);
+			} catch {
+				// A session that cannot be named yet is not worth failing the turn for.
+			}
+		}
 
 		void generateTitle(prompt, ctx).then((title) => {
-			if (timer) {
-				clearTimeout(timer);
-			}
 			const name = currentName();
 			// A name that is neither ours nor the seed was set while we generated.
 			if (name && name !== seeded) {

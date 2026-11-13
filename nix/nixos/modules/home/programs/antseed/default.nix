@@ -27,7 +27,7 @@ in
       Install.WantedBy = [ "default.target" ];
 
       Service = {
-        ExecStart = "${inputs.antseed.packages.${pkgs.system}.default}/bin/antseed buyer start";
+        ExecStart = "${inputs.antseed.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/antseed buyer start";
         Restart = "on-failure";
         RestartSec = 10;
       };
