@@ -37,6 +37,24 @@ cd ~/dev/misc/worktrees/<repo-name>/<branch-name>
 git merge origin/dev
 ```
 
+`cd` alone does **not** move a Herdr Desktop space. After the worktree path exists (and you have `cd`'d into it), attach this terminal to a Herdr space for that worktree when Desktop is available:
+
+- Prerequisite: `command -v herdr-app` and `command -v hc`, and `$HC_TERMINAL_ID` is set (you are inside a Herdr Desktop pane).
+- Space name: the worktree folder's basename (e.g. `fix-399-webhook-idempotency`), not a `cursor/` prefix.
+- If `herdr-app ls` already has a space whose first terminal `cwd` (or `folder`) is this worktree, select it and move this terminal into that space/tab instead of creating another.
+- Otherwise:
+
+```bash
+# create space+placeholder in the worktree
+created=$(herdr-app do space.new --name "<worktree-basename>" --folder "$PWD")
+# read space, tab, terminal from that JSON
+hc label "$HC_TERMINAL_ID" "herdr.space=<space>" "herdr.tab=<tab>"
+herdr-app do terminal.kill --terminal "<placeholder-terminal>"
+herdr-app do space.select --id "<space>"
+```
+
+If Herdr Desktop is not available, keep using `cd` only. Outside Desktop, a TUI Herdr session is optional and not required for the rest of this skill.
+
 4. Duplicate env. Copy only. Do not rewrite ports, container names, or other overrides.
 
 - Copy gitignored env files from the main checkout into the worktree: `.env` and any other gitignored `.env*` the checkout actually has (`.env.dev`, `.env.prod`, `.env.local`, and so on).
