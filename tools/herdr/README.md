@@ -11,7 +11,9 @@ tools/herdr/
 ├── config.toml                     # ~/.config/herdr/config.toml (symlinked)
 ├── desktop/
 │   ├── keys.json                   # ~/.config/herdr-app/keys.json (symlinked)
-│   └── mods/toast/                 # glass toast UI; desktop entry re-copies after start
+│   └── mods/                          # desktop mod overrides; launcher re-copies each after start
+│       ├── toast/                     # notify() toast content (host owns chrome)
+│       └── huajar-agents/             # agents list: two-row title / workspace·worktree
 ├── integrations/
 │   └── cursor/                     # Cursor → herdr-core OSC 7501 bridge
 │       ├── desktop-status.sh       # ~/.cursor/herdr-desktop-status.sh
@@ -36,8 +38,9 @@ on) `desktop/keys.json` plus the Cursor desktop bridge
 `~/.config/herdr` or `~/.config/herdr-app`, because those apps write their
 own state there (`plugins.json`, sockets, logs, `session.json`, mods).
 When desktop is on, the Herdr Desktop launcher wraps `herdr-app` so it
-re-copies `desktop/mods/toast/` into `~/.config/herdr-app/mods/toast`
-after start (Herdr restores the shipped toast mod every launch).
+re-copies every folder under `desktop/mods/` into
+`~/.config/herdr-app/mods/<name>/` after start (Herdr restores shipped
+mods every launch).
 
 ## New-machine setup
 
