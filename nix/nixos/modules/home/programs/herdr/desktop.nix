@@ -18,7 +18,7 @@ in
     ];
 
     xdg.desktopEntries.herdr-app = {
-      name = "Herdr";
+      name = "Herdr Desktop";
       comment = "Terminals and coding agents that keep running";
       exec = "${lib.getExe packages.herdr-app}";
       icon = "herdr-app";
