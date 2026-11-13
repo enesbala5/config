@@ -19,4 +19,7 @@
     });
     # Optional later: env.HYPRUSE_BACKGROUND = "1"; for agent-owned workspaces.
   };
+
+  # Help Qt apps expose accessibility trees to hypruse ui / click_ui.
+  home.sessionVariables.QT_ACCESSIBILITY = "1";
 }

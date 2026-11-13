@@ -18,6 +18,13 @@ includes `uv.lock` in the flake `fileset` (hypruse 0.15.0).
 
 Binary after switch: `/etc/profiles/per-user/e/bin/hypruse`.
 
+## Host prerequisite
+
+Framework 13 enables `services.gnome.at-spi2-core` so `org.a11y.Bus` exists.
+Without that, `hypruse doctor` fails accessibility and `ui` / `click_ui` /
+`marks` cannot work. After enabling it, rebuild and re-login (or at least
+restart the graphical session) so the bus is active.
+
 ## Smoke test (after rebuild)
 
 In a real Hyprland session on this laptop:
@@ -28,6 +35,7 @@ hypruse doctor
 
 Or without installing: `nix run github:IlyasKhallouki/hypruse -- doctor`.
 
+Agent skill (global): `misc/skills/hypruse/` — live-linked as `~/.agents/skills/hypruse`.
 ## Optional env
 
 Set under `programs.hypruse.env` in `default.nix`, for example:
