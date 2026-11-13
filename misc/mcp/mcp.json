@@ -89,6 +89,11 @@
 				"DISPLAY": ":0"
 			},
 			"description": "DBFlux: query and manage local database connections."
+		},
+		"hypruse": {
+			"command": "/etc/profiles/per-user/e/bin/hypruse",
+			"args": [],
+			"description": "Hyprland computer use: screenshot, windows, pointer and keyboard."
 		}
 	}
 }
