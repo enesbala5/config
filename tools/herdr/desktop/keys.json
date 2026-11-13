@@ -54,6 +54,9 @@
     "ctrl-shift-k": "app.palette",
     "ctrl-shift-p": "app.palette",
     "ctrl-,": "app.settings",
+    "ctrl-\\": "t3-chrome.side",
+    "ctrl-|": "layout.toggle:panel",
+    "ctrl-shift-\\": "layout.toggle:panel",
     "ctrl-shift-o": "pane.split:right",
     "ctrl-shift-e": "pane.split:down",
     "ctrl-w": "tab.close",
@@ -65,6 +68,12 @@
     "shift-f2": "space.rename"
   },
   "layout:herdr-t3": {
+    "ctrl-\\": "t3-chrome.side",
+    "ctrl-shift-b": "t3-chrome.sidebar",
+    "ctrl-shift-s": "t3-inbox.settle"
+  },
+  "layout:herdr-t3-worktrees": {
+    "ctrl-\\": "t3-chrome.side",
     "ctrl-shift-b": "t3-chrome.sidebar",
     "ctrl-shift-s": "t3-inbox.settle"
   },
