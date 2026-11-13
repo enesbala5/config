@@ -103,12 +103,30 @@
     '';
   };
 
+  # Same wake defer as DBFlux: the persistent daily timer only queues this,
+  # and the backup itself waits 10 minutes of awake time.
+  systemd.services.db-backup-activitywatch-defer = {
+    description = "Queue ActivityWatch backup after the machine has been awake";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.systemd}/bin/systemctl restart db-backup-activitywatch-delayed.timer";
+    };
+  };
+
+  systemd.timers.db-backup-activitywatch-delayed = {
+    timerConfig = {
+      OnActiveSec = "10min";
+      AccuracySec = "1s";
+      Unit = "db-backup-activitywatch.service";
+    };
+  };
+
   systemd.timers.db-backup-activitywatch = {
     wantedBy = [ "timers.target" ];
     timerConfig = {
       OnCalendar = "daily";
       Persistent = true;
-      Unit = "db-backup-activitywatch.service";
+      Unit = "db-backup-activitywatch-defer.service";
     };
   };
 }

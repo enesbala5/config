@@ -1,5 +1,5 @@
 {
-  pkgs,
+  unstable,
   config,
   data,
   ...
@@ -7,7 +7,9 @@
 {
   programs.waybar = {
     enable = true;
-    package = pkgs.waybar;
+    # Pull Waybar from nixpkgs-unstable: 25.11 stable is pinned at 0.14.0,
+    # while unstable already has 0.15.0 (the current upstream release).
+    package = unstable.waybar;
 
     settings = {
       bar = {
@@ -51,6 +53,8 @@
         modules-center = [
           "custom/screen-record"
           "custom/dnd"
+          "custom/caffeinate"
+          "custom/lid-inhibit"
           "clock#date"
           "custom/separator"
           "clock#time"
@@ -105,6 +109,28 @@
           signal = 10;
           hide-empty-text = true;
           tooltip = true;
+        };
+        "custom/caffeinate" = {
+          exec = "${config.home.profileDirectory}/bin/caffeinate status";
+          on-click = "${config.home.profileDirectory}/bin/caffeinate off";
+          on-click-right = "${config.home.profileDirectory}/bin/caffeinate menu";
+          return-type = "json";
+          interval = 15;
+          signal = 11;
+          hide-empty-text = true;
+          tooltip = true;
+          exec-on-event = false;
+        };
+        "custom/lid-inhibit" = {
+          exec = "${config.home.profileDirectory}/bin/lid-inhibit status";
+          on-click = "${config.home.profileDirectory}/bin/lid-inhibit off";
+          on-click-right = "${config.home.profileDirectory}/bin/lid-inhibit menu";
+          return-type = "json";
+          interval = 15;
+          signal = 12;
+          hide-empty-text = true;
+          tooltip = true;
+          exec-on-event = false;
         };
         "custom/screen-record" = {
           exec = "${data.configDirectory}/scripts/utilities/screen-record.sh status";
@@ -165,7 +191,7 @@
 
         # wireplumber = {
         #   format = "VOL {volume}";
-        #   on-click = "hyprctl dispatch exec '[float;size 90% 80%;move 5% 10%;]' kitty pulsemixer";
+        #   on-click = "hyprctl dispatch 'hl.dsp.exec_cmd(\"kitty pulsemixer\", { float = true, size = { \"monitor_w * 0.9\", \"monitor_h * 0.8\" }, move = { \"monitor_w * 0.05\", \"monitor_h * 0.1\" } })'";
         # };
 
         "pulseaudio" = {
@@ -179,7 +205,7 @@
             portable = "♫";
           };
           on-click = "${data.configDirectory}/scripts/audio/mute_toggle.sh";
-          on-click-right = "hyprctl dispatch exec '[float;size 90% 80%;move 5% 10%;]' kitty pulsemixer";
+          on-click-right = "hyprctl dispatch 'hl.dsp.exec_cmd(\"kitty pulsemixer\", { float = true, size = { \"monitor_w * 0.9\", \"monitor_h * 0.8\" }, move = { \"monitor_w * 0.05\", \"monitor_h * 0.1\" } })'";
           # EasyEffects volume is virtual; show the hardware sink instead
           ignored-sinks = [ "Easy Effects Sink" ];
           # min-length = 8;
@@ -211,7 +237,7 @@
 
         "custom/power-consumption" = {
           exec = "${data.configDirectory}/scripts/power/get_wattage.sh";
-          on-click = "hyprctl dispatch exec '[float;size 90% 80%;move 5% 10%;]' kitty sudo powertop";
+          on-click = "hyprctl dispatch 'hl.dsp.exec_cmd(\"kitty sudo powertop\", { float = true, size = { \"monitor_w * 0.9\", \"monitor_h * 0.8\" }, move = { \"monitor_w * 0.05\", \"monitor_h * 0.1\" } })'";
           format = "{}";
           interval = 10;
           tooltip = false;
@@ -272,7 +298,7 @@
             				background-color: transparent;
             				transition-property: background-color;
             				transition-duration: .5s;
-            				border-radius: 5px;
+            				border-radius: 0px;
                   }
 
                   #custom-separator {
@@ -297,6 +323,18 @@
 	                  font-size: 9pt;
 	                  margin-top: 3px;
 	                  opacity: 0.7;
+                  }
+
+                  #custom-caffeinate, #custom-lid-inhibit {
+                    font-size: 12px;
+                    padding: 0 4px;
+                    margin: 0 2px;
+                    opacity: 0.85;
+                  }
+
+                  #custom-caffeinate:hover, #custom-lid-inhibit:hover {
+                    background-color: rgba(127, 127, 127, 0.15);
+                    opacity: 1;
                   }
 
                   #custom-screen-record {
@@ -371,7 +409,7 @@
                   #battery.dead {
                     background: red;
                     color: white;
-                    border-radius: 5px;
+                    border-radius: 0px;
                     padding: 0px 5px;
                   	animation: blinking .6s ease infinite;
                   }

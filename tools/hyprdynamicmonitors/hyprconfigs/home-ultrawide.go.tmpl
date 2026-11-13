@@ -1,53 +1,58 @@
-# Configure external ultrawide monitor
 {{- $xiaomi := index .MonitorsByTag "xiaomi-34" -}}
 {{- if $xiaomi }}
-# Configure monitor
-monitor={{$xiaomi.Name}},3440x1440@144.00000,-1000x-1440,1.00000000,transform,0,vrr,0
+hl.monitor({
+	output = "{{$xiaomi.Name}}",
+	mode = "3440x1440@144.00000",
+	position = "-1000x-1440",
+	scale = 1,
+	transform = 0,
+	vrr = 0,
+})
 
-# Assign workspaces to monitor
-workspace = 1,monitor:{{$xiaomi.Name}}
-workspace = 2,monitor:{{$xiaomi.Name}}
-workspace = 3,monitor:{{$xiaomi.Name}}
-workspace = 4,monitor:{{$xiaomi.Name}}
-workspace = 5,monitor:{{$xiaomi.Name}}
-workspace = 6,monitor:{{$xiaomi.Name}}
-workspace = 7,monitor:{{$xiaomi.Name}}
-workspace = 8,monitor:{{$xiaomi.Name}}
+hl.workspace_rule({ workspace = "1", monitor = "{{$xiaomi.Name}}" })
+hl.workspace_rule({ workspace = "2", monitor = "{{$xiaomi.Name}}" })
+hl.workspace_rule({ workspace = "3", monitor = "{{$xiaomi.Name}}" })
+hl.workspace_rule({ workspace = "4", monitor = "{{$xiaomi.Name}}" })
+hl.workspace_rule({ workspace = "5", monitor = "{{$xiaomi.Name}}" })
+hl.workspace_rule({ workspace = "6", monitor = "{{$xiaomi.Name}}" })
+hl.workspace_rule({ workspace = "7", monitor = "{{$xiaomi.Name}}" })
+hl.workspace_rule({ workspace = "8", monitor = "{{$xiaomi.Name}}" })
 
-# Adjust transparency for specific apps
-windowrule = opacity 1 override 0.90 override 1 override, class:(code)$
-windowrule = opacity 1 override 0.90 override 1 override, title:.*Cursor.*
-windowrule = opacity 1 override 0.90 override 1 override, class:(dev.zed.Zed-Nightly)$
-windowrule = opacity 1 override 0.90 override 1 override, class:(obsidian)$
+hl.window_rule({ match = { class = "(code)$" }, opacity = "1 override 0.90 override 1 override" })
+hl.window_rule({ match = { title = ".*Cursor.*" }, opacity = "1 override 0.90 override 1 override" })
+hl.window_rule({ match = { class = "(dev.zed.Zed-Nightly)$" }, opacity = "1 override 0.90 override 1 override" })
+hl.window_rule({ match = { class = "(obsidian)$" }, opacity = "1 override 0.90 override 1 override" })
 
-general {
-	gaps_out = 5, 660, 120, 660
-}
+hl.config({
+	general = {
+		gaps_out = { top = 5, right = 660, bottom = 120, left = 660 },
+	},
+})
 
-# DevTools: float in the right reserved gap (outside the tiled safe area)
-# 20px from the tiled window, 20px from the right edge, 5px from the top,
-# 120px from the bottom (same as gaps_out). Width: 660-20-20=620.
-windowrule = float, title:(Developer Tools)
-windowrule = size 620 1282, title:(Developer Tools)
-windowrule = move 100%-640 8, title:(Developer Tools)
-windowrule = animation slide right, title:(Developer Tools)
-
-windowrule = float, title:(DevTools)
-windowrule = size 620 1282, title:(DevTools)
-windowrule = move 100%-640 8, title:(DevTools)
-windowrule = animation slide right, title:(DevTools)
-
+-- Later anonymous rules beat the base tile rules.
+hl.window_rule({
+	match = { title = "(Developer Tools)" },
+	float = true,
+	tile = false,
+	size = { "620", "1282" },
+	move = { "(monitor_w - 640)", "8" },
+	animation = "slide right",
+})
+hl.window_rule({
+	match = { title = "(DevTools)" },
+	float = true,
+	tile = false,
+	size = { "620", "1282" },
+	move = { "(monitor_w - 640)", "8" },
+	animation = "slide right",
+})
 {{ end }}
 
-# Configure laptop screen
 {{- $laptop := index .MonitorsByTag "laptop" -}}
 {{- if $laptop }}
-
-monitor={{$laptop.Name}},disable
-
+hl.monitor({ output = "{{$laptop.Name}}", disabled = true })
 {{ end }}
 
-# Set Performance mode when docked and charging
 {{- if and (not isOnBattery) $xiaomi }}
-exec = powerprofilesctl set performance
+hl.exec_cmd("powerprofilesctl set performance")
 {{ end }}

@@ -20,6 +20,10 @@
 
     ./dunst.nix # notification daemon
     ./kitty.nix # terminal emulator
+    ./herdr
+    ./dsh.nix
+    ./vicinae.nix
+    ./figma-linux.nix
 
     # ./firefox # web browser
     # ./spicetify.nix # spotify retheming
@@ -41,7 +45,7 @@
       tree # display contents of a directory as a file tree
       which # find locations of executables
       bat # Text Preview
-      neofetch # Display system info
+      fastfetch # Display system info. neofetch was removed in 26.05.
 
       # Audio
       # ------------------------------------------------------------------------------------------
@@ -68,7 +72,7 @@
       # ---
       # Nix Language
       nixd
-      nixfmt-rfc-style
+      nixfmt
 
       # ---
       # LaTex
@@ -109,7 +113,7 @@
       pulsemixer # audio control
       pulseaudio # provides pactl (client only, talks to PipeWire pulse socket)
 
-      stremio # Video Streaming
+      stremio-linux-shell # Video Streaming. stremio was removed with Qt5 webengine.
     ])
     # Unstable packages
     # ---

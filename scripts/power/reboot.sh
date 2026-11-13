@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-hyprctl 'dispatch exec  hyprshutdown -t "Rebooting..." --post-cmd "systemctl reboot"'
+hyprctl dispatch 'hl.dsp.exec_cmd("hyprshutdown -t \"Rebooting...\" --post-cmd \"systemctl reboot\"")'

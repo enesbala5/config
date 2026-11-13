@@ -1,0 +1,21 @@
+id = "local.agent-head"
+name = "Agent Head"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "Leading state glyph + tab title as one sidebar token, animated while the agent works"
+platforms = ["linux", "macos"]
+
+[[startup]]
+command = ["sh", "run.sh"]
+
+[[actions]]
+id = "restart"
+title = "Agent Head: restart"
+contexts = ["workspace"]
+command = ["sh", "run.sh", "--restart"]
+
+[[actions]]
+id = "stop"
+title = "Agent Head: stop"
+contexts = ["workspace"]
+command = ["sh", "run.sh", "--stop"]

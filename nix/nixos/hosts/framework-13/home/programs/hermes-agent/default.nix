@@ -59,10 +59,17 @@ let
   # reusing the already-built agent package and the flake's npm build library.
   # `callPackage` keeps the result overridable, so the module's own
   # `extraEnv`/`extraRun` wiring still applies to it.
+  #
+  # `generatedIcons` and `installStampFile` are not nixpkgs packages. Upstream
+  # builds them inside `nix/hermes-agent.nix` and passes them explicitly.
+  # Icons render with the agent venv (Pillow + resvg-py).
   hermesDesktop = hermesPkgsPatched.callPackage "${inputs.hermes-agent}/nix/desktop.nix" {
     pkgs = hermesPkgsPatched;
-    inherit (hermesFull) hermesNpmLib;
+    inherit (hermesFull) hermesNpmLib installStampFile;
     hermesAgent = hermesFull;
+    generatedIcons = hermesPkgsPatched.callPackage "${inputs.hermes-agent}/nix/icons.nix" {
+      venv = hermesFull.hermesVenv;
+    };
   };
 in
 {

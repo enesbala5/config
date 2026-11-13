@@ -3,16 +3,11 @@
   pkgs,
   config,
   data,
-  lib,
   ...
 }:
 {
   imports = [
     inputs.zen-browser.homeModules.beta
-    # Prefer the flake module: it applies settings via VICINAE_OVERRIDES.
-    # HM 25.11's built-in module writes obsolete ~/.config/vicinae/vicinae.json
-    # which Vicinae >=0.17 no longer reads.
-    inputs.vicinae.homeManagerModules.default
     inputs.hermes-agent.homeManagerModules.default
     ./programs
 
@@ -21,19 +16,15 @@
     ../../../modules/home/programs/antseed
   ];
 
-  disabledModules = [ "programs/vicinae.nix" ];
-
-  # Flake module always assigns programs.google-chrome.nativeMessagingHosts when
-  # enable=true. HM 25.11 does not declare that option for proprietary Chrome.
-  options.programs.google-chrome.nativeMessagingHosts = lib.mkOption {
-    type = lib.types.listOf lib.types.package;
-    default = [ ];
-    internal = true;
-  };
-
   config = {
     modules.home.opencode.enable = true;
-    modules.home.codex.enable = false;
+    modules.home.codex.enable = true;
+    modules.home.herdr.enable = true;
+    modules.home.herdr.gpui = true;
+    modules.home.herdr.mobile.enable = true;
+    modules.home.dsh.enable = true;
+    modules.home.vicinae.enable = true;
+    modules.home.figmaLinux.enable = true;
 
     # Antseed buyer proxy
     modules.home.antseed.enable = false;
@@ -42,7 +33,7 @@
       # Allow all GTK apps to find the xfsettingsd GTK sync module so they
       # don't emit "Failed to load module xfsettingsd-gtk-settings-sync" warnings
       # when xfsettingsd broadcasts the Gtk/Modules XSetting.
-      GTK_PATH = "${pkgs.xfce.xfce4-settings}/lib/gtk-3.0";
+      GTK_PATH = "${pkgs.xfce4-settings}/lib/gtk-3.0";
     };
 
     home.file =
@@ -68,26 +59,76 @@
           recursive = true;
         };
 
-        # Herdr has no home-manager module, so version config.toml here.
-        # Only the config file is symlinked; the rest of ~/.config/herdr holds
-        # runtime state (sockets, logs, session.json) and must stay writable.
-        ".config/herdr/config.toml" = {
-          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/config.toml";
-        };
-
-        # Herdr Auto Title has no home-manager module, so its config is
-        # versioned beside Herdr's own. Only the config file is symlinked; the
-        # rest of ~/.config/herdr-auto-title holds runtime state (instances,
-        # manual-names.json) and must stay writable.
-        ".config/herdr-auto-title/config.env" = {
-          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/plugins/auto-title/config.env";
-        };
-
         # Pi has no home-manager module, so version its agent config here.
-        # Only settings.json is symlinked: auth.json, models-store.json (an
-        # HTTP cache), and sessions/ stay as local runtime state under ~/.pi.
+        # settings.json and keybindings.json are symlinked. auth.json,
+        # models-store.json (an HTTP cache), sessions/, and Herdr-managed files
+        # under extensions/ stay as local runtime state under ~/.pi.
         ".pi/agent/settings.json" = {
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/settings.json";
+        };
+
+        # User-level context file: instructions pi applies in every working
+        # directory. Keeps ADHD-shaped output on by default by pointing at the
+        # i-have-adhd skill. The source is harness-neutral (misc/agents/) and
+        # symlinked here; other agents can link the same file.
+        ".pi/agent/AGENTS.md" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/misc/agents/AGENTS.md";
+        };
+
+        # ctrl+backspace should delete a word, not delete the session
+        # (pi's default binding for app.session.deleteNoninvasive).
+        ".pi/agent/keybindings.json" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/keybindings.json";
+        };
+
+        # Custom pi themes (e.g. circus.json, derived from the stylix base16
+        # scheme). Whole directory is symlinked so new themes just drop in;
+        # pi hot-reloads the active user theme from here.
+        ".pi/agent/themes" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/themes";
+          recursive = true;
+        };
+
+        # Only the extension itself is symlinked; the extensions/ directory
+        # also holds herdr-agent-state.ts, which Herdr writes at runtime and
+        # must stay writable.
+        ".pi/agent/extensions/attach-pasted-images.ts" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/attach-pasted-images.ts";
+        };
+
+        # /rewind: pick a user message to branch the session from, with optional
+        # git worktree restore. Single file, so symlink it like the one above.
+        ".pi/agent/extensions/rewind.ts" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/rewind.ts";
+        };
+
+        # Ctrl+P inserts "/" into the prompt instead of cycling models.
+        ".pi/agent/extensions/ctrl-p-slash.ts" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/ctrl-p-slash.ts";
+        };
+
+        # Ctrl+Shift+\ toggles the pi-sidebar-tui sidebar. The package hardcodes
+        # Ctrl+Shift+T; extension shortcuts cannot be remapped via
+        # keybindings.json, so this adds a second binding that re-dispatches
+        # the package's own /sidebar-tui command.
+        ".pi/agent/extensions/sidebar-toggle.ts" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/sidebar-toggle.ts";
+        };
+
+        # Reports the pi session name to Herdr as the pane's agent title, which
+        # Herdr's Auto Title plugin names tabs from. A sibling of
+        # herdr-agent-state.ts, not a replacement: Herdr rewrites that file on
+        # every integration install, so the title hook has to live beside it.
+        ".pi/agent/extensions/herdr-pi-title.ts" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/herdr-pi-title.ts";
+        };
+
+        # Modes is a directory extension (index.ts + utils.ts), so the whole
+        # directory is symlinked recursively. It owns the normal/plan/ask mode
+        # system (Shift+Tab) and replaces the standalone plan-mode extension.
+        ".pi/agent/extensions/modes" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/modes";
+          recursive = true;
         };
 
         ".agents/skills" = {
@@ -119,9 +160,9 @@
           Service = {
             Environment = [
               "PATH=${data.homeDirectory}/bin"
-              "GTK_PATH=${pkgs.xfce.xfce4-settings}/lib/gtk-3.0"
+              "GTK_PATH=${pkgs.xfce4-settings}/lib/gtk-3.0"
             ];
-            ExecStart = "${pkgs.xfce.xfce4-settings}/bin/xfsettingsd";
+            ExecStart = "${pkgs.xfce4-settings}/bin/xfsettingsd";
             Restart = "on-abort";
           };
         };

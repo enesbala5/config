@@ -46,9 +46,12 @@ in
 
   # OpenCode
   # -------------------------------
-  # Secret config layer (provider API keys, MCP tokens, …), merged by opencode
-  # via OPENCODE_CONFIG. See modules/home/programs/opencode/secrets.nix.
+  # Provider API keys (Anthropic), merged by opencode via OPENCODE_CONFIG.
   "opencode-secrets.json.age" = userConfig;
+
+  # MCP bearer tokens shared by Cursor, Zed, pi, and OpenCode.
+  # JSON: { "TWENTY_MCP_TOKEN", "COOLIFY_HETZNER_TOKEN", "COOLIFY_HOME_TOKEN" }
+  "mcp-secrets.json.age" = userConfig;
 
   # Codex
   # -------------------------------

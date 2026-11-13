@@ -85,6 +85,60 @@ The home server configuration provisions base system dependencies, firewall rule
 
 ### Framework 13
 
+#### Sleep and Wake
+
+- **logind** owns lid-close and power-button events: closing the lid or a short power-button press requests suspend; a long press requests power-off. Default dock/external-monitor handling and post-resume holdoff are unchanged.
+- **hypridle** owns idle timers, locks the session before suspend, and sends a plain Hyprland DPMS-on command after resume or activity following idle screen-off.
+- **hyprlock** provides the lock screen. There are no compositor lid bindings, acpid power handlers, panel-recovery scripts, or custom resume debounce timers.
+
+After changing this setup, rebuild NixOS, reload Hyprland (`hyprctl reload`), and restart the idle daemon (`systemctl --user restart hypridle`). Test a lid-close/open cycle; if Linux resumes but the display remains dark, investigate the compositor/GPU path rather than adding another suspend handler.
+
+#### Caffeinate
+
+Search **Caffeinate** in Vicinae to toggle one hour of idle inhibition. While active, Waybar shows `CAF 60m` beside the DND indicator (or `CAF ∞` for indefinite mode). Click it to stop; right-click for a duration picker. The indicator disappears when inactive. Vicinae also exposes a **Choose duration** application action.
+
+```bash
+caffeinate               # Toggle one hour
+caffeinate on 30m        # Replace the current duration
+caffeinate on infinity   # Until stopped or the Hyprland session ends
+caffeinate menu          # Vicinae duration picker; Escape leaves state unchanged
+caffeinate off           # Restore normal idle behavior
+```
+
+A transient `caffeinate.service` holds only a systemd **idle** inhibitor. Hypridle stays running: idle dimming, automatic locking, display-off and idle suspend are paused, but manual locking, manual suspend and logind's lid handling remain available. **Automatic locking is paused, so lock manually before leaving the laptop unattended.** Existing brightness/display state is not reset when enabling Caffeinate.
+
+The worker releases its inhibitor on expiry, stop, failure or Hyprland exit; no disabled state survives reboot. It watches the compositor process/socket rather than `graphical-session.target`, which this session does not start. Other applications' inhibitors are not affected. Use `journalctl --user -u caffeinate.service` to investigate startup failures. State is runtime-only under `$XDG_RUNTIME_DIR/caffeinate`; Waybar uses signal 11 and a 15-second fallback refresh.
+
+After adding the module, make sure the new files are tracked by Git before the normal flake rebuild, then rebuild NixOS and restart Waybar. Validate idle suppression, timer expiry, manual locking, and a lid-close/open cycle locally before relying on it. Run the isolated regression tests with `node --test scripts/power/tests/caffeinate.test.mjs`.
+
+#### Ignore Lid
+
+Search **Ignore Lid** in Vicinae to toggle one hour without lid-close suspension. This is independent of Caffeinate. Waybar shows `LID 60m` beside `CAF` while active (or `LID ∞` for indefinite mode), and hides the indicator when inactive. Click to restore normal lid handling; right-click for the duration picker. Vicinae also exposes a **Choose duration** action.
+
+```bash
+lid-inhibit               # Toggle one hour of lid inhibition
+lid-inhibit on 30m        # Replace the current duration
+lid-inhibit on infinity   # Until stopped or the Hyprland session ends
+lid-inhibit menu          # Escape leaves the current state unchanged
+lid-inhibit off           # Restore normal lid handling
+```
+
+The transient `lid-inhibit.service` holds only a systemd **handle-lid-switch** block inhibitor. It does not block all sleep or change logind configuration. Manual locking, manual suspend, the power button, and Hypridle's idle locking/display-off/suspend timers remain unchanged. **Idle suspend still happens after 30 minutes unless Caffeinate is also enabled.** Enable both toggles to suppress both idle actions and lid-close suspension; Caffeinate also pauses automatic locking.
+
+**Do not put the running laptop in a bag.** Keeping it running with the lid closed can drain the battery or overheat it. Expiry or stopping the inhibitor while the lid is closed may immediately suspend the laptop; open the lid before testing expiry or stop. This toggle does not guarantee that the built-in display stays lit with the lid closed.
+
+Like Caffeinate, Ignore Lid uses a startup-readiness handshake, serialized controls, a suspend-aware timer, and compositor process/socket monitoring. Its inhibitor is released on expiry, stop, failure or Hyprland exit, and does not survive reboot. Runtime state is separate under `$XDG_RUNTIME_DIR/lid-inhibit`; Waybar uses signal 12 with a 15-second fallback refresh. Other applications' inhibitors, including Caffeinate's, are untouched. Failures are reported rather than claiming that lid handling is disabled. Inspect `journalctl --user -u lid-inhibit.service` for startup or authorization errors.
+
+Before a normal flake rebuild, track the new files:
+
+```bash
+git add scripts/power/lid-inhibit scripts/power/tests/lid-inhibit.test.mjs \
+  nix/nixos/hosts/framework-13/home/programs/lid-inhibit/default.nix
+nixos-rebuild-switch framework-13
+```
+
+Restart Waybar after rebuilding. With the lid open, enable Ignore Lid and verify `handle-lid-switch` appears in `systemd-inhibit --list`. Test a lid-close/open cycle while active, expiry with the lid open, normal lid-close suspension after disabling, and independence from Caffeinate. Manual suspend should still work. Run isolated power regressions with `node --test scripts/power/tests/*.test.mjs`.
+
 #### Audio Setup
 
 In order to have good audio, we need to install Easyeffects (configured through Nix) and also the [Framework DSP](https://github.com/cab404/framework-dsp).

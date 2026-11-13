@@ -17,7 +17,7 @@ let
   # To bump: see README.md.
   deepseekSetup = pkgs.fetchurl {
     url = "https://cdn.deepseek.com/api-docs/codex-deepseek-setup-en.sh";
-    hash = "sha256-d1ekHOICrdg3d1GNTVxnVxvbAx4xkies68UptvtxryA=";
+    hash = "sha256-YJMQf4/oIUnMXDXyVK5r0rGe3TgueFNmY5fmNsGE/gw=";
   };
 
   # `model_catalog_json` replaces Codex's built-in catalog wholesale. Upstream

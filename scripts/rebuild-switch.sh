@@ -179,8 +179,13 @@ if [ -n "${SSH_CONNECTION:-}" ]; then
     echo "(if connection drops: journalctl -fu nixos-rebuild-switch)"
     echo "--------------------------------------"
 
-    # flake git+file:// as root needs this (sudo normally keeps HOME=/home/e)
-    sudo git config --file /root/.gitconfig --add safe.directory "${HOME}/config"
+    # Bootstrap only: before /etc/gitconfig from programs.git.safe.directory
+    # exists, root still needs this for git+file:// flake eval (HOME=/root).
+    if ! sudo git config --file /root/.gitconfig --get-all safe.directory 2>/dev/null |
+        grep -Fxq "${HOME}/config"
+    then
+        sudo git config --file /root/.gitconfig --add safe.directory "${HOME}/config"
+    fi
 
     journalctl -u nixos-rebuild-switch -f -n 0 --no-pager -o cat |
         tee nixos-switch.log &
@@ -222,6 +227,15 @@ if [ "$HAS_GIT" = true ] && [ "$HAS_NIXFMT" = true ] && [ "$NO_COMMIT" = false ]
     # Commit all changes with the generation metadata
     # Use || true to prevent script exit when there's nothing to commit
     git commit -am "$current" || true
+fi
+
+# Sync the shared MCP server list into Cursor, pi and Zed. opencode reads it
+# directly through nix/nixos/modules/home/programs/opencode/mcp.nix.
+if [ -x "$HOME/config/scripts/utilities/mcp-sync.mjs" ]; then
+    echo "--------------------------------------"
+    echo "Syncing MCP configuration..."
+    echo "--------------------------------------"
+    "$HOME/config/scripts/utilities/mcp-sync.mjs" || echo "MCP sync failed (shared/mcp-sync.mjs)"
 fi
 
 # Return to the original directory
