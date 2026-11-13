@@ -150,7 +150,11 @@ let
     "  - mkdir -p /root/.hermes /var/lib/hermes/scratch"
     "  - chmod 700 /root/.hermes /var/lib/hermes"
     "  - /usr/local/bin/configure-browser-mcp.sh hermes"
-    "  - \"export HOME=/root; curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash\""
+    # --skip-browser: the guest installs no Playwright/Chromium and no Browser
+    # Use CLI, so a fresh VM never fetches the ~650 MB Chromium into
+    # /root/.cache/ms-playwright. Browser work goes to the host Playwright MCP
+    # server that configure-browser-mcp.sh registers above.
+    "  - \"export HOME=/root; curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash -s -- --skip-browser\""
     # Root FHS installs already place the launcher at /usr/local/bin/hermes.
     # Do not overwrite it with ~/.local/bin (that path is unused and dangling).
     "  - test -x /usr/local/bin/hermes || ln -sfn /usr/local/lib/hermes-agent/venv/bin/hermes /usr/local/bin/hermes"
