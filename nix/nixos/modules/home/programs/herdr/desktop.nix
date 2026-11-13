@@ -11,9 +11,13 @@ let
   cfg = config.modules.home.herdr;
   packages = pkgs.callPackage ./packages.nix { };
   # herdr-app's shipped SVG often fails to show in launchers; reuse the
-  # GPUI artwork (same brand mark) under the herdr-app icon name.
-  herdrIcon =
+  # GPUI artwork (same brand mark) under the herdr-app icon name, with the
+  # graphite mark ~10% darker so the launcher tile reads a bit denser.
+  herdrGpuiSvg =
     "${inputs.herdr-gpui.packages.${system}.default}/share/icons/hicolor/scalable/apps/herdr-gpui.svg";
+  herdrIcon = pkgs.runCommand "herdr-app.svg" { } ''
+    ${pkgs.gnused}/bin/sed 's/#303438/#2b2e32/g' ${herdrGpuiSvg} > $out
+  '';
 in
 {
   options.modules.home.herdr.desktop.enable = lib.mkEnableOption "Herdr desktop app and herdr-core";
