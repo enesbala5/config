@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Temporarily ignore logind lid events without inhibiting idle or manual sleep.
 # Lifecycle mirrors caffeinate; keep the services and runtime state independent.
-# Usage: lid-inhibit [toggle | on [30m|1h|2h|infinity] | off | menu | status]
+# Usage: lid-inhibit [toggle | on [30m|1h|2h|6h|infinity] | off | menu | status]
 set -euo pipefail
 
 UNIT=lid-inhibit.service
@@ -80,7 +80,7 @@ parse_duration() {
 		seconds=0
 		return
 	fi
-	[[ "$value" =~ ^([0-9]{1,6})([smh]?)$ ]] || die 'Invalid duration. Use 30m, 1h, 2h or infinity.'
+	[[ "$value" =~ ^([0-9]{1,6})([smh]?)$ ]] || die 'Invalid duration. Use 30m, 1h, 2h, 6h or infinity.'
 	number=$((10#${BASH_REMATCH[1]}))
 	case "${BASH_REMATCH[2]}" in
 		m) multiplier=60 ;;
@@ -203,12 +203,13 @@ fi
 
 seconds=3600
 if [[ "$command" == menu ]]; then
-	choice=$(printf '%s\n' '1 hour' '30 minutes' '2 hours' 'Until turned off' 'Restore lid handling' \
+	choice=$(printf '%s\n' '1 hour' '30 minutes' '2 hours' '6 hours' 'Until turned off' 'Restore lid handling' \
 		| vicinae dmenu --placeholder 'Ignore lid-close suspension') || exit 0
 	case "$choice" in
 		'1 hour') seconds=3600; command=on ;;
 		'30 minutes') seconds=1800; command=on ;;
 		'2 hours') seconds=7200; command=on ;;
+		'6 hours') seconds=21600; command=on ;;
 		'Until turned off') seconds=0; command=on ;;
 		'Restore lid handling') command=off ;;
 		*) exit 0 ;;

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Pause Hypridle's idle actions without disabling its lock/suspend handling.
-# Usage: caffeinate [toggle | on [30m|1h|2h|infinity] | off | menu | status]
+# Usage: caffeinate [toggle | on [30m|1h|2h|6h|infinity] | off | menu | status]
 set -euo pipefail
 
 UNIT=caffeinate.service
@@ -24,7 +24,7 @@ die() {
 usage() {
 	printf '%s\n' \
 		'Usage: caffeinate [toggle | on [DURATION] | off | menu | status]' \
-		'No arguments: toggle one hour of idle inhibition.' \
+		'No arguments: toggle two hours of idle inhibition.' \
 		'DURATION: positive seconds, or a number followed by s, m or h (maximum 7 days).' \
 		'Use "on infinity" to keep awake until stopped or the Hyprland session ends.'
 }
@@ -79,7 +79,7 @@ parse_duration() {
 		seconds=0
 		return
 	fi
-	[[ "$value" =~ ^([0-9]{1,6})([smh]?)$ ]] || die 'Invalid duration. Use 30m, 1h, 2h or infinity.'
+	[[ "$value" =~ ^([0-9]{1,6})([smh]?)$ ]] || die 'Invalid duration. Use 30m, 1h, 2h, 6h or infinity.'
 	number=$((10#${BASH_REMATCH[1]}))
 	case "${BASH_REMATCH[2]}" in
 		m) multiplier=60 ;;
@@ -200,20 +200,21 @@ if [[ "$command" == _hold ]]; then
 	exit 0
 fi
 
-seconds=3600
+seconds=7200
 if [[ "$command" == menu ]]; then
-	choice=$(printf '%s\n' '1 hour' '30 minutes' '2 hours' 'Until turned off' 'Stop Caffeinate' \
+	choice=$(printf '%s\n' '1 hour' '30 minutes' '2 hours' '6 hours' 'Until turned off' 'Stop Caffeinate' \
 		| vicinae dmenu --placeholder 'Keep awake') || exit 0
 	case "$choice" in
 		'1 hour') seconds=3600; command=on ;;
 		'30 minutes') seconds=1800; command=on ;;
 		'2 hours') seconds=7200; command=on ;;
+		'6 hours') seconds=21600; command=on ;;
 		'Until turned off') seconds=0; command=on ;;
 		'Stop Caffeinate') command=off ;;
 		*) exit 0 ;;
 	esac
 elif [[ "$command" == on ]]; then
-	parse_duration "${2:-1h}"
+	parse_duration "${2:-2h}"
 fi
 
 # Do not hold the control lock while the picker is open or inside the worker.
@@ -221,7 +222,7 @@ exec 9>"$STATE_DIR/control.lock"
 flock -x 9
 case "$command" in
 	toggle)
-		if active; then stop; notify 'Normal idle behavior restored.'; else start 3600; fi
+		if active; then stop; notify 'Normal idle behavior restored.'; else start "$seconds"; fi
 		;;
 	on) start "$seconds" ;;
 	off) stop; notify 'Normal idle behavior restored.' ;;

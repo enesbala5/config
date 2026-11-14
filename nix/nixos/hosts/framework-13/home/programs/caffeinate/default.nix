@@ -28,7 +28,7 @@ in
   xdg.desktopEntries.caffeinate = {
     name = "Caffeinate";
     genericName = "Keep awake";
-    comment = "Toggle one hour without idle dimming, locking or suspend";
+    comment = "Toggle two hours without idle dimming, locking or suspend";
     # Absolute path avoids depending on the launcher's icon-theme lookup.
     icon = "${pkgs.papirus-icon-theme}/share/icons/Papirus/64x64/apps/caffeine.svg";
     exec = lib.getExe caffeinate;

@@ -40,7 +40,6 @@
     "alt-[": "tab.prev",
     "ctrl-shift-pagedown": "space.next",
     "ctrl-shift-pageup": "space.prev",
-    "ctrl-alt-down": "layout-controls.bottom",
     "alt-down": "agent.next",
     "alt-up": "agent.prev",
     "ctrl-shift-b": "layout.toggle:sidebar",
@@ -84,6 +83,7 @@
     "ctrl-shift-f": "terminal.search",
     "ctrl-v": "terminal.paste_image",
     "ctrl-insert": "terminal.copy",
-    "shift-insert": "terminal.paste"
+    "shift-insert": "terminal.paste",
+    "ctrl-alt-down": "send:\u001b[1;7B"
   }
 }

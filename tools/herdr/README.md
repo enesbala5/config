@@ -173,8 +173,8 @@ chords: Ctrl+T / Ctrl+W for new / close tab, Ctrl+Tab family for tab
 cycling, Ctrl+P / Ctrl+Alt+P for the picker, Ctrl+Shift+K / Ctrl+Shift+P
 for the command palette. Ctrl+Alt+Down uses `layout-controls.bottom` in the t3
 layouts: scroll Herdr's active terminal to the bottom and forward the same key
-to its program. Pi maps it to `tui.altScreen.bottom` (alongside Ctrl+End), so
-fullscreen transcripts jump to the latest message too. Other programs also
+to its program. Pi maps it to `tui.altScreen.bottom`, so fullscreen
+transcripts jump to the latest message too. Other programs also
 receive Ctrl+Alt+Down. Ctrl+W steals readline word-delete inside panes
 (same tradeoff as the TUI). `framework-13` enables desktop (gpui off);
 `home-server` enables core only, with the TUI.
