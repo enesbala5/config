@@ -35,7 +35,7 @@ let
         mkdir -p "$dest"
         # Only copy files the override ships (main.js, assets); leave
         # Herdr-generated d.ts / jsconfig alone when absent from src.
-        find "$mod" -maxdepth 1 -type f -print0 | while IFS= read -r -d '' f; do
+        find "$mod" -maxdepth 1 -type f -print0 | while IFS= read -r -d "" f; do
           cp -f "$f" "$dest/"
         done
       done

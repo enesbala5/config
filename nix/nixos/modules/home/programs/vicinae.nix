@@ -70,6 +70,9 @@ in
 
         favorites = [
           "applications:zen-beta"
+          "applications:herdr-app.desktop"
+          "applications:grok-bot.desktop"
+          "applications:com.nousresearch.hermes.desktop"
           "applications:obsidian"
           "applications:cursor"
           "applications:dev.zed.Zed-Nightly.desktop"
@@ -88,6 +91,8 @@ in
         };
 
         providers = {
+          core.entrypoints.search-tray.enabled = true;
+
           files = {
             entrypoints.search.alias = "f";
 
@@ -163,6 +168,7 @@ in
 
           "@dagimg-dot/vicinae-extension-wifi-commander-0" = {
             entrypoints.scan-wifi.alias = "wifi";
+            preferences.network-cli-tool = "nmcli";
           };
         };
       };

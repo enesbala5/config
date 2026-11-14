@@ -21,7 +21,15 @@ Chrome fallback: `helium-cdp --chrome`
 
 Use `127.0.0.1`, not `localhost` (IPv6).
 
-## Prefer Cursor Playwright MCP
+## Visual evidence
+
+Use `page.screenshot(...)` / `locator.screenshot(...)` for page or element
+screenshots; use `hypruse screenshot --window ADDR` for desktop/window images.
+For video, follow sibling `screenrecord/SKILL.md` (sampled isolated windows or
+native display recording). Playwright `recordVideo` must be set when creating
+a context; it cannot be enabled retroactively on an existing CDP context.
+
+## Prefer browser MCP (optional)
 
 If the `playwright` MCP server is connected, use those tools. It is configured with `--cdp-endpoint=http://127.0.0.1:9222` via `scripts/browser/playwright-mcp.sh`. If MCP fails, run `helium-cdp` then ask the user to reconnect the Playwright MCP server.
 

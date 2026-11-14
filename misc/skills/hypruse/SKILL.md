@@ -102,6 +102,15 @@ background: their cursor, keyboard focus and workspace stay where they are.
   human's screen before `launch` moves it; the note says so. Never
   `launch` a command that drives the desktop itself (hyprctl, wtype).
 
+## Visual evidence
+
+Use `hypruse screenshot --window ADDR --out PATH` for app images (isolated
+surfaces with recent grim/Hyprland); use the browser's screenshot API for web
+pages. For video, follow sibling `screenrecord/SKILL.md`: it supports sampled
+isolated-window recording without focus changes, plus native monitor/region
+recording. Hidden apps can stop drawing; verify that expected changes appear.
+A refusal here is not permission to retry capture through another tool.
+
 ## Coordinates
 
 One space everywhere: Hyprland global logical pixels, the space window `at`,

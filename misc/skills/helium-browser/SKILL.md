@@ -31,6 +31,15 @@ The guest config keeps `agent.disabled_toolsets: [browser]`, so Hermes registers
 
 `tools/incus/configure-browser-mcp.sh hermes` writes the MCP server, the backend pin and the disabled toolset, and `hermes-vm-manage.sh start` re-runs it, so the config survives a VM rebuild.
 
+## Visual evidence
+
+Prefer the browser screenshot tool and existing test video/trace artifacts.
+For local desktop/window screenshots use `hypruse screenshot`; for desktop
+video see sibling `screenrecord/SKILL.md`. That CLI needs a live Hyprland
+session and does not record this headless host browser from inside the VM.
+Without an MCP-integrated agent, the same browser tools can be called through
+ordinary HTTP; see `references/http-client.md`.
+
 ## Recordings
 
 Traces, webm video, and auto-named screenshots land in:
