@@ -13,7 +13,8 @@ tools/herdr/
 │   ├── keys.json                   # ~/.config/herdr-app/keys.json (symlinked)
 │   └── mods/                          # desktop mod overrides; launcher re-copies each after start
 │       ├── toast/                     # notify() toast content (host owns chrome)
-│       └── huajar-agents/             # agents list: two-row title / workspace·worktree
+│       ├── huajar-agents/             # agents list: two-row title / workspace·worktree
+│       └── spaces-with-worktrees/     # spaces list with nested git worktrees
 ├── integrations/
 │   └── cursor/                     # Cursor → herdr-core OSC 7501 bridge
 │       ├── desktop-status.sh       # ~/.cursor/herdr-desktop-status.sh
