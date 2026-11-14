@@ -47,6 +47,8 @@ Change or add an always-on rule in both files in the same edit. Current pairs:
 
 - ADHD: `misc/agents/AGENTS.md` points at the skill; `misc/rules/general/i-have-adhd.mdc` is the Cursor copy.
 - Worktrees: `misc/agents/AGENTS.md` ("Git worktrees") and `misc/rules/general/worktrees.mdc`.
+- Background tasks: `misc/agents/AGENTS.md` ("Background tasks (`hc`)") and `misc/rules/general/hc-background-tasks.mdc`.
+
 
 Run `/reload` in pi after changing `AGENTS.md`.
 

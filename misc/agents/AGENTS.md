@@ -8,6 +8,13 @@ Cursor does not load this file. Any rule added here also needs a matching
 `alwaysApply` file under `misc/rules/general/`. See `tools/pi/README.md`
 ("Default instructions").
 
+## Background tasks (`hc`)
+
+Use `hc` to spawn background tasks and subagents: `hc run --bg …` for a
+background process, or `hc run <template> "<task>"` for a coding-agent
+template. Inspect with `hc ls` / `hc read <t>`; wait with `hc wait <t>`.
+See `hc --help`.
+
 ## Git worktrees
 
 Put git worktrees at `~/dev/misc/worktrees/<repo-name>/<branch-name>`.
