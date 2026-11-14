@@ -13,5 +13,6 @@
   ];
 
   modules.home.herdr.enable = true;
+  modules.home.herdr.core.enable = true;
   modules.home.dsh.enable = false;
 }

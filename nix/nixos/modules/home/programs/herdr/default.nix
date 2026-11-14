@@ -17,6 +17,7 @@ in
   imports = [
     ./fonts.nix
     ./plugins.nix
+    ./core.nix
     ./desktop.nix
     ./gpui.nix
     ./mobile.nix

@@ -50,13 +50,13 @@ let
   '';
 in
 {
-  options.modules.home.herdr.desktop.enable = lib.mkEnableOption "Herdr desktop app and herdr-core";
+  options.modules.home.herdr.desktop.enable = lib.mkEnableOption "Herdr desktop app";
 
   config = lib.mkIf (cfg.enable && cfg.desktop.enable) {
-    home.packages = [
-      packages.herdr-core
-      packages.herdr-app
-    ];
+    # The desktop app is a client of herdr-core, so pull the core in with it.
+    modules.home.herdr.core.enable = true;
+
+    home.packages = [ packages.herdr-app ];
 
     # Same pattern as the TUI config.toml: only keys.json is managed; the rest
     # of ~/.config/herdr-app stays writable runtime state (desktop/mods are
