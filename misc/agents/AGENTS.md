@@ -15,6 +15,17 @@ background process, or `hc run <template> "<task>"` for a coding-agent
 template. Inspect with `hc ls` / `hc read <t>`; wait with `hc wait <t>`.
 See `hc --help`.
 
+## Distinctive session and tab titles
+
+When naming a session, tab, or task in any harness, make its purpose easy to
+recognize among neighboring tabs. Lead with the concrete project, feature,
+component, or topic; preserve identifying PR/issue numbers and acronyms; put
+the activity after the identifying detail. Prefer `SEO PR #401 Review` over
+`Reviewing pull request`, and `Coverlttr Stripe Webhooks` over `Fixing bugs`.
+Keep titles short, but never remove the detail that distinguishes the task.
+Use only known context; do not invent identifiers. Preserve explicit user names.
+Apply this whenever the harness supports setting a title or session name.
+
 ## Git worktrees
 
 Put git worktrees at `~/dev/misc/worktrees/<repo-name>/<branch-name>`.

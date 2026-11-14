@@ -1,30 +1,21 @@
-// Reports pi's session display name to Herdr as the pane's agent *title*.
+// Names Pi sessions for both Herdr TUI and Desktop/core.
 //
-// Herdr's Auto Title plugin (herdr.auto-title) names a tab after the highest
-// source it can find. The "agent title" rung (confidence 90) reads
-// `PaneInfo.title`, which an integration sets through `pane.report_metadata`.
-// Herdr's own pi integration (`herdr integration install pi`, written to
-// extensions/herdr-agent-state.ts) reports the agent's state and session but
-// never its title, so Auto Title has nothing but the terminal title to go on —
-// and pi's terminal title is the static `π - <dir>`, not the session's topic.
+// Pi emits its session name in the native OSC terminal title; Desktop/core
+// consumes that directly. Unnamed sessions otherwise show only `π - <dir>`.
+// The TUI additionally needs pane.report_metadata so its Auto Title plugin
+// can rank the agent title above terminal/process fallbacks. Its metadata has
+// a TTL, heartbeat, and best-effort shutdown clear. Never use that protocol on
+// the Desktop/core socket: these are separate Herdr runtimes.
 //
-// This extension is the missing half. It is deliberately a *separate* file:
-// Herdr owns herdr-agent-state.ts and overwrites it on every integration
-// install/update, so the hook has to live beside it.
+// Keep this separate from Herdr's managed herdr-agent-state.ts, which is
+// overwritten on integration updates and does not supply a task title.
 //
-// pi has no auto-titling of its own: a session name is set by `/name`, by
-// `pi --name`, or by an extension. So when pi starts a session in Herdr with no
-// name, this names the tab from the opening prompt and then asks a model for a
-// better one. Both are cut to four words here, so no title reaches the tab
-// longer than that. A name the user sets is never overwritten, and a name this
-// hook seeded earlier is re-generated on the next prompt after a reload or
-// resume.
-//
-// Titles are reported with a TTL and refreshed on a heartbeat, so a pi that
-// dies without a clean shutdown stops naming its tab within the TTL instead of
-// freezing it. `session_shutdown` clears it immediately on the tidy path.
+// Seed an unnamed session from its opening prompt, then ask a model for a
+// distinctive subject-first title (up to four words). Preserve identifiers
+// such as PR #401. Explicit user names are left alone. Reload/resume can name
+// an existing unnamed conversation immediately, without another user turn.
 
-import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import net from 'node:net';
 
 const HERDR_ENV = process.env.HERDR_ENV;
@@ -41,8 +32,15 @@ const source = 'herdr:pi-title';
 const ttlMs = 300_000;
 const heartbeatMs = 120_000;
 
-function enabled(): boolean {
+function tuiEnabled(): boolean {
 	return HERDR_ENV === '1' && !!socketPath && !!paneId;
+}
+
+function enabled(): boolean {
+	// Desktop/core uses HC_* rather than the unrelated TUI socket protocol.
+	// Naming the Pi session emits its native OSC terminal title, which core
+	// already consumes. Never send pane.report_metadata to a core socket.
+	return tuiEnabled() || !!process.env.HC_TERMINAL_ID;
 }
 
 // The padding a first prompt usually carries, stripped so the title starts at
@@ -68,7 +66,7 @@ const stopWords = new Set(
 
 // A token worth keeping in a title: it starts with a letter or digit and holds
 // no path, URL, slash command, or flag.
-const titleToken = /^[\p{L}\p{N}][\p{L}\p{N}'’.+&-]*$/u;
+const titleToken = /^(?:#[0-9]+|[\p{L}\p{N}][\p{L}\p{N}'’.+&-]*)$/u;
 
 // A title holds words, so quotes, backticks, and a slash command's leading
 // punctuation come off before the token is judged. A path keeps its last
@@ -83,7 +81,7 @@ function bareWord(token: string): string | undefined {
 		word = segments[segments.length - 1]!;
 	}
 
-	const bare = word.replace(/^[^\p{L}\p{N}]+/u, '').replace(/[^\p{L}\p{N}]+$/u, '');
+	const bare = word.replace(/^[^\p{L}\p{N}#]+/u, '').replace(/[^\p{L}\p{N}]+$/u, '');
 	return bare && titleToken.test(bare) ? bare : undefined;
 }
 
@@ -91,7 +89,7 @@ function bareWord(token: string): string | undefined {
 // paths, no slash commands, no trailing punctuation.
 function shorten(text: string): string | undefined {
 	const tokens = text
-		.replace(/`[^`]*`/g, ' ')
+		.replace(/`/g, '')
 		.split(/\s+/)
 		.map(bareWord)
 		.filter((token): token is string => token !== undefined);
@@ -114,7 +112,7 @@ function shorten(text: string): string | undefined {
 	return (title.charAt(0).toUpperCase() + title.slice(1)).slice(0, maxTitleChars).trim() || undefined;
 }
 
-// The prompt's first line, cut down to a tab-sized label. Used as the name the
+// The prompt's first line, condensed to a subject-first label. Used as the name the
 // tab carries before the model answers, and as the one it falls back to.
 function summarize(prompt: string): string | undefined {
 	const firstLine = prompt
@@ -126,7 +124,16 @@ function summarize(prompt: string): string | undefined {
 	}
 
 	const stripped = firstLine.replace(fillerPrefix, '').replace(wrapperPrefix, '').trim();
-	return shorten(stripped || firstLine);
+	const normalized = (stripped || firstLine)
+		.replace(/https?:\/\/github\.com\/[^/\s]+\/([^/\s]+)\/pull\/(\d+)\S*/gi, '$1 PR #$2')
+		.replace(/\bpull request\s*#?(\d+)/gi, 'PR #$1');
+	const action = normalized.match(/^(review(?:ing)?|fix(?:ing)?|debug(?:ging)?|implement(?:ing)?|add(?:ing)?|update|build(?:ing)?)\b\s*/i);
+	const subject = action ? normalized.slice(action[0].length) : normalized;
+	const words = subject.split(/\s+/).map(bareWord)
+		.filter((word): word is string => !!word && !stopWords.has(word.toLowerCase()));
+	const verb = action?.[1]?.replace(/^(review|fix|debug|implement|add|build)(?:ing)?$/i, '$1');
+	// Reserve a word for the activity, with the identifying subject first.
+	return shorten([...words.slice(0, verb ? maxTitleWords - 1 : maxTitleWords), ...(verb ? [verb] : [])].join(' '));
 }
 
 // A name that is a leading slice of the opening prompt is one an older version
@@ -151,11 +158,16 @@ function seededFromPrompt(name: string, opener: string | undefined): boolean {
 	return bare.toLowerCase().startsWith(named) || firstLine.toLowerCase().startsWith(named);
 }
 
-// A short, action-first phrase with no trailing punctuation. Tighter than the
-// 5-7 words pi-sidebar-tui asks for its panel, because a tab is narrower than
-// the sidebar.
+// Identifying information comes before the activity so neighboring tabs are
+// distinguishable even when their labels are truncated.
 const titlePrompt =
-	'Write a 2-4 word task title for this request. Never more than 4 words. Start with an action verb. No punctuation, no quotes. Output only the title.';
+	'Write a distinctive 2-4 word tab title for this request. Never more than 4 words. ' +
+	'Lead with the concrete project, feature, component, or topic, then the activity. ' +
+	'Preserve identifying PR/issue numbers (including #), names, and acronyms. ' +
+	'Use the working directory only when it identifies the project; never invent details. ' +
+	'Avoid generic titles such as Reviewing pull request or Fixing bugs. ' +
+	'Good examples: SEO PR #401 Review; Coverlttr Stripe Webhooks; Herdr Pi Desktop Titles. ' +
+	'No quotes or decorative punctuation. Output only the title.';
 
 // A generation that has not answered by now is not worth waiting for: the tab
 // already carries the prompt summary, and a late title would only flicker it.
@@ -197,6 +209,7 @@ function tidyTitle(text: string): string | undefined {
 type TitleMessage = { content?: Array<{ type?: string; text?: string }> };
 
 type TitleContext = {
+	cwd?: string;
 	modelRegistry?: {
 		complete?: (model: unknown, context: unknown, options: unknown) => Promise<TitleMessage>;
 		getAvailable?: () => TitleModel[];
@@ -278,7 +291,7 @@ async function generateTitle(prompt: string, ctx: TitleContext): Promise<string 
 					model,
 					{
 						systemPrompt: titlePrompt,
-						messages: [{ role: 'user', content: [{ type: 'text', text: prompt.slice(0, 500) }], timestamp: Date.now() }]
+						messages: [{ role: 'user', content: [{ type: 'text', text: `Working directory: ${ctx.cwd ?? 'unknown'}\nRequest: ${prompt.slice(0, 4000)}` }], timestamp: Date.now() }]
 					},
 					{ maxTokens: 256 }
 				),
@@ -299,7 +312,7 @@ async function generateTitle(prompt: string, ctx: TitleContext): Promise<string 
 }
 
 function sendRequest(request: unknown, timeoutMs = 1000): Promise<boolean> {
-	if (!enabled()) {
+	if (!tuiEnabled()) {
 		return Promise.resolve(true);
 	}
 
@@ -356,6 +369,7 @@ export default function herdrPiTitleExtension(pi: ExtensionAPI): void {
 	// only name the model title is allowed to replace.
 	let seeded: string | undefined;
 	let generationStarted = false;
+	let sessionGeneration = 0;
 
 	function currentName(): string | undefined {
 		try {
@@ -383,15 +397,21 @@ export default function herdrPiTitleExtension(pi: ExtensionAPI): void {
 			return;
 		}
 		active = true;
+		sessionGeneration++;
+		generationStarted = false;
+		seeded = undefined;
 		sync();
+		// Reload/resume should repair an unnamed session without another prompt.
+		const opener = firstPrompt(ctx);
+		if (opener) nameFromPrompt(opener, ctx);
 		if (!heartbeat) {
 			heartbeat = setInterval(sync, heartbeatMs);
 			heartbeat.unref?.();
 		}
 	});
 
-	pi.on('before_agent_start', (event, ctx) => {
-		if (ctx?.mode !== 'tui') {
+	function nameFromPrompt(request: string, ctx: ExtensionContext): void {
+		if (ctx?.mode !== 'tui' || !active) {
 			return;
 		}
 
@@ -415,7 +435,8 @@ export default function herdrPiTitleExtension(pi: ExtensionAPI): void {
 			seeded = existing;
 		}
 
-		const prompt = (ours ? opener : typeof event?.prompt === 'string' ? event.prompt : '') ?? '';
+		const prompt = (ours ? opener : request) ?? '';
+		const generation = sessionGeneration;
 		const fallback = summarize(prompt);
 
 		// Name the tab immediately with the prompt summary, then let the model
@@ -431,6 +452,7 @@ export default function herdrPiTitleExtension(pi: ExtensionAPI): void {
 		}
 
 		void generateTitle(prompt, ctx).then((title) => {
+			if (!active || generation !== sessionGeneration) return;
 			const name = currentName();
 			// A name that is neither ours nor the seed was set while we generated.
 			if (name && name !== seeded) {
@@ -448,7 +470,9 @@ export default function herdrPiTitleExtension(pi: ExtensionAPI): void {
 				// As above.
 			}
 		});
-	});
+	}
+
+	pi.on('before_agent_start', (event, ctx) => nameFromPrompt(event.prompt, ctx));
 
 	pi.on('session_info_changed', (event, ctx) => {
 		if (ctx?.mode !== 'tui') {
@@ -460,6 +484,7 @@ export default function herdrPiTitleExtension(pi: ExtensionAPI): void {
 	});
 
 	pi.on('session_shutdown', () => {
+		sessionGeneration++;
 		if (heartbeat) {
 			clearInterval(heartbeat);
 			heartbeat = undefined;
@@ -468,5 +493,6 @@ export default function herdrPiTitleExtension(pi: ExtensionAPI): void {
 			// Best effort: clear the title so Auto Title can fall back immediately.
 			void reportTitle(undefined);
 		}
+		active = false;
 	});
 }

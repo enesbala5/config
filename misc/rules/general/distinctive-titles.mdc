@@ -1,0 +1,18 @@
+---
+description: Make session and tab titles distinctive across all harnesses
+alwaysApply: true
+---
+
+# Distinctive session and tab titles
+
+Same text as the "Distinctive session and tab titles" section in
+`misc/agents/AGENTS.md`. Keep both in sync.
+
+When naming a session, tab, or task in any harness, make its purpose easy to
+recognize among neighboring tabs. Lead with the concrete project, feature,
+component, or topic; preserve identifying PR/issue numbers and acronyms; put
+the activity after the identifying detail. Prefer `SEO PR #401 Review` over
+`Reviewing pull request`, and `Coverlttr Stripe Webhooks` over `Fixing bugs`.
+Keep titles short, but never remove the detail that distinguishes the task.
+Use only known context; do not invent identifiers. Preserve explicit user names.
+Apply this whenever the harness supports setting a title or session name.

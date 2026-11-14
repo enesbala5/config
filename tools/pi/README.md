@@ -48,35 +48,52 @@ Change or add an always-on rule in both files in the same edit. Current pairs:
 - ADHD: `misc/agents/AGENTS.md` points at the skill; `misc/rules/general/i-have-adhd.mdc` is the Cursor copy.
 - Worktrees: `misc/agents/AGENTS.md` ("Git worktrees") and `misc/rules/general/worktrees.mdc`.
 - Background tasks: `misc/agents/AGENTS.md` ("Background tasks (`hc`)") and `misc/rules/general/hc-background-tasks.mdc`.
+- Distinctive titles: `misc/agents/AGENTS.md` ("Distinctive session and tab titles") and `misc/rules/general/distinctive-titles.mdc`.
 
 
 Run `/reload` in pi after changing `AGENTS.md`.
 
 ### Herdr tab titles
 
-`herdr-pi-title.ts` reports the pi session name to Herdr as the pane's agent
-*title* (`pane.report_metadata`), which is the source Herdr's Auto Title plugin
-ranks highest when naming tabs. Herdr's own pi integration
-(`herdr-agent-state.ts`, owned and overwritten by `herdr integration install pi`)
-reports state and session but never a title, which is why pi tabs otherwise fall
-back to the static `π - <dir>` terminal title. The hook lives in a separate file
-so an integration update cannot remove it, and reports with a TTL so a dead pi
-stops naming its tab.
+`herdr-pi-title.ts` supports both Herdr runtimes:
 
-pi has no auto-titling of its own, so the extension also names an unnamed
-session from its opening prompt. The prompt's first line is cut to a four-word
-label and set as the session name straight away, so the tab never carries the
-raw prompt or the static terminal title; then the session's model is asked for
-a 2-4 word action-first title, which replaces the label when it arrives. If that
-model cannot answer, a cheap model on a configured provider is tried, and if no
-model answers the four-word label stays. Every path goes through the same
-four-word cut, so a title is never longer than four words whatever the model
-returns.
+- **TUI** (`HERDR_ENV=1`, `HERDR_SOCKET_PATH`, `HERDR_PANE_ID`): reports the Pi
+  session name as pane metadata (`pane.report_metadata`). Auto Title ranks this
+  above terminal/process fallbacks. Reports have a TTL, heartbeat, and shutdown
+  clear so a dead Pi does not freeze its title.
+- **Desktop/core** (`HC_TERMINAL_ID`): names the Pi session, which Pi includes
+  in its native OSC terminal title. Core consumes this directly; no TUI plugin
+  or metadata call is needed. The two socket protocols must not be mixed.
+
+The hook is separate from `herdr-agent-state.ts`, which is owned and overwritten
+by `herdr integration install pi` and reports state/session but not task titles.
+
+Pi has no built-in auto-naming, so this extension seeds an unnamed session from
+its opening prompt, then asks the session's model for a distinctive 2-4 word
+**subject-first** title. Prefer `SEO PR #401 Review` over `Reviewing pull request`:
+keep project/component names, acronyms, and PR/issue numbers (including `#`).
+The model receives the working directory and request for identifying context.
+If it cannot answer, configured fallback models are tried; if none answer, the
+prompt-derived label stays. Generated names are capped at four words/40 chars;
+explicit user names are not capped. Backticked component names and GitHub PR
+links retain their identifying content in the fallback.
 
 A name set by hand with `/name <text>` or `pi --name <text>` is never
 overwritten, and is reported as-is. A seed from an earlier run — including the
 raw-prompt titles the previous version left behind — is recognised on reload and
-replaced, so a long title does not outlive the update that fixed it.
+replaced. Reload/resume also names existing unnamed conversations immediately;
+it does not wait for another prompt. Late generation cannot rename a different
+session or overwrite a manual rename.
+
+After updating the extension, run `/reload` in an existing Pi session (new
+sessions load it automatically). Test without credentials or a live Herdr server:
+
+```sh
+node --test tools/pi/tests/herdr-pi-title.test.mjs
+```
+
+The shared title policy for other harnesses lives in `misc/agents/AGENTS.md` and
+its always-on Cursor adapter, `misc/rules/general/distinctive-titles.mdc`.
 
 The `pi` binary itself comes from the `pi` flake input
 (`github:earendil-works/pi/stable`) and is added to `home.packages` in
