@@ -98,7 +98,7 @@ test("help needs no session, inactive status is valid hidden JSON", async (t) =>
   assert.equal(f.calls(), "");
 });
 
-test("default toggles a single idle-only service for one hour, then stops", async (t) => {
+test("default toggles a single idle-only service for two hours, then stops", async (t) => {
   const f = await fixture(t);
   assert.equal(f.run().status, 0);
   const args = f.args();
@@ -106,8 +106,8 @@ test("default toggles a single idle-only service for one hour, then stops", asyn
   assert.ok(args.includes("--unit=caffeinate.service"));
   assert.ok(args.includes("--no-ask-password"));
   assert.ok(!args.some((arg) => arg.includes("--what=sleep")));
-  assert.equal(args.at(-1), "3600");
-  assert.match(JSON.parse(f.run(["status"]).stdout).text, /^CAF 60m$/);
+  assert.equal(args.at(-1), "7200");
+  assert.match(JSON.parse(f.run(["status"]).stdout).text, /^CAF 120m$/);
   assert.equal(f.run().status, 0);
   assert.equal(existsSync(f.active), false);
   assert.equal(f.calls().split("\n").filter((line) => line === "start").length, 1);
@@ -115,7 +115,7 @@ test("default toggles a single idle-only service for one hour, then stops", asyn
 
 test("durations replace existing worker; infinity is explicit", async (t) => {
   const f = await fixture(t);
-  for (const [duration, seconds] of [["30m", "1800"], ["2h", "7200"], ["01m", "60"], ["3s", "3"], ["infinity", "0"]]) {
+  for (const [duration, seconds] of [["30m", "1800"], ["2h", "7200"], ["6h", "21600"], ["01m", "60"], ["3s", "3"], ["infinity", "0"]]) {
     assert.equal(f.run(["on", duration]).status, 0, duration);
     assert.equal(f.args().at(-1), seconds);
   }
@@ -136,7 +136,7 @@ test("invalid arguments never stop an existing worker", async (t) => {
 
 test("menu choices, Escape and empty selection", async (t) => {
   const f = await fixture(t);
-  for (const [choice, seconds] of [["1 hour", "3600"], ["30 minutes", "1800"], ["2 hours", "7200"], ["Until turned off", "0"]]) {
+  for (const [choice, seconds] of [["1 hour", "3600"], ["30 minutes", "1800"], ["2 hours", "7200"], ["6 hours", "21600"], ["Until turned off", "0"]]) {
     assert.equal(f.run(["menu"], { MENU_CHOICE: choice }).status, 0);
     assert.equal(f.args().at(-1), seconds);
   }

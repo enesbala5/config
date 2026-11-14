@@ -95,11 +95,12 @@ After changing this setup, rebuild NixOS, reload Hyprland (`hyprctl reload`), an
 
 #### Caffeinate
 
-Search **Caffeinate** in Vicinae to toggle one hour of idle inhibition. While active, Waybar shows `CAF 60m` beside the DND indicator (or `CAF ∞` for indefinite mode). Click it to stop; right-click for a duration picker. The indicator disappears when inactive. Vicinae also exposes a **Choose duration** application action.
+Search **Caffeinate** in Vicinae to toggle two hours of idle inhibition. While active, Waybar shows `CAF 120m` beside the DND indicator (or `CAF ∞` for indefinite mode). Click it to stop; right-click for a duration picker. The indicator disappears when inactive. Vicinae also exposes a **Choose duration** application action.
 
 ```bash
-caffeinate               # Toggle one hour
+caffeinate               # Toggle two hours
 caffeinate on 30m        # Replace the current duration
+caffeinate on 6h         # Keep awake for six hours (also in the duration picker)
 caffeinate on infinity   # Until stopped or the Hyprland session ends
 caffeinate menu          # Vicinae duration picker; Escape leaves state unchanged
 caffeinate off           # Restore normal idle behavior
@@ -118,6 +119,7 @@ Search **Ignore Lid** in Vicinae to toggle one hour without lid-close suspension
 ```bash
 lid-inhibit               # Toggle one hour of lid inhibition
 lid-inhibit on 30m        # Replace the current duration
+lid-inhibit on 6h         # Ignore lid events for six hours (also in the duration picker)
 lid-inhibit on infinity   # Until stopped or the Hyprland session ends
 lid-inhibit menu          # Escape leaves the current state unchanged
 lid-inhibit off           # Restore normal lid handling
