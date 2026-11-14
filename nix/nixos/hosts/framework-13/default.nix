@@ -18,6 +18,9 @@ in
 
     # Host-level service backups (restic -> Cloudflare R2)
     ./modules/backups
+
+    # Existing Hyprland desktop streaming over Tailscale (issue #111).
+    ./modules/sunshine
   ];
 
   # Seed a writable rclone.conf for gdrive bisync (OAuth token refresh).
