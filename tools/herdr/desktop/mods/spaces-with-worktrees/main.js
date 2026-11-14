@@ -224,7 +224,8 @@ export default class Spaces extends View {
       out.push({ ...r, tree: null });
       if (!r.g || r.g.linked || placed.has(r.g.repo)) continue;
       placed.add(r.g.repo);
-      const kids = list.filter((k) => nested(k) && k.g.repo === r.g.repo && this.interestingKid(k));
+      // Open worktree spaces always nest; closed worktrees only when dirty/agent-in.
+      const kids = list.filter((k) => nested(k) && k.g.repo === r.g.repo);
       const open = new Set(list.map((k) => norm(k.g?.top)).filter(Boolean));
       const on = r.w.machine ?? null;
       const ghosts = (this.wts[r.g.repo] ?? [])
@@ -251,20 +252,9 @@ export default class Spaces extends View {
     });
   }
 
-  // Agent in this space that still needs a glance (working / blocked / unseen done).
-  spaceBusy(w) {
-    const tabs = new Set((w.tabs ?? []).map((c) => c.id));
-    return panes().some((p) => tabs.has(p.tab) && (p.status === "working" || p.status === "blocked" || p.status === "done"));
-  }
-
-  // Ghosts / nested worktree spaces: dirty, agent inside, selected, or busy agent.
+  // Closed worktrees only: dirty, or an agent inside.
   interestingGhost(wt, on) {
     return this.wtDirty[norm(wt.path)] || this.agentIn(wt.path, on);
-  }
-
-  interestingKid(k) {
-    const top = k.g?.top;
-    return Boolean(k.w.active || this.spaceBusy(k.w) || (top && (this.wtDirty[norm(top)] || this.agentIn(top, k.w.machine ?? null))));
   }
 
   openGhost({ w, ghost }) {
