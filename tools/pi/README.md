@@ -155,6 +155,7 @@ pi auth check --provider deepseek
 | `Shift+Tab` | Cycle normal → plan → ask mode (`modes/`) |
 | `Ctrl+Alt+P` | Jump to/from plan mode (`modes/`) |
 | `Ctrl+Backspace` | Delete a word instead of deleting the session (`keybindings.json`) |
+| `Ctrl+Alt+Down` | Jump to the transcript end and follow new output (`keybindings.json`; Herdr also scrolls its own viewport to the bottom first) |
 
 `sidebar-toggle.ts` exists because `pi-sidebar-tui` hardcodes `Ctrl+Shift+T` as
 an *extension* shortcut. Extension shortcuts are keyed by their literal key and
