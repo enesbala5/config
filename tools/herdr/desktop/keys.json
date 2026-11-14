@@ -40,7 +40,7 @@
     "alt-[": "tab.prev",
     "ctrl-shift-pagedown": "space.next",
     "ctrl-shift-pageup": "space.prev",
-    "ctrl-alt-down": {"command": "terminal.scroll", "args": {"to": "bottom"}},
+    "ctrl-alt-down": "t3-chrome.bottom",
     "alt-down": "agent.next",
     "alt-up": "agent.prev",
     "ctrl-shift-b": "layout.toggle:sidebar",

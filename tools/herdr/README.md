@@ -14,6 +14,7 @@ tools/herdr/
 │   └── mods/                          # desktop mod overrides; launcher re-copies each after start
 │       ├── toast/                     # notify() toast content (host owns chrome)
 │       ├── huajar-agents/             # agents list: two-row title / workspace·worktree
+│       ├── picker/                    # Go to: session titles, icons, status and shared state age
 │       └── spaces-with-worktrees/     # spaces list with nested git worktrees
 ├── integrations/
 │   └── cursor/                     # Cursor → herdr-core OSC 7501 bridge
@@ -42,6 +43,14 @@ When desktop is on, the Herdr Desktop launcher wraps `herdr-app` so it
 re-copies every folder under `desktop/mods/` into
 `~/.config/herdr-app/mods/<name>/` after start (Herdr restores shipped
 mods every launch).
+
+The desktop Go to picker (Ctrl+P / Ctrl+Alt+P) uses the same session-title
+cleanup as the Agents pane. Named tabs keep their names; unnamed tabs show
+session titles with the tab number and program underneath. Search matches
+session titles as well as spaces, tab names and programs. The Agents pane
+publishes its state timestamps in shared `agents.changed`, so both views show
+the same elapsed time. The picker still selects tabs and shows sub-agent counts.
+Run its regression tests with `node --test tools/herdr/desktop/tests/picker.test.mjs`.
 
 ## New-machine setup
 
@@ -159,7 +168,11 @@ TUI daemon, so it sees those sessions. The desktop app sees core sessions.
 and symlinks `desktop/keys.json`. Those keys mirror the TUI's prefix-free
 chords: Ctrl+T / Ctrl+W for new / close tab, Ctrl+Tab family for tab
 cycling, Ctrl+P / Ctrl+Alt+P for the picker, Ctrl+Shift+K / Ctrl+Shift+P
-for the command palette. Ctrl+W steals readline word-delete inside panes
+for the command palette. Ctrl+Alt+Down uses `t3-chrome.bottom` in the t3
+layouts: scroll Herdr's active terminal to the bottom and forward the same key
+to its program. Pi maps it to `tui.altScreen.bottom` (alongside Ctrl+End), so
+fullscreen transcripts jump to the latest message too. Other programs also
+receive Ctrl+Alt+Down. Ctrl+W steals readline word-delete inside panes
 (same tradeoff as the TUI). `framework-13` enables desktop + gpui;
 `home-server` is TUI-only.
 

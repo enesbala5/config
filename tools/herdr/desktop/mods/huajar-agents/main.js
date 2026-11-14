@@ -98,6 +98,8 @@ export default class Agents extends View {
     if (props()?.sortMenu) return;
     this.folded = new Set();
     this.changed = JSON.parse(localStorage.getItem("changed") ?? "{}");
+    // Let the Go to picker show the same state age, rather than starting a new clock.
+    setShared("agents.changed", this.changed);
     this.pins = JSON.parse(localStorage.getItem("pins") ?? "[]");
     this.git = {};
     this.asking = new Set();
@@ -142,6 +144,7 @@ export default class Agents extends View {
     const listed = new Set(list.map((a) => a.address));
     for (const [k, c] of Object.entries(this.changed)) if (!listed.has(k) && now - c.at > 30 * 86400000) delete this.changed[k];
     localStorage.setItem("changed", JSON.stringify(this.changed));
+    setShared("agents.changed", this.changed);
   }
 
   setPins(pins) {

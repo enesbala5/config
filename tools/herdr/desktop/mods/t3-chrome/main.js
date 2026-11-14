@@ -1,6 +1,6 @@
 import { View, div, svg } from "gpui-kit";
 import { h_flex, v_flex } from "gpui-base";
-import { theme, run, props, updates, layout, nextCommand, focused, panes, terminals, shared, setShared } from "herdr";
+import { theme, run, props, updates, layout, nextCommand, focused, panes, terminals, shared, setShared, hc } from "herdr";
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -131,6 +131,16 @@ function toggleSide() {
   run("pane.split", { direction: "right", pane: f.pane });
 }
 
+// Scroll Herdr's history and forward the key to application-owned history (Pi).
+async function jumpToBottom() {
+  const terminal = focused()?.terminal;
+  if (!terminal) return;
+  run("terminal.scroll", { terminal, to: "bottom" });
+  // Write directly to the PTY: this cannot re-trigger Herdr's key binding.
+  const result = await hc(["keys", terminal, "ctrl+alt+down"]);
+  if (result.code !== 0) throw new Error(result.stderr || "Could not forward Ctrl+Alt+Down");
+}
+
 export default class WorkspaceChrome extends View {
   init(_props, cx) {
     // Only the brand bar's copy takes key commands; the footer's has nothing to switch.
@@ -140,6 +150,10 @@ export default class WorkspaceChrome extends View {
         const cmd = await nextCommand();
         if (cmd === "sidebar") switchSidebar();
         else if (cmd === "side") toggleSide();
+        else if (cmd === "bottom") {
+          try { await jumpToBottom(); }
+          catch (error) { console.error("Jump to bottom:", error); }
+        }
         cx.notify();
       }
     });
