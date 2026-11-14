@@ -4,8 +4,9 @@ import {
 	type ExtensionAPI,
 	type KeybindingsManager,
 	type SlashCommandInfo,
+	type ToolInfo,
 } from "@earendil-works/pi-coding-agent";
-import type { AutocompleteItem, AutocompleteProvider, EditorTheme, TUI } from "@earendil-works/pi-tui";
+import { fuzzyFilter, type AutocompleteItem, type AutocompleteProvider, type EditorTheme, type TUI } from "@earendil-works/pi-tui";
 
 // Pi's getCommands() lists extensions, prompts and skills, but not built-ins.
 // Keep this list in sync with Pi; the regression suite checks the installed list.
@@ -21,9 +22,42 @@ type Completion = Parameters<AutocompleteProvider["applyCompletion"]>;
 type CompletionResult = ReturnType<AutocompleteProvider["applyCompletion"]>;
 type AcceptCommand = (...args: Completion) => CompletionResult | undefined;
 
-export function inlineSlashProvider(current: AutocompleteProvider, acceptCommand?: AcceptCommand): AutocompleteProvider {
+export interface McpMention {
+	name: string;
+	namespace: string;
+	description?: string;
+}
+
+// Use the live registry, not mcp.json: this respects trust, --no-mcp and hidden
+// tools, includes extension servers, and never reads credentials or reconnects.
+export function mcpMentions(tools: ToolInfo[]): McpMention[] {
+	const servers = new Map<string, McpMention>();
+	for (const tool of tools) {
+		const ns = tool.namespace;
+		if (tool.exposure === "hidden" || !ns?.name.startsWith("mcp__")) continue;
+		const name = ns.aliases?.[0] ?? ns.name.slice("mcp__".length);
+		if (!/^[\w-]+$/.test(name)) continue;
+		servers.set(ns.name, { name, namespace: ns.name, description: ns.description?.split(/\r?\n/)[0] });
+	}
+	return [...servers.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function expandMcpMentions(text: string, servers: McpMention[]): string {
+	const byName = new Map(servers.map((server) => [server.name.toLowerCase(), server]));
+	return text.replace(/(^|\s)\/mcp:([\w-]+)(?=$|\s|[,.!?;])/gi, (token, space, name) => {
+		const server = byName.get(name.toLowerCase());
+		return server ? `${space}MCP server ${server.name} (namespace ${server.namespace})` : token;
+	});
+}
+
+export function inlineSlashProvider(
+	current: AutocompleteProvider,
+	acceptCommand?: AcceptCommand,
+	getMcpMentions: () => McpMention[] = () => [],
+): AutocompleteProvider {
 	const inlineItems = new WeakSet<AutocompleteItem>();
 	const commandItems = new WeakSet<AutocompleteItem>();
+	const mcpItems = new WeakSet<AutocompleteItem>();
 	return {
 		triggerCharacters: [...new Set([...(current.triggerCharacters ?? []), "/"])],
 		async getSuggestions(lines, line, col, options) {
@@ -34,9 +68,39 @@ export function inlineSlashProvider(current: AutocompleteProvider, acceptCommand
 			const commandLine = line === 0 && before.trimStart().startsWith("/");
 			const inline = !!match && !commandLine;
 			const atStart = commandLine && before.trim() === match?.[1];
-			const result = inline && match
+			let result = inline && match
 				? await current.getSuggestions([match[1]], 0, match[1].length, { ...options, force: false })
 				: await current.getSuggestions(lines, line, col, options);
+			if (match && (inline || atStart) && !options.force && !options.signal.aborted) {
+				const query = match[1].slice(1);
+				const servers = getMcpMentions();
+				const matches = fuzzyFilter(servers, query, (server) =>
+					query.toLowerCase().startsWith("mcp:") ? `mcp:${server.name}` : server.name);
+				const items = matches.map((server) => {
+					const item = {
+						value: `mcp:${server.name}`,
+						label: `mcp:${server.name}`,
+						description: server.description ? `MCP · ${server.description}` : "MCP server",
+					};
+					mcpItems.add(item);
+					return item;
+				});
+				if (items.length) {
+					const existing = result?.prefix === match[1] ? result.items : [];
+					// Bare server prefixes should beat unrelated fuzzy command matches
+					// (/Po must offer Polar before export), without hiding real commands.
+					const startsWithQuery = (item: AutocompleteItem) => {
+						const name = item.value.replace(/^(?:skill:|mcp:)/, "");
+						return name.toLowerCase().startsWith(query.toLowerCase())
+							|| item.value.toLowerCase().startsWith(query.toLowerCase());
+					};
+					const combined = [...existing, ...items];
+					result = {
+						prefix: match[1],
+						items: [...combined.filter(startsWithQuery), ...combined.filter((item) => !startsWithQuery(item))],
+					};
+				}
+			}
 			if (result && !options.signal.aborted && match && result.prefix === match[1] && (inline || (atStart && !options.force))) {
 				for (const item of result.items) {
 					commandItems.add(item);
@@ -53,7 +117,7 @@ export function inlineSlashProvider(current: AutocompleteProvider, acceptCommand
 		applyCompletion(lines, line, col, item, prefix) {
 			// Only real command-name suggestions can execute, never forced file or
 			// argument completions that happen to share a built-in command's name.
-			if (commandItems.has(item)) {
+			if (commandItems.has(item) && !mcpItems.has(item)) {
 				const accepted = acceptCommand?.(lines, line, col, item, prefix);
 				if (accepted) return accepted;
 			}
@@ -73,6 +137,7 @@ export function inlineSlashProvider(current: AutocompleteProvider, acceptCommand
 
 interface SlashEditorOptions {
 	getCommands(): SlashCommandInfo[];
+	getMcpMentions?(): McpMention[];
 	isActive(): boolean;
 	onError(message: string): void;
 }
@@ -103,7 +168,7 @@ export class SlashEditor extends CustomEditor {
 			const start = col - prefix.length;
 			result[line] = lines[line].slice(0, start) + lines[line].slice(col);
 			return { lines: result, cursorLine: line, cursorCol: start };
-		}));
+		}, () => this.slashOptions.getMcpMentions?.() ?? []));
 	}
 
 	setText(text: string): void {
@@ -172,12 +237,18 @@ export class SlashEditor extends CustomEditor {
 
 export default function slashCompletion(pi: ExtensionAPI): void {
 	let active: object | undefined;
+	const getMcpMentions = () => mcpMentions(pi.getAllTools());
+	pi.on("input", (event) => {
+		const text = expandMcpMentions(event.text, getMcpMentions());
+		if (text !== event.text) return { action: "transform", text, images: event.images };
+	});
 	pi.on("session_shutdown", () => { active = undefined; });
 	pi.on("session_start", (_event, ctx) => {
 		if (ctx.mode !== "tui") return;
 		const token = active = {};
 		ctx.ui.setEditorComponent((tui, theme, kb) => new SlashEditor(tui, theme, kb, {
 			getCommands: () => pi.getCommands(),
+			getMcpMentions,
 			isActive: () => active === token,
 			onError: (message) => ctx.ui.notify(message, "error"),
 		}));

@@ -199,10 +199,24 @@ Enter again submits the completed command. A command at the start of the first
 line owns that line's arguments; slash-looking arguments are not reinterpreted
 as inline commands. Paths and URLs keep their normal completion behavior.
 
-Skills and prompt templates are insert-only on completion, with either Enter
-or Tab. A subsequent explicit submission invokes them normally. Pi only expands
+Skills, prompt templates, and MCP mentions are insert-only on completion, with
+either Enter or Tab. A subsequent explicit submission invokes them normally. Pi only expands
 `/skill:name` automatically at the start of a message; inline skill references
 are text for the model, not native command expansion.
+
+MCP servers appear as `/mcp:<server>` with an `MCP · <description>` hint. Type
+`/Po` or `/mcp:Po` to find `/mcp:Polar`, or `/axi` for `/mcp:axiom`. Matching
+is case-insensitive and works inline and on later lines too. Bare server prefixes
+rank ahead of unrelated fuzzy command matches; real command prefix matches
+retain priority. `/mcp` itself still opens Pi's built-in server manager.
+
+On submission, recognized `/mcp:Polar` mentions become `MCP server Polar
+(namespace mcp__Polar)` in the model's input. They identify the requested server;
+they do not call a tool, enable tools, or bypass permissions. Unknown mentions
+remain unchanged. Suggestions use Pi's live tool namespace registry, so servers
+appear once their tools register, including codemode/deferred servers. Servers
+with no accessible tools (disabled, hidden, not yet connected, or `--no-mcp`)
+are omitted. No MCP config files or credentials are read by the extension.
 
 Session-changing commands (`/new`, `/resume`, `/fork`, `/clone`, `/tree`,
 `/import`, `/reload`, `/quit`) retain their native draft-clearing behavior.

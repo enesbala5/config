@@ -38,7 +38,7 @@ const hooks = registerHooks({
 		return { format: "module", source: stripTypeScriptTypes(readFileSync(fileURLToPath(url), "utf8")), shortCircuit: true };
 	},
 });
-const { default: extension, SlashEditor, BUILTIN_COMMANDS, inlineSlashProvider } = await import(extensionUrl);
+const { default: extension, SlashEditor, BUILTIN_COMMANDS, inlineSlashProvider, mcpMentions, expandMcpMentions } = await import(extensionUrl);
 const { CombinedAutocompleteProvider, setKeybindings } = await import("@earendil-works/pi-tui");
 const { KeybindingsManager } = await import(packagePath("pi-coding-agent", "dist/core/keybindings.js"));
 const { InteractiveMode } = await import("@earendil-works/pi-coding-agent");
@@ -69,6 +69,7 @@ function fixture(options = {}) {
 	const tui = { terminal: { rows: 40, columns: 120 }, requestRender() {} };
 	const editor = new SlashEditor(tui, theme, kb, {
 		getCommands: () => resources,
+		getMcpMentions: options.getMcpMentions,
 		isActive: () => active,
 		onError: (message) => errors.push(message),
 	});
@@ -387,6 +388,101 @@ test("disableSubmit prevents command execution", async () => {
 	f.editor.handleInput("\r");
 	assert.deepEqual(f.submitted, []);
 	assert.equal(f.editor.getText(), "Draft /model ");
+});
+
+const servers = [
+	{ name: "Polar", namespace: "mcp__Polar", description: "Polar billing" },
+	{ name: "axiom", namespace: "mcp__axiom", description: "Query logs" },
+];
+const completionOptions = () => ({ signal: new AbortController().signal, force: false });
+
+test("MCP registry deduplicates namespaces, preserves aliases and excludes hidden tools", () => {
+	const tool = (namespace, exposure = "codemode") => ({ namespace, exposure });
+	const polar = { name: "mcp__Polar", aliases: ["Polar"], description: "Billing\nLong instructions" };
+	assert.deepEqual(mcpMentions([
+		tool(polar), tool(polar, "deferred"), tool({ name: "ordinary" }),
+		tool({ name: "mcp__secret" }, "hidden"), tool(undefined),
+		tool({ name: "mcp__my_server", aliases: ["my-server"] }, "direct"),
+		tool({ name: "mcp__fallback" }),
+	]), [
+		{ name: "fallback", namespace: "mcp__fallback", description: undefined },
+		{ name: "my-server", namespace: "mcp__my_server", description: undefined },
+		{ name: "Polar", namespace: "mcp__Polar", description: "Billing" },
+	]);
+});
+
+test("MCP suggestions match bare and namespaced prefixes, standalone and inline", async () => {
+	const provider = inlineSlashProvider(new CombinedAutocompleteProvider(commands, tmpdir()), undefined, () => servers);
+	for (const prefix of ["", "Draft ", "Earlier\nUse "]) {
+		for (const query of ["/", "/Po", "/po", "/mcp:", "/mcp:Po"]) {
+			const lines = `${prefix}${query}`.split("\n");
+			const line = lines.length - 1, col = lines[line].length;
+			const result = await provider.getSuggestions(lines, line, col, completionOptions());
+			const item = result.items.find((item) => item.value === "mcp:Polar");
+			assert.ok(item, `${prefix}${query}`);
+			assert.equal(item.label, "mcp:Polar");
+			assert.equal(item.description, "MCP · Polar billing");
+			const applied = provider.applyCompletion(lines, line, col, item, result.prefix);
+			assert.equal(applied.lines.join("\n"), `${prefix}/mcp:Polar `);
+		}
+	}
+});
+
+test("MCP completion uses the live registry on every query", async () => {
+	let live = [];
+	const provider = inlineSlashProvider(new CombinedAutocompleteProvider([], tmpdir()), undefined, () => live);
+	assert.equal(await provider.getSuggestions(["/Po"], 0, 3, completionOptions()), null);
+	live = servers;
+	assert.equal((await provider.getSuggestions(["/Po"], 0, 3, completionOptions())).items[0].value, "mcp:Polar");
+	live = [];
+	assert.equal(await provider.getSuggestions(["/Po"], 0, 3, completionOptions()), null);
+});
+
+test("MCP entries never hijack arguments, paths, URLs or forced file completion", async () => {
+	const calls = [];
+	const base = {
+		getSuggestions: async (...args) => { calls.push(args); return null; },
+		applyCompletion() {},
+	};
+	const provider = inlineSlashProvider(base, undefined, () => servers);
+	for (const text of ["/model /Po", "/tmp/Po", "https://host/Po", "word/Po"]) {
+		assert.equal(await provider.getSuggestions([text], 0, text.length, completionOptions()), null, text);
+	}
+	assert.equal(await provider.getSuggestions(["/Po"], 0, 3, { ...completionOptions(), force: true }), null);
+	assert.equal(await provider.getSuggestions(["/Po"], 0, 3, { signal: AbortSignal.abort() }), null);
+});
+
+for (const key of ["\r", "\t"]) {
+	test(`MCP acceptance is insert-only with ${key === "\r" ? "Enter" : "Tab"}`, async () => {
+		for (const prefix of ["", "Draft ", "First line\nUse "]) {
+			const f = fixture({ getMcpMentions: () => servers });
+			await suggest(f.editor, `${prefix}/Po`);
+			f.editor.handleInput(key);
+			assert.equal(f.editor.getText(), `${prefix}/mcp:Polar `);
+			assert.deepEqual(f.submitted, []);
+			type(f.editor, "list products");
+			f.editor.handleInput("\r");
+			assert.deepEqual(f.submitted, [`${prefix}/mcp:Polar list products`]);
+		}
+	});
+}
+
+test("MCP input expansion identifies namespaces without executing tools or dropping images", () => {
+	assert.equal(expandMcpMentions("Use /mcp:polar, then /mcp:axiom logs", servers),
+		"Use MCP server Polar (namespace mcp__Polar), then MCP server axiom (namespace mcp__axiom) logs");
+	for (const text of ["/mcp:unknown", "https://host/mcp:Polar", "/tmp/mcp:Polar", "/Polar", "/mcp:Polar_suffix"]) {
+		assert.equal(expandMcpMentions(text, servers), text);
+	}
+	const handlers = {};
+	extension({
+		on: (name, handler) => { handlers[name] = handler; },
+		getAllTools: () => [{ namespace: { name: "mcp__Polar", aliases: ["Polar"] }, exposure: "codemode" }],
+	});
+	const images = [{ type: "image", data: "test", mimeType: "image/png" }];
+	assert.deepEqual(handlers.input({ text: "/mcp:Polar list products", images }), {
+		action: "transform", text: "MCP server Polar (namespace mcp__Polar) list products", images,
+	});
+	assert.equal(handlers.input({ text: "unrelated" }), undefined);
 });
 
 test("extension loads only in TUI and reinitializes its lifetime on reload", async () => {
