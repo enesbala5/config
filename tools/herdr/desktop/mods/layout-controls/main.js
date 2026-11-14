@@ -166,7 +166,7 @@ export default class WorkspaceChrome extends View {
         .role("button").accessibility_label(label)
         .text_color(t.muted).hover(s => s.bg(t.hover).text_color(t.foreground))
         .on_click(action).child(h_flex().size(18).flex_none().items_center().justify_center()
-          .child(svg(`mods/t3-chrome/${icon}.svg`).size(16)))
+          .child(svg(`mods/layout-controls/${icon}.svg`).size(16)))
         .child(div().flex_1().min_w(0).truncate().child(label));
       return v_flex().size_full().bg(t.chrome).border_t(1).border_color(t.border).px(8).pt(4).pb(6).text_size(13)
         .child(h_flex().gap(2).items_center()

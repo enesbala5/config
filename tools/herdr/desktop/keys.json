@@ -40,7 +40,7 @@
     "alt-[": "tab.prev",
     "ctrl-shift-pagedown": "space.next",
     "ctrl-shift-pageup": "space.prev",
-    "ctrl-alt-down": "t3-chrome.bottom",
+    "ctrl-alt-down": "layout-controls.bottom",
     "alt-down": "agent.next",
     "alt-up": "agent.prev",
     "ctrl-shift-b": "layout.toggle:sidebar",
@@ -52,7 +52,7 @@
     "ctrl-shift-k": "app.palette",
     "ctrl-shift-p": "app.palette",
     "ctrl-,": "app.settings",
-    "ctrl-\\": "t3-chrome.side",
+    "ctrl-\\": "layout-controls.side",
     "ctrl-|": "layout.toggle:panel",
     "ctrl-shift-\\": "layout.toggle:panel",
     "ctrl-shift-o": "pane.split:right",
@@ -66,13 +66,13 @@
     "shift-f2": "space.rename"
   },
   "layout:herdr-t3": {
-    "ctrl-\\": "t3-chrome.side",
-    "ctrl-shift-b": "t3-chrome.sidebar",
+    "ctrl-\\": "layout-controls.side",
+    "ctrl-shift-b": "layout-controls.sidebar",
     "ctrl-shift-s": "t3-inbox.settle"
   },
   "layout:herdr-t3-worktrees": {
-    "ctrl-\\": "t3-chrome.side",
-    "ctrl-shift-b": "t3-chrome.sidebar",
+    "ctrl-\\": "layout-controls.side",
+    "ctrl-shift-b": "layout-controls.sidebar",
     "ctrl-shift-s": "t3-inbox.settle"
   },
   "terminal": {

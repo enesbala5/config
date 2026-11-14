@@ -13,7 +13,8 @@ tools/herdr/
 │   ├── keys.json                   # ~/.config/herdr-app/keys.json (symlinked)
 │   └── mods/                          # desktop mod overrides; launcher re-copies each after start
 │       ├── toast/                     # notify() toast content (host owns chrome)
-│       ├── huajar-agents/             # agents list: two-row title / workspace·worktree
+│       ├── agents-list/               # agents list: two-row title / workspace·worktree
+│       ├── layout-controls/           # sidebar modes, side pane, footer and scroll controls
 │       ├── picker/                    # Go to: session titles, icons, status and shared state age
 │       └── spaces-with-worktrees/     # spaces list with nested git worktrees
 ├── integrations/
@@ -168,7 +169,7 @@ TUI daemon, so it sees those sessions. The desktop app sees core sessions.
 and symlinks `desktop/keys.json`. Those keys mirror the TUI's prefix-free
 chords: Ctrl+T / Ctrl+W for new / close tab, Ctrl+Tab family for tab
 cycling, Ctrl+P / Ctrl+Alt+P for the picker, Ctrl+Shift+K / Ctrl+Shift+P
-for the command palette. Ctrl+Alt+Down uses `t3-chrome.bottom` in the t3
+for the command palette. Ctrl+Alt+Down uses `layout-controls.bottom` in the t3
 layouts: scroll Herdr's active terminal to the bottom and forward the same key
 to its program. Pi maps it to `tui.altScreen.bottom` (alongside Ctrl+End), so
 fullscreen transcripts jump to the latest message too. Other programs also

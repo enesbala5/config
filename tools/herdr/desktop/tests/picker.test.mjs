@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const source = readFileSync(new URL('../mods/picker/main.js', import.meta.url), 'utf8');
-const agentSource = readFileSync(new URL('../mods/huajar-agents/main.js', import.meta.url), 'utf8');
+const agentSource = readFileSync(new URL('../mods/agents-list/main.js', import.meta.url), 'utf8');
 function load({ spaces = [], agents = [], terminals = [] } = {}) {
   const calls = [];
   const element = () => new Proxy({}, { get: (_, key) => key === 'when'

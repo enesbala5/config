@@ -8,7 +8,7 @@
     "npm:@ogulcancelik/pi-minimal-footer",
     "npm:pi-sidebar-tui"
   ],
-  "defaultThinkingLevel": "high",
+  "defaultThinkingLevel": "medium",
   "theme": "circus-light/circus",
   "terminal": {
     "showImages": true,
