@@ -62,6 +62,15 @@ only when dirty or containing a live agent). Open worktree spaces remain visible
 in either mode. The toggle affects only that parent space and resets to the
 filtered default when the view is recreated. Its tooltip describes the next action.
 
+In the `herdr-t3-worktrees` layout, Alt+1–9 selects only primary/non-worktree
+spaces, in sidebar order; linked worktree spaces do not consume numbers (even
+when their parent space is absent). Worktrees remain clickable and available in
+the picker. Compact worktree rows show ↳ rather than a shortcut number.
+Open worktree rows use 12px text (1px smaller) at 90% opacity; closed ghost rows
+use 12px text at 30% opacity. Holding Alt to replace primary-space icons with
+numbers still requires native modifier-state support: sidebar mods are outside
+the focused terminal's keyboard event path.
+
 ## New-machine setup
 
 Plugin registration is **runtime state in `~/.config/herdr/plugins.json`**, not

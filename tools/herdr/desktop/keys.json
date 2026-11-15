@@ -74,7 +74,16 @@
     "ctrl-\\": "layout-controls.side",
     "ctrl-b": "layout.toggle:sidebar",
     "ctrl-shift-b": "layout-controls.sidebar",
-    "ctrl-shift-s": "t3-inbox.settle"
+    "ctrl-shift-s": "t3-inbox.settle",
+    "alt-1": "spaces-with-worktrees.select:1",
+    "alt-2": "spaces-with-worktrees.select:2",
+    "alt-3": "spaces-with-worktrees.select:3",
+    "alt-4": "spaces-with-worktrees.select:4",
+    "alt-5": "spaces-with-worktrees.select:5",
+    "alt-6": "spaces-with-worktrees.select:6",
+    "alt-7": "spaces-with-worktrees.select:7",
+    "alt-8": "spaces-with-worktrees.select:8",
+    "alt-9": "spaces-with-worktrees.select:9"
   },
   "terminal": {
     "ctrl-backspace": "send:\u0017",

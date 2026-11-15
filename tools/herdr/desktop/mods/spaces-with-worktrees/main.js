@@ -1,6 +1,6 @@
 import { View, div, svg } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { spaces, machines, panes, terminals, run, openOverlay, exec, hc, theme, shared, setShared, watchFolder, window, layout } from "herdr";
+import { spaces, machines, panes, terminals, run, openOverlay, exec, hc, theme, shared, setShared, watchFolder, window, layout, nextCommand } from "herdr";
 
 const norm = (p) => (p ?? "").replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
 
@@ -77,6 +77,12 @@ export default class Spaces extends View {
     this.over = null;
     this.machines = [];
     this.folded = new Set(JSON.parse(localStorage.getItem("machines.folded") ?? "[]"));
+    cx.spawn(async cx => {
+      for (;;) {
+        const command = await nextCommand();
+        if (command.startsWith("select:")) this.selectShortcut(Number(command.slice(7)));
+      }
+    });
     this.refreshMachines(cx);
     cx.timer.every(15000, cx => this.refreshMachines(cx));
     cx.timer.every(250, (cx) => this.checkNew(cx));
@@ -239,6 +245,16 @@ export default class Spaces extends View {
     return out;
   }
 
+  shortcutRows() {
+    // Linked checkouts never consume a numeric shortcut, even without a parent space.
+    return this.ordered().filter(r => !r.ghost && !r.g?.linked);
+  }
+
+  selectShortcut(number) {
+    const row = this.shortcutRows()[number - 1];
+    if (row) run("space.select", { id: row.w.id });
+  }
+
   insideWt(cwd, wtPath) {
     const root = norm(wtPath);
     const p = norm(cwd);
@@ -273,6 +289,8 @@ export default class Spaces extends View {
     const branch = r.ghost.branch && r.ghost.branch.toLowerCase() !== name.toLowerCase() ? r.ghost.branch : "";
     return h_flex()
       .id(`wt-${r.ghost.path}`)
+      .text_size(12)
+      .opacity(0.3)
       .px(8)
       .h(rowHeight(r))
       .flex_none()
@@ -284,7 +302,7 @@ export default class Spaces extends View {
       .on_click(() => this.openGhost(r))
       .child(h_flex().size(22).flex_none().items_center().justify_center().child(svg("mods/workspace-chrome/branch.svg").size(13).text_color(t.dim)))
       .child(div().flex_shrink(0).max_w(150).truncate().text_color(t.muted).child(name))
-      .child(h_flex().flex_1().min_w(0).justify_end().text_size(11.5).text_color(t.dim).when(Boolean(branch), (el) => el.child(div().truncate().child(branch))));
+      .child(h_flex().flex_1().min_w(0).justify_end().text_size(10.5).text_color(t.dim).when(Boolean(branch), (el) => el.child(div().truncate().child(branch))));
   }
 
   grouped(t, collapsed) {
@@ -344,7 +362,7 @@ export default class Spaces extends View {
       .gap(5)
       .justify_end()
       .items_center()
-      .text_size(11.5)
+      .text_size(tree ? 10.5 : 11.5)
       .text_color(t.dim)
       .when(Boolean(where), (el) => el.child(div().min_w(0).truncate().child(where)))
       .when(g.ahead > 0, (el) => el.child(div().flex_none().text_color(t.ansi2).child(`\u2191${g.ahead}`)))
@@ -359,6 +377,7 @@ export default class Spaces extends View {
     return v_flex()
       .relative()
       .id(`space-${w.id}`)
+      .when(Boolean(g?.linked || tree), el => el.text_size(12).opacity(0.9))
       .px(8)
       .h(rowHeight({ tree }))
       .flex_none()
@@ -420,17 +439,19 @@ export default class Spaces extends View {
       );
   }
 
-  compact({ w, i }, t) {
+  compact({ w, g, tree }, t) {
+    const number = this.shortcutRows().findIndex(r => r.w.id === w.id) + 1;
     return h_flex()
       .id(`space-${w.id}`)
       .h(26)
+      .when(Boolean(g?.linked || tree), el => el.text_size(12).opacity(0.9))
       .flex_none()
       .justify_center()
       .gap(4)
       .when(w.active, (el) => el.bg(t.raised))
       .hover((s) => s.bg(t.hover))
       .on_click(() => run("space.select", { id: w.id }))
-      .child(div().text_color(w.active ? t.foreground : t.muted).child(String(i + 1)))
+      .child(div().text_color(w.active ? t.foreground : t.muted).child(number ? String(number) : "↳"))
       .child(div().text_color(tone(t, w.status)).child(glyph(w.status)));
   }
 

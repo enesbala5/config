@@ -60,12 +60,12 @@ test('inbox and collapsed headers do not show an incorrect Spaces label', () => 
   assert.ok(!flatten(load('layout-controls', { width: 100 }).view.render()).includes('Spaces'));
 });
 
-test('machine headers have 16px spacing except the first, including folded machines', () => {
+test('machine headers have 10px spacing except the first, including folded machines', () => {
   for (const collapsed of [false, true]) {
     const { view } = load('spaces-with-worktrees');
     Object.assign(view, { ordered: () => [], machines: [{ name: 'a' }, { name: 'b' }], folded: new Set(['a']) });
     const heads = view.grouped({}, collapsed).filter(n => n.attrs.id?.[0]?.startsWith('machine-') && !n.attrs.id[0].startsWith('machine-new-'));
-    assert.deepEqual(Array.from(heads, n => n.attrs.mt?.[0]), [undefined, 16, 16]);
+    assert.deepEqual(Array.from(heads, n => n.attrs.mt?.[0]), [undefined, 10, 10]);
   }
 });
 
@@ -114,6 +114,40 @@ test('worktree visibility defaults to rules; show-all is per space and reversibl
   assert.deepEqual(ghosts(), ['/trees/clean', '/trees/dirty', '/trees/agent']);
   view.allWorktrees.delete('main');
   assert.deepEqual(ghosts(), ['/trees/dirty', '/trees/agent']);
+});
+
+test('numeric shortcuts skip linked worktrees and select remaining spaces by ID', () => {
+  const { view, calls } = worktreeFixture();
+  assert.deepEqual(Array.from(view.shortcutRows(), r => r.w.id), ['main', 'other']);
+  view.selectShortcut(2);
+  assert.equal(calls[0][0], 'space.select');
+  assert.equal(calls[0][1].id, 'other');
+  view.selectShortcut(3);
+  assert.equal(calls.length, 1);
+  // A linked checkout remains excluded if its primary space is absent.
+  view.git[JSON.stringify([null, '/project'])] = null;
+  assert.ok(!view.shortcutRows().some(r => r.w.id === 'open'));
+});
+
+test('worktree rows are smaller and dimmer; compact worktrees have no number', () => {
+  const { view } = worktreeFixture();
+  const open = view.ordered().find(r => r.w.id === 'open');
+  const row = view.row(open, {});
+  assert.equal(row.attrs.text_size[0], 12);
+  assert.equal(row.attrs.opacity[0], 0.9);
+  const ghost = view.ghostRow(view.ordered().find(r => r.ghost), {});
+  assert.equal(ghost.attrs.text_size[0], 12);
+  assert.equal(ghost.attrs.opacity[0], 0.3);
+  assert.ok(flatten(view.compact(open, {})).includes('↳'));
+  const main = view.row(view.ordered()[0], {});
+  assert.equal(main.attrs.opacity, undefined);
+});
+
+test('worktree layout binds all numeric shortcuts to the filtered selector', () => {
+  const keys = JSON.parse(readFileSync(new URL('../keys.json', import.meta.url), 'utf8'));
+  for (let n = 1; n <= 9; n++) {
+    assert.equal(keys['layout:herdr-t3-worktrees'][`alt-${n}`], `spaces-with-worktrees.select:${n}`);
+  }
 });
 
 test('space chevron follows branch, toggles visibility, and isolates row mouse events', () => {
