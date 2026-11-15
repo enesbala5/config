@@ -36,6 +36,15 @@
     # provider block (see modules/home/programs/opencode/providers.nix).
     modules.home.localAi.enable = true;
 
+    home.packages = [
+      # ask-local: one prompt, no harness, against the home-server model. Wraps
+      # the repo script so edits apply without a rebuild. It reads
+      # ~/.agents/skills for --skill and refuses oversized prompts.
+      (pkgs.writeShellScriptBin "ask-local" ''
+        exec ${data.configDirectory}/scripts/utilities/ask-local "$@"
+      '')
+    ];
+
     home.sessionVariables = {
       # Allow all GTK apps to find the xfsettingsd GTK sync module so they
       # don't emit "Failed to load module xfsettingsd-gtk-settings-sync" warnings

@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+# ask-local — single-shot prompt against the home-server llama.cpp endpoint.
+#
+# Skills are plain folders of markdown, so they do not need a harness: this
+# reads SKILL.md straight from the neutral skill store and sends it as the
+# system prompt. Meant for small, single-turn jobs (commit message, rewrite a
+# paragraph, classify a log line). It refuses before sending when the prompt
+# will not fit, because llama-server only answers with an HTTP 400.
+#
+# Usage:
+#   ask-local [options] [instruction...]   # data may also arrive on stdin
+#
+# Reads the instruction from arguments and the data to work on from stdin, so
+# `git diff | ask-local "write a commit message"` behaves as expected. With no
+# arguments the whole prompt comes from stdin.
+#
+# Options:
+#   --skill NAME        prepend ~/.agents/skills/NAME/SKILL.md (repeatable)
+#   --system TEXT       extra system instructions (repeatable)
+#   --max-tokens N      output cap, default 1024 (width of the reserved budget)
+#   --think             leave Qwen3 thinking on (default: off)
+#   -h, --help          this text
+#
+# Env: LOCAL_LLM_ENDPOINT (http://home-server:8080/v1), LOCAL_LLM_MODEL (qwen),
+#      LOCAL_LLM_CTX (8192), AGENTS_SKILLS_DIR (~/.agents/skills)
+#
+# See misc/ai/README.md for the endpoint's limits.
+
+set -euo pipefail
+
+endpoint="${LOCAL_LLM_ENDPOINT:-http://home-server:8080/v1}"
+model="${LOCAL_LLM_MODEL:-qwen}"
+ctx="${LOCAL_LLM_CTX:-8192}"
+skills_dir="${AGENTS_SKILLS_DIR:-$HOME/.agents/skills}"
+
+max_tokens=1024
+think=false
+system=""
+skills=()
+
+usage() {
+  sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+die() {
+  printf 'ask-local: %s\n' "$*" >&2
+  exit 1
+}
+
+while (($#)); do
+  case "$1" in
+    --skill)
+      [ $# -ge 2 ] || die "--skill needs a name"
+      skills+=("$2")
+      shift 2
+      ;;
+    --system)
+      [ $# -ge 2 ] || die "--system needs text"
+      system+="$2"$'\n\n'
+      shift 2
+      ;;
+    --max-tokens)
+      [ $# -ge 2 ] || die "--max-tokens needs a number"
+      max_tokens="$2"
+      shift 2
+      ;;
+    --think)
+      think=true
+      shift
+      ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*)
+      die "unknown option $1 (try --help)"
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+stdin_data=""
+if [ ! -t 0 ]; then
+  stdin_data="$(cat)"
+fi
+
+if (($#)); then
+  prompt="$*"
+  # Instruction on the command line, data through the pipe.
+  [ -n "$stdin_data" ] && prompt+="\n\n$stdin_data"
+elif [ -n "$stdin_data" ]; then
+  prompt="$stdin_data"
+else
+  usage >&2
+  exit 2
+fi
+
+[ -n "$prompt" ] || die "empty prompt"
+
+for name in "${skills[@]+"${skills[@]}"}"; do
+  file="$skills_dir/$name/SKILL.md"
+  [ -f "$file" ] || die "no skill at $file (see $skills_dir)"
+  system+="$(cat "$file")"$'\n\n'
+done
+
+# Count with the server's own tokenizer when it answers, so the guard matches
+# what llama-server will actually charge. Fall back to a pessimistic estimate.
+count_tokens() {
+  local body tokens root
+  # /tokenize sits at the server root, not under the OpenAI-compatible /v1.
+  root="${endpoint%/v1}"
+  body="$(jq -n --arg c "$1" '{content: $c}')"
+  if tokens="$(curl -sf --connect-timeout 5 --max-time 30 \
+    -X POST -H 'Content-Type: application/json' -d "$body" \
+    "$root/tokenize" | jq -e '.tokens | length' 2>/dev/null)"; then
+    printf '%s' "$tokens"
+    return
+  fi
+  printf '%s' "$(( ${#1} / 3 + 1 ))"
+}
+
+full="${system}${prompt}"
+tokens="$(count_tokens "$full")"
+budget=$((ctx - max_tokens - 128))
+
+if ((tokens > budget)); then
+  cat >&2 <<EOF
+ask-local: prompt is ~$tokens tokens, but only $budget fit.
+  context     $ctx
+  reserving   $max_tokens for the answer (+128 slack)
+
+Either shrink the input (fewer --skill files, shorter text) or raise the
+window: homeServer.ai.contextSize on home-server plus
+modules.home.localAi.contextWindow here must move together.
+EOF
+  exit 1
+fi
+
+body="$(
+  jq -n \
+    --arg model "$model" \
+    --arg system "$system" \
+    --arg prompt "$prompt" \
+    --argjson max_tokens "$max_tokens" \
+    --argjson think "$think" \
+    '{
+      model: $model,
+      max_tokens: $max_tokens,
+      chat_template_kwargs: { enable_thinking: $think },
+      messages: (if $system == "" then [] else [{ role: "system", content: $system }] end)
+        + [{ role: "user", content: $prompt }]
+    }'
+)"
+
+tmp="$(mktemp)"
+trap 'rm -f "$tmp"' EXIT
+
+status="$(
+  curl -sS --connect-timeout 5 --max-time 600 -o "$tmp" -w '%{http_code}' \
+    -X POST -H 'Content-Type: application/json' -d "$body" \
+    "$endpoint/chat/completions"
+)" || die "cannot reach $endpoint (tailscale up?)"
+
+if [ "$status" != "200" ]; then
+  message="$(jq -r '.message // .error.message // .error // .' "$tmp" 2>/dev/null || cat "$tmp")"
+  printf 'ask-local: HTTP %s: %s\n' "$status" "$message" >&2
+  exit 1
+fi
+
+jq -r '.choices[0].message.content // empty' "$tmp"

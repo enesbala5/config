@@ -30,14 +30,19 @@ the server first. Incus guests reach the host at `10.0.100.1` because
 
 - **Turn thinking off for agent loops.** Qwen3 thinks by default and spends
   most of an 8K window on `reasoning_content` before answering. Send
-  `"chat_template_kwargs": {"enable_thinking": false}`.
+  `"chat_template_kwargs": {"enable_thinking": false}`; `ask-local` and the
+  pi provider already do.
 - **One request at a time.** The server runs `--parallel 1`; concurrent
   requests queue rather than sharing context.
-- **8K total, prompt included.** System prompt plus tool schemas already cost
-  a few thousand tokens. Expect agents to compact or truncate early; this is
-  not a window for whole-file refactors.
-- **Capability.** Good at short, well-scoped edits and explanations. Do not
-  expect multi-step refactors or long tool chains to hold together.
+- **8K is the window, not the usable input.** pi's own prompt measured 19198
+  tokens with MCP servers and skills loaded — 2.3x the window, so pi cannot
+  talk to this server unmodified. `pi --no-mcp --tools read,bash` cuts it down;
+  the HTTP 400 reports the new size.
+- **The model stops reading early.** A 6012-token input split across two files
+  got a summary of the first file only. Keep inputs under roughly 3-4K tokens
+  when the answer depends on all of it.
+- **Capability.** Good at short, well-scoped single-turn jobs. Do not expect
+  multi-step refactors or long tool chains to hold together.
 
 ## Verify
 
@@ -49,6 +54,27 @@ curl -s http://home-server:8080/v1/chat/completions \
   -d '{"model":"qwen","messages":[{"role":"user","content":"Say OK."}],
        "max_tokens":32,"chat_template_kwargs":{"enable_thinking":false}}'
 ```
+
+## Single-shot helper (`ask-local`)
+
+`scripts/utilities/ask-local` runs one prompt with no harness in the middle, so
+skills work without pi:
+
+```bash
+ask-local "explain: unshare: mount --make-rprivate failed"
+git diff | ask-local --skill chunk-and-commit "propose the commit chunks"
+ask-local --skill copy-editing --max-tokens 600 < draft.md
+```
+
+It reads the instruction from arguments and the data from stdin, loads
+`~/.agents/skills/<name>/SKILL.md` for `--skill`, turns thinking off, and counts
+the prompt with the server's own `/tokenize` before sending. If the prompt will
+not fit it exits with the numbers instead of letting llama-server return 400.
+
+This is the right shape for skills against a small local model: the skill text
+is a few thousand tokens, the answer is one turn, and nothing else competes for
+the window. Multi-turn skills (chunk-and-commit over a real working tree) still
+want a hosted model and a full harness.
 
 ## Wiring a harness
 
