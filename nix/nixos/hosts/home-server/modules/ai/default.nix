@@ -95,6 +95,9 @@ in
       }
     ];
 
+    # Allow tailnet clients without exposing inference on LAN interfaces.
+    networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ cfg.port ];
+
     # Mesa RADV is the only GPU compute path that still works on Polaris.
     hardware.graphics.enable = true;
 
