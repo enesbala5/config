@@ -1,5 +1,6 @@
 {
   inputs,
+  lib,
   pkgs,
   config,
   data,
@@ -14,6 +15,7 @@
     ../../../modules/home/programs/opencode
     ../../../modules/home/programs/codex
     ../../../modules/home/programs/antseed
+    ../../../modules/home/programs/local-ai
   ];
 
   config = {
@@ -30,6 +32,10 @@
     # Antseed buyer proxy
     modules.home.antseed.enable = false;
 
+    # Home-server llama.cpp endpoint. Options are shared with opencode's
+    # provider block (see modules/home/programs/opencode/providers.nix).
+    modules.home.localAi.enable = true;
+
     home.sessionVariables = {
       # Allow all GTK apps to find the xfsettingsd GTK sync module so they
       # don't emit "Failed to load module xfsettingsd-gtk-settings-sync" warnings
@@ -41,6 +47,7 @@
       let
         pbi = pkgs.kdePackages.plasma-browser-integration;
         chromiumHost = "${pbi}/etc/chromium/native-messaging-hosts/org.kde.plasma.browser_integration.json";
+        localAi = config.modules.home.localAi;
       in
       {
         ".config/hypr/hyprlock.conf" = {
@@ -145,6 +152,47 @@
         # Plasma Browser Integration native host (Helium)
         ".config/net.imput.helium/NativeMessagingHosts/org.kde.plasma.browser_integration.json".source =
           chromiumHost;
+      }
+      # Generated rather than symlinked: the URL, model id and context window
+      # must match opencode's provider block, and both come from
+      # modules.home.localAi. pi never writes models.json, so a store file is
+      # safe. The built-in llama.cpp provider is not used: it only talks to a
+      # llama.cpp *router* (/llama + a model directory), while home-server runs
+      # single-model mode and only speaks plain OpenAI-compatible HTTP.
+      // lib.optionalAttrs localAi.enable {
+        ".pi/agent/models.json".text = builtins.toJSON {
+          "$schema" = "https://pi.dev/schemas/models.schema.json";
+          providers.home-server = {
+            name = "Home Server (llama.cpp)";
+            baseUrl = localAi.baseUrl;
+            api = "openai-completions";
+            # llama-server runs without --api-key and ignores the header; a
+            # literal key is what makes the model selectable in /model.
+            apiKey = "local";
+            authHeader = false;
+            models = [
+              {
+                id = localAi.modelId;
+                name = localAi.modelName;
+                reasoning = true;
+                contextWindow = localAi.contextWindow;
+                maxTokens = localAi.maxOutputTokens;
+                cost = {
+                  input = 0;
+                  output = 0;
+                  cacheRead = 0;
+                  cacheWrite = 0;
+                };
+                # Qwen3 is a hybrid thinking model and the GGUF chat template
+                # defaults to thinking on, which spends most of an 8K window
+                # on reasoning. This maps pi's thinking level onto
+                # chat_template_kwargs.enable_thinking; /thinking off is the
+                # useful default for a 4B model here.
+                compat.thinkingFormat = "qwen-chat-template";
+              }
+            ];
+          };
+        };
       };
 
     systemd.user = {

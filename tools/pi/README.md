@@ -28,6 +28,11 @@ extensions into `~/.pi/agent`. It does **not** touch `auth.json`,
 `models-store.json`, `sessions/`, `sidebar-tui.json`, `trust.json`, or
 `extensions/herdr-agent-state.ts`: pi and Herdr write those at runtime.
 
+`~/.pi/agent/models.json` is **generated**, not tracked. It is written from
+`nix/nixos/modules/home/programs/local-ai` so the home-server URL, model id and
+context window match opencode's provider block. Add providers there, not by
+hand in `~/.pi`.
+
 ### Default instructions (`AGENTS.md`)
 
 Always-on instructions are written in two places. They are not symlinked to
@@ -49,6 +54,7 @@ Change or add an always-on rule in both files in the same edit. Current pairs:
 - Worktrees: `misc/agents/AGENTS.md` ("Git worktrees") and `misc/rules/general/worktrees.mdc`.
 - Background tasks: `misc/agents/AGENTS.md` ("Background tasks (`hc`)") and `misc/rules/general/hc-background-tasks.mdc`.
 - Distinctive titles: `misc/agents/AGENTS.md` ("Distinctive session and tab titles") and `misc/rules/general/distinctive-titles.mdc`.
+- Local inference: `misc/agents/AGENTS.md` ("Local inference endpoint") and `misc/rules/general/local-inference.mdc`.
 
 
 Run `/reload` in pi after changing `AGENTS.md`.
@@ -143,6 +149,22 @@ Paste the key from the agenix secret `deepseek-api-key`, or export
 ```sh
 pi auth check --provider deepseek
 ```
+
+## Local model
+
+`home-server` serves a local Qwen3-4B and pi reaches it through a custom
+provider entry in the generated `models.json` (provider `home-server`, model
+`qwen`). The built-in `llama.cpp` provider is not used: it only speaks to a
+llama.cpp *router* (`/llama`, a model directory), while home-server runs
+single-model mode and only answers plain OpenAI-compatible HTTP.
+
+```sh
+pi --model home-server/qwen   # or pick it in /model
+```
+
+Use `/thinking off`. Qwen3 thinks by default and burns most of the 8K window on
+`reasoning_content` before answering. Details, limits, and how to point another
+harness at the same endpoint: [`misc/ai/README.md`](../../misc/ai/README.md).
 
 ## Keyboard shortcuts
 

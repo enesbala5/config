@@ -8,6 +8,13 @@ Cursor does not load this file. Any rule added here also needs a matching
 `alwaysApply` file under `misc/rules/general/`. See `tools/pi/README.md`
 ("Default instructions").
 
+## Local inference endpoint
+
+`home-server` serves a local llama.cpp model at `http://home-server:8080/v1`
+(model `qwen`, tool calling on, no API key, 8K context). Details, limits, and
+how to point a new harness at it: `misc/ai/README.md`. From an Incus guest use
+`http://10.0.100.1:8080/v1`.
+
 ## Background tasks (`hc`)
 
 Use `hc` to spawn background tasks and subagents: `hc run --bg …` for a
