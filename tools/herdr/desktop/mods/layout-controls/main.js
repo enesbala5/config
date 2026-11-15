@@ -14,7 +14,6 @@ function find(node, id) {
 // The sidebar shows either Lists (Spaces and Agents) or the Inbox (t3-inbox): a stack in the layout.
 const inboxShown = () => find(layout(), "sidebar-lists")?.active === "inbox";
 const switchSidebar = () => run("layout.select", { stack: "sidebar-lists", child: inboxShown() ? "lists" : "inbox" });
-
 const SIDE_STORE = "side-pane.by-tab";
 const sideByTab = new Map();
 // tab -> primary terminal while a split may still be settling

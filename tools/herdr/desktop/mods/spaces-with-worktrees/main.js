@@ -308,7 +308,7 @@ export default class Spaces extends View {
       const connected = !m || machine?.state === "connected";
       const folded = this.folded.has(m);
       const head = h_flex().id(`machine-${m ?? "local"}`).h(26).flex_none().px(collapsed ? 2 : 8).gap(7).items_center().text_size(11).text_color(t.dim)
-        .when(index > 0, el => el.mt(16))
+        .when(index > 0, el => el.mt(10))
         .cursor_pointer().hover(s => s.bg(t.hover))
         .on_click((_e, cx) => {
           folded ? this.folded.delete(m) : this.folded.add(m);

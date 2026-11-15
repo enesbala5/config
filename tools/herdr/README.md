@@ -170,8 +170,8 @@ hosts that need headless terminals. `hc` starts and supervises the core with
 transient systemd units, so no service is declared. `modules.home.herdr.desktop.enable`
 implies core, installs the desktop app, and symlinks `desktop/keys.json`. Those keys mirror the TUI's prefix-free
 chords: Ctrl+T / Ctrl+W for new / close tab, Ctrl+Tab family for tab
-cycling, Ctrl+P / Ctrl+Alt+P for the picker, Ctrl+Shift+K / Ctrl+Shift+P
-for the command palette. Ctrl+Alt+Down uses `layout-controls.bottom` in the t3
+cycling, Ctrl+B to toggle the sidebar, Ctrl+P / Ctrl+Alt+P for the picker,
+Ctrl+Shift+K / Ctrl+Shift+P for the command palette. Ctrl+Alt+Down uses `layout-controls.bottom` in the t3
 layouts: scroll Herdr's active terminal to the bottom and forward the same key
 to its program. Pi maps it to `tui.altScreen.bottom`, so fullscreen
 transcripts jump to the latest message too. Other programs also
