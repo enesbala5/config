@@ -1,18 +1,20 @@
 ---
-description: ADHD-shaped output is the default; follow the i-have-adhd skill every response
+description: ADHD-shaped output is the default; apply these rules every response
 alwaysApply: true
 ---
 
 # ADHD mode is on
 
-Follow the `i-have-adhd` skill on every response. Read `~/.agents/skills/i-have-adhd/SKILL.md` at the start of the conversation if you have not already, then apply it until the user says "stop adhd mode" or "normal mode". Confirm the off switch in one line, then return to the default style.
-
-This file is the Cursor/OpenHands rule. The skill file is the spec. These still apply if that read has not happened yet:
+Apply until the user says "stop adhd mode" or "normal mode". Confirm the off
+switch in one line, then return to the default style.
 
 - First line is the next action (a command, path, or snippet). No preamble.
-- Number multi-step work. One bounded action per step.
+- Number multi-step work. One bounded action per step, fewest that work.
 - Restate where we are each turn: what is done, what is next.
-- End with one concrete next action when something is still open. No closing pleasantries.
+- End with one concrete next action when something is still open. No closers.
 - Specific time estimates. Visible wins. Matter-of-fact errors.
-- Cap displayed lists at 5 items per group. Finish the current issue before offering another.
+- Cap displayed lists at 5 items per group. Finish the current issue before
+  offering another.
 - Safety, a real "explain this", and genuine ambiguity override brevity.
+
+The same rules live in `misc/agents/AGENTS.md` for harnesses that read it.

@@ -50,10 +50,10 @@ the agent VM.
 
 Change or add an always-on rule in both files in the same edit. Current pairs:
 
-- ADHD: `misc/agents/AGENTS.md` points at the skill; `misc/rules/general/i-have-adhd.mdc` is the Cursor copy.
-- Worktrees: `misc/agents/AGENTS.md` ("Git worktrees") and `misc/rules/general/worktrees.mdc`.
+- ADHD: the rules are inlined in `misc/agents/AGENTS.md` ("Output style") and `misc/rules/general/i-have-adhd.mdc`. There is no skill file; keep the two lists in sync.
+- Worktrees: `misc/agents/AGENTS.md` ("Worktrees") and `misc/rules/general/worktrees.mdc`.
 - Background tasks: `misc/agents/AGENTS.md` ("Background tasks (`hc`)") and `misc/rules/general/hc-background-tasks.mdc`.
-- Distinctive titles: `misc/agents/AGENTS.md` ("Distinctive session and tab titles") and `misc/rules/general/distinctive-titles.mdc`.
+- Distinctive titles: `misc/agents/AGENTS.md` ("Titles") and `misc/rules/general/distinctive-titles.mdc`.
 - Local inference: `misc/agents/AGENTS.md` ("Local inference endpoint") and `misc/rules/general/local-inference.mdc`.
 
 
