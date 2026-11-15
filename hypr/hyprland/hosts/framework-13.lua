@@ -10,8 +10,6 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd("systemctl --user start easyeffects.service")
 	hl.exec_cmd("systemctl --user start vicinae.service")
 	hl.exec_cmd("aw-watcher-window-hyprland")
-	-- Direct Hyprland session: import its environment before starting Sunshine.
-	hl.exec_cmd("sh -c 'systemctl --user import-environment WAYLAND_DISPLAY DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP XDG_SESSION_TYPE && systemctl --user restart sunshine-session.service'")
 end)
 
 -- Lid and power-button events belong to logind, not compositor bindings.

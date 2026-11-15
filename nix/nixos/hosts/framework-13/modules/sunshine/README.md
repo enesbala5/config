@@ -11,8 +11,12 @@ Windows, macOS, Linux, Android, and iOS/iPadOS: <https://moonlight-stream.org/>.
   may connect. Pair only trusted clients: they can control the real desktop.
 - The admin UI accepts localhost connections only, and port 47990 is not opened
   on Tailscale or LAN. Use the local browser or an SSH tunnel for administration.
+- Sunshine is **manual-only**: it does not start at login or boot. Run
+  `manage-sunshine on` inside the laptop's Hyprland session when needed, and
+  `manage-sunshine off` when finished. Disconnecting Moonlight does **not** stop
+  Sunshine. Keeping it off avoids its background resource use on battery.
 - This host starts Hyprland directly (its `graphical-session.target` is inactive).
-  A host-only Lua hook imports the session environment and starts
+  `manage-sunshine` imports the session environment and starts
   `sunshine-session.service`, which watches Hyprland's event socket. Sunshine
   binds to that watcher, stopping when the compositor exits. The upstream NixOS
   module configures uinput/udev and supplies a `CAP_SYS_ADMIN` wrapper for KMS capture.
@@ -26,6 +30,31 @@ Windows, macOS, Linux, Android, and iOS/iPadOS: <https://moonlight-stream.org/>.
   The host must be awake with a logged-in graphical session and an active output.
   This does not provide disk unlock, a login screen, or wake-on-demand.
 
+## On-demand CLI
+
+The zsh alias calls `scripts/utilities/manage-sunshine.sh`:
+
+```sh
+manage-sunshine on       # Start from a terminal inside the laptop Hyprland session
+manage-sunshine off      # Stop Sunshine and its watcher; also disconnects clients
+manage-sunshine status   # Show both units (nonzero exit status when inactive)
+manage-sunshine restart  # Restart with the current Hyprland environment
+manage-sunshine logs     # Follow both journals; Ctrl-C exits without stopping Sunshine
+manage-sunshine help
+```
+
+After rebuilding, open a new zsh terminal to load the alias. Before rebuilding,
+use `bash ~/config/scripts/utilities/manage-sunshine.sh on` (or `off`, etc.), or
+load the alias into the current zsh session:
+
+```sh
+alias manage-sunshine='bash ~/config/scripts/utilities/manage-sunshine.sh'
+```
+
+No sudo is needed for these user-service commands. `on` is idempotent. Stopping
+Sunshine does not remove credentials or paired clients. Logging back in does
+not restart it; explicitly turn it on again when needed.
+
 ## First connection
 
 1. After merging/checking out this change in `~/config`, apply it on the laptop:
@@ -35,10 +64,11 @@ Windows, macOS, Linux, Android, and iOS/iPadOS: <https://moonlight-stream.org/>.
    ```
 
    Log out and back in to refresh group membership and the graphical session.
-   Check the service:
+   Open a new zsh terminal, start Sunshine on demand, and check the service:
 
    ```sh
-   systemctl --user status sunshine
+   manage-sunshine on
+   manage-sunshine status
    journalctl --user -u sunshine -b --no-pager -n 100
    ```
 
@@ -82,20 +112,22 @@ encoding, firewall enforcement, or client behavior.
   and closed-lid behavior separately with physical access available. Do not
   disable locking to fix streaming. Suspend should make the host unavailable;
   after local wake, verify reconnect. No headless/closed-lid guarantee is made.
-- Log out: Sunshine and its session watcher should stop. Log back in: it
-  should start again. Repeat after reboot and local login. Normal sleep policy
-  and Hypruse should still work as before.
+- After login/reboot, both units should remain inactive until `manage-sunshine on`.
+  Verify `on`, `status`, `restart`, and `off`. While running, log out: Sunshine
+  and its session watcher should stop. Log back in: both should remain stopped.
+  Disconnecting Moonlight alone should leave Sunshine running; use `off` after
+  streaming. Normal sleep policy and Hypruse should still work as before.
 
 ## Troubleshooting
 
-- **Service inactive after login:** inspect `systemctl --user status
-  sunshine-session sunshine` and `systemctl --user show-environment`. Ensure
-  `~/config` includes the host Lua hook (the live config is symlinked there).
-  For a first test inside a Hyprland terminal, run:
+- **Service inactive after login:** this is intentional. Run `manage-sunshine on`
+  in a laptop Hyprland terminal. If startup fails, inspect `manage-sunshine status`,
+  `manage-sunshine logs`, and `systemctl --user show-environment`.
+  The equivalent commands, useful before the alias is available, are:
 
   ```sh
   systemctl --user import-environment WAYLAND_DISPLAY DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP XDG_SESSION_TYPE
-  systemctl --user restart sunshine-session.service
+  systemctl --user start sunshine-session.service
   ```
 
   Inspect both units' journals. `graphical-session.target` need not be active.

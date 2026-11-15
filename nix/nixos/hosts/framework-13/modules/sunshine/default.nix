@@ -28,13 +28,16 @@
 
   # This host launches Hyprland directly, without UWSM or an active
   # graphical-session.target. Track the compositor's event socket instead.
-  # The host Lua startup hook imports the session environment and starts this.
+  # manage-sunshine imports the session environment and starts this on demand.
+  # No wantedBy: neither unit should start automatically at login.
   systemd.user.services.sunshine-session = {
     description = "Track Sunshine's Hyprland session";
     wants = [ "sunshine.service" ];
     serviceConfig = {
       ExecStart = "${pkgs.socat}/bin/socat -u UNIX-CONNECT:%t/hypr/\${HYPRLAND_INSTANCE_SIGNATURE}/.socket2.sock OPEN:/dev/null";
       Restart = "no";
+      # socat returns 128 + SIGTERM when systemd stops the watcher.
+      SuccessExitStatus = [ 143 ];
     };
   };
   systemd.user.services.sunshine = {

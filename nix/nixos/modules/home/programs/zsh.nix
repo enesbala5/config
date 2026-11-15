@@ -78,6 +78,7 @@
 
       # Hyprland / DE
       # ---------------
+      manage-sunshine = "bash ${data.configDirectory}/scripts/utilities/manage-sunshine.sh";
       reload-hyprlock = "${data.configDirectory}/scripts/utilities/reload-hyprlock.sh";
       clear-monitor-config = "${data.configDirectory}/scripts/utilities/clear-monitor-lua.sh";
       reload-waybar = "pkill -9 waybar && hyprctl --instance 0 dispatch 'hl.dsp.exec_cmd(\"waybar\")'";
