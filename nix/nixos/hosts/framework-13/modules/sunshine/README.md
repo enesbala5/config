@@ -51,9 +51,15 @@ load the alias into the current zsh session:
 alias manage-sunshine='bash ~/config/scripts/utilities/manage-sunshine.sh'
 ```
 
-No sudo is needed for these user-service commands. `on` is idempotent. Stopping
-Sunshine does not remove credentials or paired clients. Logging back in does
-not restart it; explicitly turn it on again when needed.
+No sudo is needed for these user-service commands. `on` is idempotent. `on`,
+`restart`, and `off` print progress and confirm the state of **both** services.
+Startup checks service activity for up to five seconds; this confirms systemd
+state, not successful capture/encoding or Moonlight connectivity. Failures return
+a nonzero exit code and show service status plus the last 30 journal entries.
+The script sets `XDG_SESSION_TYPE=wayland` for the validated Hyprland environment
+and skips unset optional variables, avoiding misleading import warnings.
+Stopping Sunshine does not remove credentials or paired clients. Logging back
+in does not restart it; explicitly turn it on again when needed.
 
 ## First connection
 
@@ -123,11 +129,11 @@ encoding, firewall enforcement, or client behavior.
 - **Service inactive after login:** this is intentional. Run `manage-sunshine on`
   in a laptop Hyprland terminal. If startup fails, inspect `manage-sunshine status`,
   `manage-sunshine logs`, and `systemctl --user show-environment`.
-  The equivalent commands, useful before the alias is available, are:
+  Before the alias is available, use the script directly so environment setup
+  and service checks are included:
 
   ```sh
-  systemctl --user import-environment WAYLAND_DISPLAY DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP XDG_SESSION_TYPE
-  systemctl --user start sunshine-session.service
+  bash ~/config/scripts/utilities/manage-sunshine.sh on
   ```
 
   Inspect both units' journals. `graphical-session.target` need not be active.
