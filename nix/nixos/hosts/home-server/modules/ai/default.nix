@@ -64,8 +64,39 @@ in
 
     contextSize = lib.mkOption {
       type = lib.types.ints.positive;
-      default = 4096;
-      description = "Context window. 4K keeps Qwen3-4B Q4 in the 4 GB VRAM working set; 8K starts leaning on GTT.";
+      default = 8192;
+      description = ''
+        Context window. Coding agents (pi, opencode) spend several thousand
+        tokens on their system prompt and tool schemas before the first user
+        message, so 4K is not enough to hold a session. 8K fits because
+        kvCacheType defaults to q8_0: quantized KV roughly halves cache size,
+        which buys the extra window back inside the 4 GB working set.
+        Raising this to 16384 without reverting kvCacheType spills to GTT.
+      '';
+    };
+
+    kvCacheType = lib.mkOption {
+      type = lib.types.enum [
+        "f16"
+        "q8_0"
+      ];
+      default = "q8_0";
+      description = ''
+        KV cache element type (-ctk/-ctv). q8_0 needs flash attention, which
+        is already forced on below, and is what keeps 8K resident. Set f16 only
+        when a backend rejects quantized KV and the server fails to start.
+      '';
+    };
+
+    servedName = lib.mkOption {
+      type = lib.types.str;
+      default = cfg.model;
+      description = ''
+        Model id advertised by /v1/models (-a). Without it the id is the full
+        GGUF path, which is what clients list and log. Keep this in sync with
+        homeServer/local-ai clients (nix/nixos/modules/home/programs/local-ai)
+        when switching homeServer.ai.model.
+      '';
     };
 
     gpuLayers = lib.mkOption {
@@ -160,8 +191,18 @@ in
         (toString cfg.contextSize)
         "-fa"
         "on"
+        "-ctk"
+        cfg.kvCacheType
+        "-ctv"
+        cfg.kvCacheType
+        # One slot, so a single agent request gets the whole context instead of
+        # a 4-way split (llama-server defaults to 4 slots and divides -c).
+        "--parallel"
+        "1"
         "--load-mode"
         "none"
+        "-a"
+        cfg.servedName
       ]
       ++ cfg.extraFlags;
     };
