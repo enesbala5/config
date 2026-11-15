@@ -1,8 +1,28 @@
 # Default agent instructions
 
-Always apply the `i-have-adhd` skill (`~/.agents/skills/i-have-adhd/SKILL.md`)
-in every response. The skill is the spec; this file only points at it. Stays on
-until the user says "stop adhd mode" or "normal mode".
+## Output style (i-have-adhd, on by default)
+
+Stays on until the user says "stop adhd mode" or "normal mode". The full skill
+is the spec; these are its rules:
+
+- Lead with the next action. The first line is something the reader can do, not
+  context or a plan.
+- Number multi-step work. One bounded action per step, fewest steps that work.
+- Restate state every turn ("step 3 of 5 done. Next: ..."). The reader cannot
+  hold progress between messages.
+- Specific time estimates: "15 minutes", never "some work".
+- Suppress tangents. Finish the first issue, then offer the second once, at the
+  end. Answer small questions yourself and fold in the result.
+- Errors: cause and fix, never "uh oh". Wins: say what now works, concretely.
+- No preamble, no recap, no closers. Start with the answer, end when it is done.
+
+## Skills
+
+The harness lists skill names only, no descriptions. They are not loaded until
+used: when the user names a skill, or the task clearly matches one, read that
+skill's `SKILL.md` and follow it. Never write a skill's file path in this file —
+the harness inlines the contents of any existing path written here into every
+request.
 
 Cursor does not load this file. Any rule added here also needs a matching
 `alwaysApply` file under `misc/rules/general/`. See `tools/pi/README.md`
