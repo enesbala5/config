@@ -180,11 +180,12 @@ transient systemd units, so no service is declared. `modules.home.herdr.desktop.
 implies core, installs the desktop app, and symlinks `desktop/keys.json`. Those keys mirror the TUI's prefix-free
 chords: Ctrl+T / Ctrl+W for new / close tab, Ctrl+Tab family for tab
 cycling, Ctrl+B to toggle the sidebar, Ctrl+P / Ctrl+Alt+P for the picker,
-Ctrl+Shift+K / Ctrl+Shift+P for the command palette. Ctrl+Alt+Down uses `layout-controls.bottom` in the t3
-layouts: scroll Herdr's active terminal to the bottom and forward the same key
-to its program. Pi maps it to `tui.altScreen.bottom`, so fullscreen
-transcripts jump to the latest message too. Other programs also
-receive Ctrl+Alt+Down. Ctrl+W steals readline word-delete inside panes
+Ctrl+Shift+K / Ctrl+Shift+P for the command palette. Ctrl+Alt+Up / Down use
+`layout-controls.top` / `layout-controls.bottom` in the t3 layouts: scroll
+Herdr's active terminal to the start / end and forward the same key to its
+program. Pi maps these to `tui.altScreen.top` / `tui.altScreen.bottom`, so
+fullscreen transcripts jump to the first / latest message too. Pi no longer
+binds Ctrl+End. Other programs also receive Ctrl+Alt+Up / Down. Ctrl+W steals readline word-delete inside panes
 (same tradeoff as the TUI). `framework-13` enables desktop (gpui off);
 `home-server` enables core only, with the TUI.
 

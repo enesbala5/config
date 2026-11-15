@@ -131,13 +131,14 @@ function toggleSide() {
 }
 
 // Scroll Herdr's history and forward the key to application-owned history (Pi).
-async function jumpToBottom() {
+async function jumpToEdge(edge) {
   const terminal = focused()?.terminal;
   if (!terminal) return;
-  run("terminal.scroll", { terminal, to: "bottom" });
+  run("terminal.scroll", { terminal, to: edge });
   // Write directly to the PTY: this cannot re-trigger Herdr's key binding.
-  const result = await hc(["keys", terminal, "ctrl+alt+down"]);
-  if (result.code !== 0) throw new Error(result.stderr || "Could not forward Ctrl+Alt+Down");
+  const key = edge === "top" ? "ctrl+alt+up" : "ctrl+alt+down";
+  const result = await hc(["keys", terminal, key]);
+  if (result.code !== 0) throw new Error(result.stderr || `Could not forward ${key}`);
 }
 
 export default class WorkspaceChrome extends View {
@@ -149,9 +150,9 @@ export default class WorkspaceChrome extends View {
         const cmd = await nextCommand();
         if (cmd === "sidebar") switchSidebar();
         else if (cmd === "side") toggleSide();
-        else if (cmd === "bottom") {
-          try { await jumpToBottom(); }
-          catch (error) { console.error("Jump to bottom:", error); }
+        else if (cmd === "top" || cmd === "bottom") {
+          try { await jumpToEdge(cmd); }
+          catch (error) { console.error(`Jump to ${cmd}:`, error); }
         }
         cx.notify();
       }

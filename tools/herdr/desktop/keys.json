@@ -86,6 +86,7 @@
     "ctrl-v": "terminal.paste_image",
     "ctrl-insert": "terminal.copy",
     "shift-insert": "terminal.paste",
-    "ctrl-alt-down": "send:\u001b[1;7B"
+    "ctrl-alt-up": "layout-controls.top",
+    "ctrl-alt-down": "layout-controls.bottom"
   }
 }
