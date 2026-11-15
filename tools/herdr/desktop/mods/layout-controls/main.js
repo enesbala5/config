@@ -1,6 +1,6 @@
 import { View, div, svg } from "gpui-kit";
 import { h_flex, v_flex } from "gpui-base";
-import { theme, run, props, updates, layout, nextCommand, focused, panes, terminals, shared, setShared, hc } from "herdr";
+import { theme, run, props, updates, layout, nextCommand, focused, panes, terminals, shared, setShared } from "herdr";
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -131,14 +131,15 @@ function toggleSide() {
 }
 
 // Scroll Herdr's history and forward the key to application-owned history (Pi).
-async function jumpToEdge(edge) {
+function jumpToEdge(edge) {
   const terminal = focused()?.terminal;
   if (!terminal) return;
-  run("terminal.scroll", { terminal, to: edge });
-  // Write directly to the PTY: this cannot re-trigger Herdr's key binding.
-  const key = edge === "top" ? "ctrl+alt+up" : "ctrl+alt+down";
-  const result = await hc(["keys", terminal, key]);
-  if (result.code !== 0) throw new Error(result.stderr || `Could not forward ${key}`);
+  // Native actions avoid spawning hc and round-tripping through its CLI.
+  // Dispatching send: writes directly, without re-triggering the key binding.
+  window.dispatch_action(`send:\u001b[1;7${edge === "top" ? "A" : "B"}`);
+  // Native send resets host scrollback to bottom. Queue our scroll after it,
+  // retaining the original terminal even if focus changes before delivery.
+  window.dispatch_action(`layout-controls.scroll:${JSON.stringify({ terminal, to: edge })}`);
 }
 
 export default class WorkspaceChrome extends View {
@@ -150,9 +151,9 @@ export default class WorkspaceChrome extends View {
         const cmd = await nextCommand();
         if (cmd === "sidebar") switchSidebar();
         else if (cmd === "side") toggleSide();
-        else if (cmd === "top" || cmd === "bottom") {
-          try { await jumpToEdge(cmd); }
-          catch (error) { console.error(`Jump to ${cmd}:`, error); }
+        else if (cmd === "top" || cmd === "bottom") jumpToEdge(cmd);
+        else if (cmd.startsWith("scroll:")) {
+          run("terminal.scroll", JSON.parse(cmd.slice("scroll:".length)));
         }
         cx.notify();
       }

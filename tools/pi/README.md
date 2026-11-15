@@ -180,8 +180,8 @@ and how to point another harness at the same endpoint:
 | `Shift+Tab` | Cycle normal → plan → ask mode (`modes/`) |
 | `Ctrl+Alt+P` | Jump to/from plan mode (`modes/`) |
 | `Ctrl+Backspace` | Delete a word instead of deleting the session (`keybindings.json`) |
-| `Ctrl+Alt+Up` | Jump to the transcript start (`keybindings.json`; Herdr also scrolls its own viewport to the top first) |
-| `Ctrl+Alt+Down` | Jump to the transcript end and follow new output (`keybindings.json`; Herdr also scrolls its own viewport to the bottom first; `Ctrl+End` is unbound) |
+| `Ctrl+Alt+Up` | Jump to the transcript start (`keybindings.json`; Herdr also scrolls its own viewport to the top) |
+| `Ctrl+Alt+Down` | Jump to the transcript end and follow new output (`keybindings.json`; Herdr also scrolls its own viewport to the bottom; `Ctrl+End` is unbound) |
 
 `sidebar-toggle.ts` exists because `pi-sidebar-tui` hardcodes `Ctrl+Shift+T` as
 an *extension* shortcut. Extension shortcuts are keyed by their literal key and

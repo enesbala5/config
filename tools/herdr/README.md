@@ -183,7 +183,9 @@ cycling, Ctrl+B to toggle the sidebar, Ctrl+P / Ctrl+Alt+P for the picker,
 Ctrl+Shift+K / Ctrl+Shift+P for the command palette. Ctrl+Alt+Up / Down use
 `layout-controls.top` / `layout-controls.bottom` in the t3 layouts: scroll
 Herdr's active terminal to the start / end and forward the same key to its
-program. Pi maps these to `tui.altScreen.top` / `tui.altScreen.bottom`, so
+program. Forwarding uses native in-process `send:` actions, not an `hc`
+subprocess per keypress; the host scroll is queued afterward because native
+input resets host scrollback to the bottom. Pi maps these to `tui.altScreen.top` / `tui.altScreen.bottom`, so
 fullscreen transcripts jump to the first / latest message too. Pi no longer
 binds Ctrl+End. Other programs also receive Ctrl+Alt+Up / Down. Ctrl+W steals readline word-delete inside panes
 (same tradeoff as the TUI). `framework-13` enables desktop (gpui off);
