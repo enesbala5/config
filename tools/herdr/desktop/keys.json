@@ -66,11 +66,13 @@
   },
   "layout:herdr-t3": {
     "ctrl-\\": "layout-controls.side",
+    "ctrl-b": "layout.toggle:sidebar",
     "ctrl-shift-b": "layout-controls.sidebar",
     "ctrl-shift-s": "t3-inbox.settle"
   },
   "layout:herdr-t3-worktrees": {
     "ctrl-\\": "layout-controls.side",
+    "ctrl-b": "layout.toggle:sidebar",
     "ctrl-shift-b": "layout-controls.sidebar",
     "ctrl-shift-s": "t3-inbox.settle"
   },

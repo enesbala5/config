@@ -14,7 +14,6 @@ function find(node, id) {
 // The sidebar shows either Lists (Spaces and Agents) or the Inbox (t3-inbox): a stack in the layout.
 const inboxShown = () => find(layout(), "sidebar-lists")?.active === "inbox";
 const switchSidebar = () => run("layout.select", { stack: "sidebar-lists", child: inboxShown() ? "lists" : "inbox" });
-
 const SIDE_STORE = "side-pane.by-tab";
 const sideByTab = new Map();
 // tab -> primary terminal while a split may still be settling
@@ -181,7 +180,11 @@ export default class WorkspaceChrome extends View {
     // Room for the macOS window buttons (layout traffic_lights), a place to drag the window, and the
     // sidebar toggle at its right edge; while the sidebar is hidden, t3-tabs shows it after the buttons.
     const inbox = inboxShown();
+    const combined = find(layout(), "spaces")?.content?.mod === "spaces-with-worktrees";
+    const collapsed = (find(layout(), "sidebar")?.size?.px ?? Infinity) < 160;
     return h_flex().id("brand").size_full().bg(t.chrome).pr(10).gap(2).items_center().justify_end()
+      .when(combined, el => el.child(div().flex_1().min_w(0).pl(16).text_size(11.5).text_color(t.dim)
+        .when(!collapsed, el => el.child(inbox ? "Inbox" : "Spaces"))))
       .child(div().id("sidebar-mode").size(26).flex_none().flex().items_center().justify_center().rounded(6)
         .text_color(t.dim).hover(s => s.bg(t.hover).text_color(t.foreground))
         .role("button").accessibility_label(inbox ? "Show lists" : "Show inbox")
@@ -193,6 +196,12 @@ export default class WorkspaceChrome extends View {
         .role("button").accessibility_label("Hide sidebar")
         .on_mouse_down("left", (_e, cx) => cx.stop_propagation())
         .on_click(() => run("layout.toggle", { id: "sidebar" }))
-        .child(svg("mods/workspace-chrome/sidebar.svg").size(14)));
+        .child(svg("mods/workspace-chrome/sidebar.svg").size(14)))
+      .when(combined && !inbox, el => el.child(div().id("space-new").size(26).flex_none().flex().items_center().justify_center().rounded(6)
+        .text_color(t.dim).hover(s => s.bg(t.hover).text_color(t.foreground))
+        .role("button").accessibility_label("New space")
+        .on_mouse_down("left", (_e, cx) => cx.stop_propagation())
+        .on_click(() => run("space.new"))
+        .child(svg("mods/workspace-chrome/plus.svg").size(14))));
   }
 }
