@@ -168,7 +168,8 @@
 	"agent_servers": {
 		"pi-acp": {
 			"default_config_options": {
-    "thought_level": "high"
+    "model": "deepseek/deepseek-flash",
+    "thought_level": "low"
    },
    "type": "registry"
 		},
