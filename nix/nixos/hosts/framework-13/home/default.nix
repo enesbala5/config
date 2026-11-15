@@ -148,6 +148,14 @@
           recursive = true;
         };
 
+        # Replaces pi's skills catalog (name + full description + path per
+        # skill) with a names-only list. ~110 skills cost ~17k tokens per
+        # request otherwise; the names cost ~1k. Skills still load on demand:
+        # the model reads a SKILL.md when the user names one.
+        ".pi/agent/extensions/skills-names-only.ts" = {
+          source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/pi/agent/extensions/skills-names-only.ts";
+        };
+
         ".agents/skills" = {
           source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/misc/skills";
           recursive = true;
