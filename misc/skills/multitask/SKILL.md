@@ -165,5 +165,7 @@ the main checkout's branch/index/files remain unchanged. Report:
 - Exact head/base SHAs and whether a base was merged, when testing a PR.
 - Checks actually run and their results; distinguish setup from verified tests.
 - App URL/runtime ownership and Herdr attachment, if applicable; any blockers.
-- Use `worktree-cleanup` with this exact path when finished. Do not tear down
-  automatically or claim the new task's work has been integrated.
+- Use `worktree-cleanup` with this exact path when finished. It also asks whether
+  to close the worktree's dedicated Herdr space after successful checkout removal,
+  while protecting active terminals and the parent repository space. Do not tear
+  down automatically or claim the new task's work has been integrated.

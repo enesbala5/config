@@ -67,7 +67,34 @@ down command. For non-container processes, verify the exact process and working
 directory rather than killing by a generic app name or port. With no runtime,
 skip this step. Never use `docker system prune`.
 
-## 3. Remove the checkout
+## 3. Identify the matching Herdr space
+
+When Herdr is available in this session, inspect its installed CLI and live
+state before removing the checkout. For the Desktop integration used by
+`multitask`, inspect `herdr-app commands` and `herdr-app ls`. Record the exact
+space ID whose folder matches the verified absolute worktree path; do not
+identify it by title, sidebar order, or indentation alone. Do not open Herdr
+just for cleanup. If no space matches, skip Herdr cleanup; if ownership is
+ambiguous, ask rather than guessing.
+
+Ask the user whether to close that specific space after successful checkout
+removal. Explain that otherwise it will remain with a missing folder and may
+lose its worktree grouping. Never close a space or its tabs without this
+confirmation. If other terminals contain active agents or processes, identify
+them and obtain explicit approval before closing them; approval to remove the
+checkout alone does not authorize terminating unrelated work.
+
+If this agent occupies the target space, preserve its terminal before closure:
+identify the verified main-checkout space, move the current terminal there using
+the installed CLI's supported attachment commands, and change its working
+directory to the main checkout. Verify the move in live state. Do not create a
+new space, kill the current terminal, or close its containing space as a fallback.
+If safe relocation is unavailable, leave the space open and report the blocker.
+
+Herdr is optional: unavailable inspection or declined closure does not prevent
+otherwise safe worktree removal. Record any space left behind for the report.
+
+## 4. Remove the checkout
 
 From the main checkout, first try normal removal:
 
@@ -81,15 +108,21 @@ explicitly approved discarding the identified contents. Do not use a recursive
 filesystem delete as a fallback. Keep branches and retained commits unless the
 user separately asks to delete them.
 
-Do not automatically close Herdr spaces or tabs: they may contain this agent or
-other running work. If asked to close them, verify the exact IDs/ownership first.
-Herdr is not required for cleanup.
+Only after checkout removal succeeds, recheck the recorded Herdr space ID and
+folder ownership. If the user approved closure and its terminals are safe to
+close, close only that space using the installed CLI's supported command.
+Never close the parent repository space, unrelated tabs, or a workspace group.
+If closure fails, inspect state before retrying and report any remaining space.
+Do not claim Herdr cleanup succeeded merely because the checkout is gone.
 
-## 4. Verify and report
+## 5. Verify and report
 
 Check that the directory is gone, `git worktree list` no longer includes it, and
 no verified worktree container/process remains. Report any deliberately retained
 volumes, branches, or blocked resources instead of claiming complete teardown.
-Confirm the main checkout and other worktrees were not changed.
+Verify an approved Herdr space closure in live state. Report whether its space
+was removed, absent, deliberately retained, or blocked, including any missing-folder
+space left behind. Confirm the main checkout, parent repository space, and other
+worktrees/spaces were not changed apart from any approved terminal relocation.
 
 Do not commit, push, or run commands on a remote host unless explicitly asked.
