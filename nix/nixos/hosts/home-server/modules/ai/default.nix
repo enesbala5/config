@@ -15,11 +15,12 @@ let
     else
       unstable.llama-cpp.override { vulkanSupport = true; };
 
-  activeModel = cfg.models.available.${cfg.model} or {
-    displayName = cfg.model;
-    file = "${cfg.model}.gguf";
-    url = "";
-  };
+  activeModel =
+    cfg.models.available.${cfg.model} or {
+      displayName = cfg.model;
+      file = "${cfg.model}.gguf";
+      url = "";
+    };
 
   modelPath = "${cfg.models.directory}/${activeModel.file}";
 in
@@ -64,14 +65,13 @@ in
 
     contextSize = lib.mkOption {
       type = lib.types.ints.positive;
-      default = 8192;
+      default = 16384;
       description = ''
-        Context window. Coding agents (pi, opencode) spend several thousand
-        tokens on their system prompt and tool schemas before the first user
-        message, so 4K is not enough to hold a session. 8K fits because
-        kvCacheType defaults to q8_0: quantized KV roughly halves cache size,
-        which buys the extra window back inside the 4 GB working set.
-        Raising this to 16384 without reverting kvCacheType spills to GTT.
+        Total context window, including prompt and generated tokens. The 16K
+        default pairs with q4_0 KV to target roughly the cache footprint of
+        8K/q8_0 on the RX 570 4 GB. Backend support, VRAM residency and quality
+        need checking after deployment. Keep modules.home.localAi.contextWindow
+        and the ask-local default in sync.
       '';
     };
 
@@ -79,12 +79,15 @@ in
       type = lib.types.enum [
         "f16"
         "q8_0"
+        "q4_0"
       ];
-      default = "q8_0";
+      default = "q4_0";
       description = ''
-        KV cache element type (-ctk/-ctv). q8_0 needs flash attention, which
-        is already forced on below, and is what keeps 8K resident. Set f16 only
-        when a backend rejects quantized KV and the server fails to start.
+        KV cache element type (-ctk/-ctv). q4_0 compresses the cache to make
+        room for 16K context, with a possible quality trade-off. Quantized V
+        cache needs flash attention, forced on below. If the Vulkan backend
+        rejects q4_0, restore q8_0 with contextSize = 8192; f16 needs still
+        more memory.
       '';
     };
 

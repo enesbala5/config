@@ -22,7 +22,7 @@
 #   -h, --help          this text
 #
 # Env: LOCAL_LLM_ENDPOINT (http://home-server:8080/v1), LOCAL_LLM_MODEL (qwen),
-#      LOCAL_LLM_CTX (8192), AGENTS_SKILLS_DIR (~/.agents/skills)
+#      LOCAL_LLM_CTX (16384), AGENTS_SKILLS_DIR (~/.agents/skills)
 #
 # See misc/ai/README.md for the endpoint's limits.
 
@@ -30,7 +30,7 @@ set -euo pipefail
 
 endpoint="${LOCAL_LLM_ENDPOINT:-http://home-server:8080/v1}"
 model="${LOCAL_LLM_MODEL:-qwen}"
-ctx="${LOCAL_LLM_CTX:-8192}"
+ctx="${LOCAL_LLM_CTX:-16384}"
 skills_dir="${AGENTS_SKILLS_DIR:-$HOME/.agents/skills}"
 
 max_tokens=1024

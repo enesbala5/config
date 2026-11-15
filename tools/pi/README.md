@@ -162,7 +162,7 @@ single-model mode and only answers plain OpenAI-compatible HTTP.
 pi --model home-server/qwen   # or pick it in /model
 ```
 
-Use `/thinking off`. Qwen3 thinks by default and burns most of the 8K window on
+Use `/thinking off`. Qwen3 thinks by default and can burn much of the context window on
 `reasoning_content` before answering. Details, limits, and how to point another
 harness at the same endpoint: [`misc/ai/README.md`](../../misc/ai/README.md).
 

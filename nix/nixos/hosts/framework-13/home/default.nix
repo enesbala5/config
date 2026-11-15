@@ -193,7 +193,7 @@
                   cacheWrite = 0;
                 };
                 # Qwen3 is a hybrid thinking model and the GGUF chat template
-                # defaults to thinking on, which spends most of an 8K window
+                # defaults to thinking on, which can spend much of the window
                 # on reasoning. This maps pi's thinking level onto
                 # chat_template_kwargs.enable_thinking; /thinking off is the
                 # useful default for a 4B model here.

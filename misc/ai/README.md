@@ -16,7 +16,7 @@ the two cannot drift.
 | Base URL (Incus guest) | `http://10.0.100.1:8080/v1` |
 | Model id | `qwen` (Qwen3-4B Q4_K_M) |
 | API key | none — send any non-empty placeholder |
-| Context | 8192 tokens, one slot |
+| Context | 16384 tokens, one slot (after rebuilding server and clients) |
 | Tools | function calling works (`tools` + `tool_choice`) |
 | Thinking | Qwen3 hybrid; off by default via `chat_template_kwargs` |
 
@@ -29,14 +29,14 @@ the server first. Incus guests reach the host at `10.0.100.1` because
 ## Rules of thumb
 
 - **Turn thinking off for agent loops.** Qwen3 thinks by default and spends
-  most of an 8K window on `reasoning_content` before answering. Send
+  much of the context window on `reasoning_content` before answering. Send
   `"chat_template_kwargs": {"enable_thinking": false}`; `ask-local` and the
   pi provider already do.
 - **One request at a time.** The server runs `--parallel 1`; concurrent
   requests queue rather than sharing context.
-- **8K is the window, not the usable input.** pi's own prompt measured 19198
-  tokens with MCP servers and skills loaded — 2.3x the window, so pi cannot
-  talk to this server unmodified. `pi --no-mcp --tools read,bash` cuts it down;
+- **16K is the total window, not the usable input.** pi's own prompt measured
+  19198 tokens with MCP servers and skills loaded — still too large, before
+  reserving room for an answer. `pi --no-mcp --tools read,bash` cuts it down;
   the HTTP 400 reports the new size.
 - **The model stops reading early.** A 6012-token input split across two files
   got a summary of the first file only. Keep inputs under roughly 3-4K tokens
@@ -112,3 +112,15 @@ The service lives in `nix/nixos/hosts/home-server/modules/ai`
 `servedName` and `contextSize` there must match
 `nix/nixos/modules/home/programs/local-ai`. Switch the served model with
 `homeServer.ai.model`, and keep `servedName` and the client `modelId` in step.
+
+The configured default is 16K with `q4_0` K/V cache and flash attention. This
+targets roughly the cache memory of the previous 8K/`q8_0` configuration;
+it is not a guarantee of Vulkan support, VRAM residency or answer quality.
+Rebuild the server and clients before using the larger window. Verify
+`GET /props` reports `default_generation_settings.n_ctx = 16384`, then test
+a prompt over 8K and check GPU memory and response quality. Longer context
+does not fix the early-reading limitation observed above.
+
+If startup fails or quality regresses, restore `homeServer.ai.contextSize = 8192`
+and `homeServer.ai.kvCacheType = "q8_0"`, set the client context window back
+to 8192, and use `LOCAL_LLM_CTX=8192` with `ask-local`.

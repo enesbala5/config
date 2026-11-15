@@ -66,7 +66,7 @@ in
 
     contextWindow = lib.mkOption {
       type = lib.types.ints.positive;
-      default = 8192;
+      default = 16384;
       description = "Must match homeServer.ai.contextSize, including the KV cache type it implies.";
     };
 
