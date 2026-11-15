@@ -157,7 +157,8 @@ in
         (toString cfg.contextSize)
         "-fa"
         "on"
-        "--no-mmap"
+        "--load-mode"
+        "none"
       ]
       ++ cfg.extraFlags;
     };
