@@ -14,7 +14,7 @@ the two cannot drift.
 | --- | --- |
 | Base URL (tailnet) | `http://home-server:8080/v1` |
 | Base URL (Incus guest) | `http://10.0.100.1:8080/v1` |
-| Model id | `qwen` (Qwen3-4B Q4_K_M) |
+| Model id | `qwen` (Qwen3-4B abliterated, Q4_K_M) |
 | API key | none — send any non-empty placeholder |
 | Context | 16384 tokens, one slot (after rebuilding server and clients) |
 | Tools | function calling works (`tools` + `tool_choice`) |
@@ -31,7 +31,8 @@ the server first. Incus guests reach the host at `10.0.100.1` because
 - **Turn thinking off for agent loops.** Qwen3 thinks by default and spends
   much of the context window on `reasoning_content` before answering. Send
   `"chat_template_kwargs": {"enable_thinking": false}`; `ask-local` and the
-  pi provider already do.
+  pi provider already do. The served abliterated GGUF is a merge of the hybrid
+  Qwen3-4B, so it keeps the same template and the same rule.
 - **One request at a time.** The server runs `--parallel 1`; concurrent
   requests queue rather than sharing context.
 - **16K is the total window, not the usable input.** pi's own prompt measured
@@ -42,7 +43,8 @@ the server first. Incus guests reach the host at `10.0.100.1` because
   got a summary of the first file only. Keep inputs under roughly 3-4K tokens
   when the answer depends on all of it.
 - **Capability.** Good at short, well-scoped single-turn jobs. Do not expect
-  multi-step refactors or long tool chains to hold together.
+  multi-step refactors or long tool chains to hold together. Abliteration costs
+  a little instruction-following and tool-call fidelity against stock Qwen3-4B.
 
 ## Verify
 
@@ -111,7 +113,13 @@ The service lives in `nix/nixos/hosts/home-server/modules/ai`
 (`homeServer.ai`), on branch `home-server/local-ai-vulkan`. Host, port,
 `servedName` and `contextSize` there must match
 `nix/nixos/modules/home/programs/local-ai`. Switch the served model with
-`homeServer.ai.model`, and keep `servedName` and the client `modelId` in step.
+`homeServer.ai.model` — catalog: `qwen-abliterated` (current, abliterated
+Qwen3-4B that keeps thinking), `qwen` (stock Qwen3-4B), `mistral`, `deepseek`.
+Only the selected entry is downloaded, and downloaded weights stay in
+`/var/lib/ai/models`, so switching back is one line plus a rebuild and no
+re-fetch. Keep `servedName` and the client `modelId` in step; `servedName` is
+pinned to `"qwen"` on the server so a swap does not rename the endpoint for
+any client. Set `modules.home.localAi.thinking` to match the served template.
 
 The configured default is 16K with `q4_0` K/V cache and flash attention. This
 targets roughly the cache memory of the previous 8K/`q8_0` configuration;

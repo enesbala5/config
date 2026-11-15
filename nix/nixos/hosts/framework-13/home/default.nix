@@ -191,7 +191,7 @@
               {
                 id = localAi.modelId;
                 name = localAi.modelName;
-                reasoning = true;
+                reasoning = localAi.thinking;
                 contextWindow = localAi.contextWindow;
                 maxTokens = localAi.maxOutputTokens;
                 cost = {
@@ -200,11 +200,10 @@
                   cacheRead = 0;
                   cacheWrite = 0;
                 };
-                # Qwen3 is a hybrid thinking model and the GGUF chat template
-                # defaults to thinking on, which can spend much of the window
-                # on reasoning. This maps pi's thinking level onto
-                # chat_template_kwargs.enable_thinking; /thinking off is the
-                # useful default for a 4B model here.
+                # Only meaningful when localAi.thinking is on: this maps pi's
+                # thinking level onto chat_template_kwargs.enable_thinking, and
+                # thinking must be off for a 4B model inside a 16K window.
+                # Inert for the current 2507 build, which emits no reasoning.
                 compat.thinkingFormat = "qwen-chat-template";
               }
             ];

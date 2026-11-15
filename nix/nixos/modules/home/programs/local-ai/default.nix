@@ -60,8 +60,19 @@ in
 
     modelName = lib.mkOption {
       type = lib.types.str;
-      default = "Qwen3-4B Q4_K_M (home-server)";
+      default = "Qwen3-4B-Instruct-2507 abliterated (home-server)";
       description = "Human-readable label shown in model pickers.";
+    };
+
+    thinking = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Whether the served GGUF is a hybrid thinking model. Qwen3-2507 builds
+        and abliterated 2507 merges do not emit reasoning_content, so leave
+        this false for them: pi then stops offering /thinking levels that the
+        template ignores.
+      '';
     };
 
     contextWindow = lib.mkOption {

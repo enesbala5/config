@@ -152,19 +152,22 @@ pi auth check --provider deepseek
 
 ## Local model
 
-`home-server` serves a local Qwen3-4B and pi reaches it through a custom
-provider entry in the generated `models.json` (provider `home-server`, model
-`qwen`). The built-in `llama.cpp` provider is not used: it only speaks to a
-llama.cpp *router* (`/llama`, a model directory), while home-server runs
-single-model mode and only answers plain OpenAI-compatible HTTP.
+`home-server` serves a local Qwen3-4B abliterated Q4_K_M and pi
+reaches it through a custom provider entry in the generated `models.json`
+(provider `home-server`, model `qwen`). The built-in `llama.cpp` provider is not
+used: it only speaks to a llama.cpp *router* (`/llama`, a model directory),
+while home-server runs single-model mode and only answers plain
+OpenAI-compatible HTTP.
 
 ```sh
 pi --model home-server/qwen   # or pick it in /model
 ```
 
 Use `/thinking off`. Qwen3 thinks by default and can burn much of the context window on
-`reasoning_content` before answering. Details, limits, and how to point another
-harness at the same endpoint: [`misc/ai/README.md`](../../misc/ai/README.md).
+`reasoning_content` before answering. The abliterated merge keeps the same hybrid
+template, so the rule is unchanged. Details, limits,
+and how to point another harness at the same endpoint:
+[`misc/ai/README.md`](../../misc/ai/README.md).
 
 ## Keyboard shortcuts
 

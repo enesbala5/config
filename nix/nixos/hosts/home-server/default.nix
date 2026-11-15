@@ -32,7 +32,10 @@ in
 
   homeServer.ai = {
     enable = true;
-    model = "qwen";
+    model = "qwen-abliterated";
+    # Keep the advertised id stable so every client (pi, Hermes, ask-local)
+    # keeps pointing at "qwen" with no config change.
+    servedName = "qwen";
   };
 
   # Enable VMs for OpenHands AI and Hermes agents

@@ -3,6 +3,7 @@
 {
   imports = [
     ./qwen
+    ./qwen-abliterated
     ./mistral
     ./deepseek
   ];
