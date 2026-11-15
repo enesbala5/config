@@ -90,6 +90,10 @@
 			"env": {},
 			"enabled": true
 		},
+		"brandfetch": {
+			"url": "https://mcp.brandfetch.io/mcp",
+			"enabled": true
+		},
 		"astro-docs": {
 			"url": "https://mcp.docs.astro.build/mcp",
 			"enabled": true

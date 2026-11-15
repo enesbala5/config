@@ -60,6 +60,10 @@
 			},
 			"description": "Coolify on the home server: apps, deployments, logs."
 		},
+		"brandfetch": {
+			"url": "https://mcp.brandfetch.io/mcp",
+			"description": "Brandfetch: brand search, logos, assets and firmographics (OAuth)."
+		},
 		"astro-docs": {
 			"url": "https://mcp.docs.astro.build/mcp",
 			"description": "Astro documentation search and retrieval."
