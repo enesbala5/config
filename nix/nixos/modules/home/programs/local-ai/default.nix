@@ -60,7 +60,7 @@ in
 
     modelName = lib.mkOption {
       type = lib.types.str;
-      default = "Qwen3-4B-Instruct-2507 abliterated (home-server)";
+      default = "Qwen3-4B abliterated (home-server)";
       description = "Human-readable label shown in model pickers.";
     };
 
