@@ -1,7 +1,6 @@
 ---
 name: chunk-and-commit
-description: >-
-  Split uncommitted work into logical git commits, present each proposed
+description: Split uncommitted work into logical git commits, present each proposed
   commit (message plus file chunk) for confirmation, then commit only after
   the user approves. Use when the user asks to commit, chunk commits, split
   commits by article/feature/file, or commit all changes in groups.
@@ -110,9 +109,12 @@ version — do not silently revert to the old plan.
 For each approved commit, in order:
 
 1. `git add` only that chunk's paths
-2. `git commit` with the full message via HEREDOC (no `-i`, no `--no-verify`
-   unless they asked)
-3. After the last one: `git status`
+2. Commit with plain `git commit` in the **Shell** tool only — HEREDOC message
+   (no `-i`, no `--no-verify` unless they asked). **Never** use Cursor's
+   commit UI, commit harness, or Source Control commit button.
+3. **Never** add `Co-authored-by`, `Signed-off-by`, or any Cursor/agent trailer.
+4. Verify with `git log -1 --format='%B'` that no co-author trailer was injected.
+5. After the last one: `git status`
 
 If a hook fails, fix and make a **new** commit. Do not `--amend` unless they
 asked, HEAD is yours, and it has not been pushed.
@@ -124,4 +126,6 @@ Do not commit when there is nothing to commit.
 - Never `push --force`, hard reset, or skip hooks unless they asked in this turn
 - Never `--amend` a pushed commit unless they asked (needs force-push)
 - Never prefix branches with `cursor/`
+- NEVER add a co-author (`Co-authored-by` trailer or any equivalent)
+- NEVER use Cursor's commit UI / harness — Shell `git commit` only
 - Do not push unless they asked

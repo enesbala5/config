@@ -14,7 +14,9 @@ Use a **blank line + bullets** only when the commit includes several distinct up
 - **TITLE**: Short imperative summary. Do not wrap it in quotes or prefix with `feat:` / `fix:` unless the repo already uses that convention in recent commits.
 - **Bullets** (optional): Only for truly multi-change commits. One concrete change per line; start with a verb when useful (Add, Fix, Update, Remove). Prefer 3–6 bullets; skip trivial or purely mechanical noise. Do not use bullets for 1–2 things that the title already covers.
 - If you use bullets, put a blank line between the title and the list. If you do not, do not add extra blank lines or a body paragraph.
-- Pass the full message via a HEREDOC when running `git commit`.
+- Pass the full message via a HEREDOC when running `git commit` in the **Shell** tool only.
+- **Never** use Cursor's commit UI / commit harness / Source Control commit button.
+- **Never** add `Co-authored-by` or any Cursor/agent attribution trailer. See `no-co-authored-by.mdc`.
 
 ## Examples
 

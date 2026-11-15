@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "bash /home/e/.cursor/herdr-agent-state.sh session"
+      },
+      {
+        "command": "bash /home/e/.cursor/herdr-desktop-status.sh idle"
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "bash /home/e/.cursor/herdr-desktop-status.sh working"
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "bash /home/e/.cursor/herdr-desktop-status.sh working"
+      }
+    ],
+    "stop": [
+      {
+        "command": "bash /home/e/.cursor/herdr-desktop-status.sh idle"
+      }
+    ],
+    "sessionEnd": [
+      {
+        "command": "bash /home/e/.cursor/herdr-desktop-status.sh clear"
+      }
+    ]
+  }
+}

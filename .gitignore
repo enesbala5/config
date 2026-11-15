@@ -7,3 +7,5 @@ nix/nixos/nixos-switch.log
 tools/F/**.conf
 kitty/kitty.conf.bak
 *.bak
+
+.playwright-mcp

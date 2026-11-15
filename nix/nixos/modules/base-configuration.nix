@@ -9,9 +9,6 @@
   hostname,
   ...
 }:
-let
-  hyprlandPackages = inputs.hyprland.packages.${system};
-in
 {
   # ------------------------------------------------------------------------------------------
   # NixOS / System
@@ -100,7 +97,15 @@ in
   # ------------------------------------------------------------------------------------------
 
   virtualisation = {
-    docker.enable = true;
+    docker = {
+      enable = true;
+
+      # Keep up to 10GB of BuildKit build cache before garbage collection starts pruning it.
+      daemon.settings.builder.gc = {
+        enabled = true;
+        defaultKeepStorage = "10GB";
+      };
+    };
 
     libvirtd.enable = true;
 
@@ -210,6 +215,10 @@ in
 
     # Enable automatic login for the user.
     displayManager = {
+      # GDM's fallback otherwise picks gnome-greeter (Exec=gnome-session).
+      # gnome-session is only on the greeter PATH, so the user session dies
+      # immediately and GDM returns to the login screen.
+      defaultSession = "hyprland";
       autoLogin = {
         enable = true;
         user = data.username;
@@ -253,11 +262,10 @@ in
       freeSwapThreshold = 2;
       freeMemThreshold = 2;
       extraArgs = [
-        "-g"
         "--avoid"
-        "^(X|plasma.*|konsole|kwin|hyprland|waybar|keymapper|hyprlock|hyprsunset|hypridle|hyprdynamicmonitors)$"
+        "(^X$|Xorg|Xwayland|plasma|konsole|kwin|[Hh]yprland|waybar|keymapper|hyprlock|hyprsunset|hypridle|hyprdynamicmoni)"
         "--prefer"
-        "^(obsidian|electron|libreoffice|gimp|vlc|spotify|chrome|code|zen-beta)$"
+        "(obsidian|electron|libreoffice|gimp|vlc|spotify|chrome|code|zen|zed-editor|nix|node|gitstatusd|activitywatch)"
       ];
     };
 
@@ -322,9 +330,9 @@ in
   # ------------------------------------------------------------------------------------------
 
   boot = {
-    resumeDevice = "/nix/store";
-
-    kernelPackages = pkgs.linuxPackages_latest;
+    # 6.18 LTS from nixos-26.05. CVE-2026-98432 is fixed in 6.18.56+.
+    # linuxPackages_latest on 25.11 was 6.19/7.1, which never got that fix.
+    kernelPackages = pkgs.linuxPackages;
 
     kernel.sysctl."vm.overcommit_memory" = "1";
 
@@ -360,7 +368,9 @@ in
           users = [ data.username ];
           commands = [
             {
-              command = "/run/current-system/specialisation/light/bin/switch-to-configuration";
+              # Profile path — /run/current-system/specialisation/ is empty
+              # once a specialisation is already active (they do not nest).
+              command = "/nix/var/nix/profiles/system/specialisation/light/bin/switch-to-configuration";
               options = [ "NOPASSWD" ];
             }
             {
@@ -516,16 +526,13 @@ in
     thunar = {
       enable = true;
 
-      plugins =
-        (with pkgs.xfce; [
-          thunar-archive-plugin # Archive management
-          thunar-volman # Management of removable drives and media
-          thunar-media-tags-plugin # Media tag management
-          thunar-vcs-plugin # Git Support
-        ])
-        ++ (with unstable; [
-          thunar-shares-plugin
-        ]);
+      plugins = [
+        pkgs.thunar-archive-plugin # Archive management
+        pkgs.thunar-volman # Management of removable drives and media
+        pkgs.thunar-media-tags-plugin # Media tag management
+        pkgs.thunar-vcs-plugin # Git Support
+        unstable.thunar-shares-plugin
+      ];
     };
 
     seahorse.enable = true;
@@ -552,6 +559,11 @@ in
         help = {
           autocorrect = true;
         };
+
+        # nixos-rebuild as root (esp. systemd-run HOME=/root) opens this flake
+        # via git+file://; libgit2 rejects user-owned trees without this.
+        # Written to /etc/gitconfig (protected config).
+        safe.directory = [ data.configDirectory ];
       };
     };
 
@@ -559,9 +571,9 @@ in
       enable = true;
       xwayland.enable = true;
 
-      package = hyprlandPackages.hyprland;
+      package = inputs.nixpkgs-hyprland.legacyPackages.${system}.hyprland;
 
-      portalPackage = hyprlandPackages.xdg-desktop-portal-hyprland;
+      portalPackage = inputs.nixpkgs-hyprland.legacyPackages.${system}.xdg-desktop-portal-hyprland;
     };
 
     nix-ld = {
@@ -574,7 +586,7 @@ in
     extraPortals = [
       pkgs.xdg-desktop-portal-gtk
       pkgs.kdePackages.xdg-desktop-portal-kde
-      # hyprlandPackages.xdg-desktop-portal-hyprland
+      # inputs.nixpkgs-hyprland.legacyPackages.${system}.xdg-desktop-portal-hyprland
     ];
 
     config = {

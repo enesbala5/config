@@ -21,7 +21,7 @@ is_dnd_on() {
 
 emit_status() {
 	# Hide while screen recording is active (it handles DND itself).
-	if pgrep -x wl-screenrec >/dev/null; then
+	if "$(dirname "${BASH_SOURCE[0]}")/screen-record.sh" is-active >/dev/null 2>&1; then
 		printf '{"text":"","class":"idle","tooltip":""}\n'
 		return 0
 	fi

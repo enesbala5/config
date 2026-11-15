@@ -8,5 +8,7 @@ pkgs.mkShell {
     # Nix Language
     nixd
     nixfmt-rfc-style
+
+    markdownlint-cli
   ];
 }

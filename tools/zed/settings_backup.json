@@ -25,7 +25,7 @@
 		"twenty": {
 			"url": "https://twenty.enesbala.com/mcp",
 			"headers": {
-				"Authorization": "Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjYwNjhkZGEyLTkxZTAtNDQzZS1iNDIzLWU1ZTliMzJiYWI1NCJ9.eyJzdWIiOiJkYTgzYWEwYi1hOTcwLTRiZGQtYTU1Yi04MWIwYmUyNGE3MjgiLCJ0eXBlIjoiQVBJX0tFWSIsIndvcmtzcGFjZUlkIjoiZGE4M2FhMGItYTk3MC00YmRkLWE1NWItODFiMGJlMjRhNzI4IiwiaWF0IjoxNzg2NDE3MDI4LCJleHAiOjQ5NDAwMTcwMjcsImp0aSI6ImMyMTQ4MzAyLTdiMDUtNDhlYi04ODliLWJjYmY3MDQ1NjQzMCJ9.-RIlLWX_sbKc8NYLwnZlxNfBumbWMS0N3gS7ogyzWnhkiRIJzrAu5MRj1vJnF8za-MGRTqv5wlxMKou80lPJwA"
+				"Authorization": "Bearer ${TWENTY_MCP_TOKEN}"
 			}
 		},
 		"Figma": {

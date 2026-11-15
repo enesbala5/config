@@ -1,21 +1,22 @@
 ---
 name: issues-from-work
 description: >-
-  Turn a conversation plus local git changes into GitHub issues in a stored
-  personal voice, then close what shipped and leave leftover work open. Use when
-  the user names this skill, or asks to log work as issues, create GitHub issues
-  for this work, backfill undocumented work, or close finished tasks so the repo
-  has history.
+  Turn a conversation plus local git changes into GitHub issues in the stored
+  TONE, then close what shipped and leave leftover work open. Use when the
+  user names this skill, or asks to log work as issues, create GitHub issues
+  for this work, backfill undocumented work, or close finished tasks so the
+  repo has history.
 disable-model-invocation: true
 ---
 
 # Issues from Work
 
-Backfill undocumented work as GitHub history. Write in the stored personal
-voice. Draft first. Create and close only after the user says go.
+Backfill undocumented work as GitHub history. Write in [TONE.md](TONE.md).
+Draft first. Create and close only after the user says go.
 
-Read [voice.md](voice.md) before drafting anything. Do not scrape this repo's
-issues to rebuild tone. Do not use the `brand-voice` skill.
+Read [TONE.md](TONE.md) before drafting anything. Do not scrape this repo's
+issues to rebuild tone. Do not use the `brand-voice` skill. Do not write
+informal, slangy, or typo-laden text that tries to sound like the author.
 
 ## When to use
 
@@ -25,7 +26,7 @@ issues to rebuild tone. Do not use the `brand-voice` skill.
 ## Workflow
 
 ```text
-read voice.md (always)
+read TONE.md (always)
         ↓
 fetch open issues (dedupe + existing labels only)
         ↓
@@ -33,16 +34,17 @@ gather convo + prompts + git status/diff/log
         ↓
 split into candidates, then recurse on deps / leftovers
         ↓
-draft ledger in stored voice (do not create yet)
+draft ledger in stored TONE (do not create yet)
         ↓
 user says go
         ↓
 create parents first (so #N refs work) → create children → close shipped
 ```
 
-### 1. Voice
+### 1. Tone
 
-Read [voice.md](voice.md). Same voice in every repo.
+Read [TONE.md](TONE.md). Same in every repo. If a phrasing feels like
+chat mimicry, rewrite it against the portfolio `misc` sources listed there.
 
 ### 2. Dedupe and labels
 
@@ -103,11 +105,11 @@ After go:
 
 ```bash
 gh issue create --title "Setup smartd checks for home-server drives" --label enhancement --body "$(cat <<'EOF'
-Need smartd on home-server watching the disks (nvme, toshiba, seagate usb) and telegram when something pops up.
+Need smartd on home-server watching the disks (nvme, toshiba, seagate usb) and Telegram when a check fails.
 EOF
 )"
 
-gh issue close 40 --comment "done, smartd is on and notifies via telegram"
+gh issue close 40 --comment "Done. smartd is on and notifies via Telegram."
 ```
 
 Report the issue URLs.
@@ -126,7 +128,9 @@ issue for telegram notify buttons etc. (reference the above issue, eg. needed fo
 write very little on these, like just clear titles and maybe a very short description that is human like, not too length, clear and to the point, reference my prompts for this please, typo-s here and there are fine (but not on the title)
 ```
 
-Target output is the three shipped issues in [voice.md](voice.md).
+Target output is the shipped issues in [TONE.md](TONE.md). Keep titles and
+bodies short and specific. Ignore the prompt's "typo-s are fine" — that was
+the old informal register; TONE forbids performed typos.
 
 ## Out of scope
 

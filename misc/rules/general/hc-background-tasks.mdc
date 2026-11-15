@@ -1,0 +1,14 @@
+---
+description: Use hc to spawn background tasks and subagents
+alwaysApply: true
+---
+
+# Background tasks (`hc`)
+
+Same text as the "Background tasks (`hc`)" section in `misc/agents/AGENTS.md`.
+Keep both in sync. See `tools/pi/README.md` ("Default instructions").
+
+Use `hc` to spawn background tasks and subagents: `hc run --bg …` for a
+background process, or `hc run <template> "<task>"` for a coding-agent
+template. Inspect with `hc ls` / `hc read <t>`; wait with `hc wait <t>`.
+See `hc --help`.

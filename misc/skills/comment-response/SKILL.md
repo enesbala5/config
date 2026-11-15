@@ -1,0 +1,115 @@
+---
+name: comment-response
+description: Draft a reply in Enes's voice to a comment, post, or thread, from pasted text, a link, or a screenshot. Use when he asks for a comment reply, a Reddit/X/LinkedIn response, or "respond to this". Requires a target type (promote-coverlttr, personal-brand, help-only, lead-intent, network).
+---
+
+# Comment response
+
+Turn a comment or thread into a reply Enes can paste as is. He supplies the material, you do the reading, analysis, and drafting. You never post anything.
+
+## Input: three shapes
+
+| Given | Do this |
+| --- | --- |
+| Pasted comment text | Separate who said what. The post body, his own comment, and the reply often arrive in one paste. His own words stay out of the draft; never hand them back to him. |
+| Link to post or comment | Fetch it first with `web_extract`. Reddit blocks this class of host outright, plain permalinks and `.rss` variants both return 403 or an empty body, so when the fetch fails ask him to paste the text or send a screenshot instead of burning calls on retries. X links need the syndication endpoint (`cdn.syndication.twimg.com/tweet-result?id=<id>&lang=en&token=a`) or a browser. Search engines never work for this. |
+| Screenshot | `vision_analyze` before anything else. Read author, subreddit or context, age, and vote count off the image, and re-crop to read small text. |
+
+Verify the thread exists and is recent. Do not draft for a post you could not read.
+
+## Target type is required
+
+Infer it and state the pick in one line. Ask only when the goal is genuinely ambiguous. The target decides the shape: an excellent reply for one target is a failure for another.
+
+| Target | Optimizes for | Product mention | Link | Soft offer |
+| --- | --- | --- | --- | --- |
+| `promote-coverlttr` | Coverlttr relevance inside a job search conversation | Allowed as "something I built", never by name in strict subs | Never | Yes, pre-launch early access on a job search thread |
+| `personal-brand` | Builder and practitioner credibility | None | Never | Never |
+| `help-only` | Being useful with zero commercial read | None | Never | Never |
+| `lead-intent` | Someone openly asking for a tool or recommendation | Allowed, once | Never in text, the bio carries it | Yes, low pressure |
+| `network` | Starting a relationship with one named person | Only if they asked | Never | Never |
+
+Promo safety is per-channel. `help-only` is mandatory in `r/resumes`, `r/EngineeringResumes`, `r/cscareerquestions`, `r/jobs`, `r/recruiting`, `r/GetEmployed`, and `r/careerguidance`.
+
+## Voice source
+
+Fetch before drafting, through the cached reader. One clone per repo, at most one pull per TTL, then reads from disk, so a repeat costs nothing and no session clones from scratch:
+
+```bash
+bash ../draft-x-posts/scripts/repo-file.sh enesbala5/portfolio main \
+  misc/TONE.md misc/PROFILE.md \
+  "src/routes/work/(projects)/coverlttr/misc/summary.md"
+```
+
+The reader lives in the sibling skill (`draft-x-posts`) in the same skills directory, and the cache contract is in `../draft-x-posts/references/repo-cache.md`. If that sibling skill is not installed, fall back to `gh api repos/enesbala5/portfolio/contents/<path> -q .content | base64 -d` and say so in one line. Never `git clone` the repo in a session that has the reader, and never work from memory of these files.
+
+Never use `misc/prompts/coverlttr-prompt.md`. It is an outdated invoicing draft, unrelated to the product.
+
+Voice in short: earnest, slightly formal English with his own grammar shape left intact, concrete over adjectives, names and numbers and stack over claims, short sentences, one real question when he wants something back. No corporate polish, no growth-hacker cadence, no native-speaker smoothing.
+
+## Hard rules
+
+1. No em dashes or en dashes. Commas, or restructure the sentence.
+2. No links and no bare domains in the text. The link lives in the bio. Offer to send it instead.
+3. Two to four sentences, up to about 400 characters. The 260 character cap in the validator is a lint for the cron batch pipeline, not the ceiling for a comment written into a live thread. His own reference draft is 388.
+4. Match the register he already used in that thread. The reference draft runs normal capitalization with casual joins (`&`, comma splices). No headers, no bold, no bullets in a comment.
+5. No pitch, no feature list, no CTA. The one exception is the early-access offer in House shape below, and even that asks nothing of them.
+6. Answer what the person actually said. Their question first, his angle second.
+7. No overclaims. Never "ATS-proof", never "guaranteed interviews", never celebrating mass applying.
+8. No invented metrics, clients, or wins. Every concrete claim traces to TONE.md, PROFILE.md, or the product summary.
+9. Do not reuse an opener he already used in the same thread.
+10. No AI-isms. Run the anti-AI-slop skill's checks over the reply before handing it over. It is registered as either `humanizer` or `humanize`, so load it by the name this install has: `skill_view(name='humanizer')`, and if that comes back not found, `skill_view(name='humanize')`. That skill owns the list of tells, so this one does not restate it. Take its rules, not its output format: still one recommended reply and one alternative, never a draft-audit-final triple. Rules 1 and 4 already cover its dash and bold/bullets items; the tells that actually land in a comment are rule-of-three padding, "not just X, it's Y", promotional adjectives, signposting, reassurance kickers, a rhetorical question answered in the next sentence, and hyphenated pair overuse.
+
+## House shape
+
+The three moves, in order, taken from the reference draft in `references/`:
+
+1. **Settle the dilemma they wrote.** A verdict they can act on, in his flat register. Not a compliment, not their post summarized back at them.
+2. **The build line, personal and unnamed.** Their pain first, then his own reason for building in the same breath. No product name, no feature list, no stack.
+3. **The offer, when the target allows it.** Give it a reason to stand on (a date, a stage), then one sentence that asks nothing of them: if they want early access, he will send a link. The link is sent, never pasted.
+
+After launch, the pre-launch framing in that sentence is false, so switch it rather than reusing the wording.
+
+## Analysis before drafting
+
+Write these down first. They decide the draft, so skipping them produces something generic.
+
+- What is the actual question or claim, in their words?
+- What did they build or try, and how far did they get?
+- What do they already know? Explaining their own point back reads as condescending.
+- Where is the honest disagreement, or the sharper thing they missed?
+- What does the target type want out of this reply?
+- Is there a line only Enes can write, from something he actually ran into? That line is the reply. Build around it.
+
+If there is nothing real to add, say so instead of producing a filler comment.
+
+## Output contract
+
+One recommended reply, then one alternative that takes a different angle. The recommended one follows House shape. For each: target type, char count, and one line on the angle. Plain text, copy-paste ready, no quotes around it, no markdown decoration, no hashtags.
+
+Then the self-check:
+
+- dashes, links, banned openers, terminal punctuation
+- anti-AI-slop skill loaded (`humanizer` or `humanize`), its pass run, and everything it flagged is fixed rather than left in
+- would a stranger read this as an ad
+- is every concrete claim traceable to a real source
+
+Mechanical check when the local Coverlttr tooling is present:
+
+```bash
+python3 /root/coverlttr-x/validate_replies.py --text "<draft>"
+```
+
+It enforces the dash, link, opener, and 260 character rules. Dashes, links, and banned openers are absolute. The 260 cap and the terminal punctuation check are batch pipeline lints: his own comments run past 260 and do not end with a period, so treat those two as informational here and keep the rest.
+
+## Pitfalls
+
+- Drafting before reading the thread. A misread thread produces a reply that answers the wrong question, and it is obvious in the first line.
+- Leading with "As someone who..." or "I built...". The other person comes first.
+- Treating a builder thread as a lead. Someone showing their own project is a peer, not a prospect. Peer replies earn the profile click, an offer in that thread does the opposite.
+- Repeating his previous comment back to them.
+- Wrapping the reply in quotes or a code fence when handing it over. He pastes it straight in.
+- Compressing a comment thinner than the thread deserves. Padding is the enemy, length is not: three sentences in his register beat two clipped ones.
+- Offering early access on a thread where nobody is job hunting. The offer only works where the person is the one with the pain he built for.
+
+Reference draft: [references/example-cover-letter-thread.md](references/example-cover-letter-thread.md)

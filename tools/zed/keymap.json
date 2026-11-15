@@ -513,5 +513,10 @@
   "unbind": {
    "ctrl-k ctrl-t": "theme_selector::Toggle"
   }
+ },
+ {
+  "bindings": {
+   "ctrl-shift-c": "editor::CopyRelativePath"
+  }
  }
 ]

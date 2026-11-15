@@ -15,18 +15,13 @@ in
   imports = [
     # Input-server capability wrapper (clipboard paste, snippets, etc.)
     inputs.vicinae.nixosModules.default
+
+    # Host-level service backups (restic -> Cloudflare R2)
+    ./modules/backups
+
+    # Existing Hyprland desktop streaming over Tailscale (issue #111).
+    ./modules/sunshine
   ];
-
-  # ------------------------------------------------------------------------------------------
-  # Accounts
-  # -> Don't forget to set a password with 'passwd'.
-  # ------------------------------------------------------------------------------------------
-
-  users = {
-    users.${data.username}.extraGroups = [
-      "adbusers" # ADB Support
-    ];
-  };
 
   # Seed a writable rclone.conf for gdrive bisync (OAuth token refresh).
   # Overwritten on every activation (rebuild/boot) from the agenix secret.
@@ -69,11 +64,7 @@ in
     };
   };
 
-  powerManagement = {
-    enable = true;
-
-    # powertop.enable = true;
-  };
+  powerManagement.enable = true;
 
   console = {
     font = "ter-132n";
@@ -150,6 +141,15 @@ in
   # ------------------------------------------------------------------------------------------
 
   services = {
+    # SSH: allow password logins so a phone (no private key) can connect over
+    # LAN/Tailscale. base-configuration.nix defaults PasswordAuthentication to
+    # false, so force it here. Setting this also makes the openssh module pull
+    # pam_unix into the sshd PAM stack (unixAuth follows PasswordAuthentication).
+    openssh.settings = {
+      PasswordAuthentication = lib.mkForce true;
+      KbdInteractiveAuthentication = true;
+    };
+
     # Do not make EasyEffects the default sink. It follows the hardware default
     # (Ryzen / headphones) and attaches via processAllOutputs.
     pipewire.wireplumber.extraConfig = {
@@ -202,13 +202,16 @@ in
         (import (builtins.fetchTarball {
           url = "https://github.com/NixOS/nixpkgs/archive/bb2009ca185d97813e75736c2b8d1d8bb81bde05.tar.gz";
           sha256 = "sha256:003qcrsq5g5lggfrpq31gcvj82lb065xvr7bpfa8ddsw8x4dnysk";
-        }) { inherit (pkgs) system; }).fwupd;
+        }) { system = pkgs.stdenv.hostPlatform.system; }).fwupd;
     };
 
     # Fingerprint
     fprintd = {
       enable = true;
     };
+
+    # AT-SPI bus for hypruse click_ui / ui / marks (issue #108).
+    gnome.at-spi2-core.enable = true;
 
     # udev
     udev = {
@@ -227,32 +230,13 @@ in
       enable = true;
     };
 
-    # Power management.
-    logind = {
-      settings.Login.HandlePowerKey = "suspend"; # Suspend on power button press
-      settings.Login.HandlePowerKeyLongPress = "poweroff"; # Power off on long press
-    };
-
-    acpid = {
-      enable = true;
-      lidEventCommands = ''
-        export PATH=$PATH:/run/current-system/sw/bin
-
-        lid_state=$(cat /proc/acpi/button/lid/LID0/state | awk '{print $NF}')
-
-        if [ $lid_state = "closed" ]; then
-          # Set brightness to zero
-          brillo -e -u 0 -S 10
-
-        else
-          # Reset the brightness
-          brillo -e -u 0 -S 50
-        fi
-      '';
-
-      powerEventCommands = ''
-        systemctl suspend
-      '';
+    # logind is the sole owner of lid and power-button events.
+    # Keep its default dock/external-monitor policy and post-resume holdoff.
+    # hypridle handles locking before sleep and display wake after resume.
+    logind.settings.Login = {
+      HandleLidSwitch = "suspend";
+      HandlePowerKey = "suspend";
+      HandlePowerKeyLongPress = "poweroff";
     };
   };
 
@@ -262,7 +246,9 @@ in
 
       power-profile-handler = {
         description = "Power Profile Handler - Monitor & apply changes (system)";
-        wantedBy = [ "multi-user.target" ];
+        # graphical, not multi-user: power-profiles-daemon is After=multi-user.target,
+        # and this unit is After= that daemon. WantedBy=multi-user makes a cycle.
+        wantedBy = [ "graphical.target" ];
 
         after = [
           "network.target"
@@ -464,13 +450,26 @@ in
 
   # Memory Management
   # Swap partition: hardware-configuration.nix (by-uuid).
-  # zswap (boot.kernelParams above) compresses pages in RAM, then writebacks to that partition.
+  # Extra 8 GiB swapfile; the partition is already at the end of the disk.
+  # zswap (boot.kernelParams above) compresses pages in RAM, then writebacks to swap.
+  swapDevices = [
+    {
+      device = "/var/lib/swapfile";
+      size = 8 * 1024; # 8 GB
+    }
+  ];
 
   # ------------------------------------------------------------------------------------------
   # Security
   # ------------------------------------------------------------------------------------------
 
   security = {
+    # Don't run the local fingerprint reader for SSH logins. pam_fprintd is
+    # pointless over the network (the reader is on the server) and can stall
+    # the password prompt. Password auth through pam_unix still works because
+    # PasswordAuthentication above enables unixAuth for the sshd PAM service.
+    pam.services.sshd.fprintAuth = false;
+
     # pki = {
     #   certificateFiles = [
     #     ./certificates/incus/incus.enesbala.com.crt
@@ -501,7 +500,6 @@ in
       killall
       cloc
       acpi
-      acpid
       acpilight
       evtest
       piper
@@ -512,6 +510,8 @@ in
       phodav
       devcontainer
       restic
+      # programs.adb was removed in 26.05; systemd 258 applies the uaccess rules.
+      android-tools
 
       # Native host for Plasma Browser Integration (extension still installed in-browser)
       kdePackages.plasma-browser-integration
@@ -524,8 +524,6 @@ in
 
   programs = {
     virt-manager.enable = true;
-
-    adb.enable = true;
 
     dconf.enable = true;
 

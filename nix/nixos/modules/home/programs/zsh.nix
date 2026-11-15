@@ -24,7 +24,7 @@
       source ${data.configDirectory}/tools/zsh/powerlevel10k/.p10k.zsh
 
       # Source Telegram credentials - Needed for `telegram-notify` script
-      [ -f /run/agenix/default-telegram ] && set -a && source /run/agenix/default-telegram
+      [ -f /run/agenix/default-telegram ] && { set -a; source /run/agenix/default-telegram; set +a; }
 
       PATH=~/.console-ninja/.bin:$PATH
 
@@ -79,8 +79,8 @@
       # Hyprland / DE
       # ---------------
       reload-hyprlock = "${data.configDirectory}/scripts/utilities/reload-hyprlock.sh";
-      clear-monitor-config = "${data.configDirectory}/scripts/utilities/clear-monitor-config.sh";
-      reload-waybar = "pkill -9 waybar && hyprctl --instance 0 'dispatch exec waybar'";
+      clear-monitor-config = "${data.configDirectory}/scripts/utilities/clear-monitor-lua.sh";
+      reload-waybar = "pkill -9 waybar && hyprctl --instance 0 dispatch 'hl.dsp.exec_cmd(\"waybar\")'";
       toggle-polarity = "${data.configDirectory}/scripts/utilities/toggle-polarity.sh";
       toggle-dnd = "${data.configDirectory}/scripts/utilities/dnd-toggle.sh";
 

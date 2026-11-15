@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   config,
   inputs,
   system,
@@ -8,10 +9,20 @@
   ...
 }:
 let
+  hyperframesAppImage = "${data.homeDirectory}/programs/hyperframes/hyperframes.AppImage";
+  # CLI `hyperframes open` execs launcher.json's appImage directly and ignores stdio.
+  # The raw AppImage has no NixOS libglib; this wrapper is the only launch path.
+  hyperframesOpen = pkgs.writeShellScript "hyperframes-open" ''
+    exec ${pkgs.appimage-run}/bin/appimage-run ${hyperframesAppImage} "$@"
+  '';
 in
 {
   imports = [
     ./activitywatch
+    ./caffeinate
+    ./hermes-agent
+    ./hypruse
+    ./lid-inhibit
     ./piper-tts
     ./plasma
     ./playwright
@@ -37,7 +48,6 @@ in
       # Development
       # ------------------------------------------------------------------------------------------
       beekeeper-studio # Database Management
-      insomnia # API Client
       neovim # Neovim
       vim # Vim
       sqlite # SQLite CLI
@@ -47,6 +57,7 @@ in
       shotcut # Video Editor
       kdePackages.kdenlive # Video Editor
       wl-screenrec # Wayland screen recorder (region via slurp)
+      ffmpeg
 
       # Tools
       # ------------------------------------------------------------------------------------------
@@ -77,7 +88,6 @@ in
     # Unstable packages
     # ---
     ++ (with unstable; [
-      spotify
       telegram-desktop
       discord
 
@@ -88,11 +98,14 @@ in
 
       # TTS
       handy
+
+      # Hyprland
+      hyprpicker # screen color picker (stable nixpkgs ships 0.4.5, which crashes Hyprland)
+
     ])
     # Flakes
     # ---
     ++ (with inputs; [
-      affinity-nix.packages.${system}.default
       hyprshutdown.packages.${system}.default
       zed-editor.packages.${system}.default
       cursor-nix.packages.${system}.default
@@ -100,16 +113,15 @@ in
       antigravity-nix.packages.${system}.google-antigravity-no-fhs
       antigravity-nix.packages.${system}.google-antigravity-ide-no-fhs
       antigravity-nix.packages.${system}.google-antigravity-cli
-      inputs.grok-bot.packages.${pkgs.system}.default
+      grok-bot.packages.${system}.default
       omacut.packages.${system}.default
+      zaku.packages.${system}.default # API Client
+      dbflux.packages.${system}.default
+      pi.packages.${system}.pi
     ]);
 
   programs = {
     zen-browser.enable = true;
-
-    opencode = {
-      enable = true;
-    };
 
     obs-studio = {
       enable = true;
@@ -126,232 +138,28 @@ in
 
     ssh = {
       enable = true;
+      enableDefaultConfig = false;
 
-      matchBlocks."*" = {
-        forwardAgent = false;
-        addKeysToAgent = "yes";
-        compression = false;
-        serverAliveInterval = 0;
-        serverAliveCountMax = 3;
-        hashKnownHosts = false;
-        userKnownHostsFile = "~/.ssh/known_hosts";
-        controlMaster = "no";
-        controlPath = "~/.ssh/master-%r@%n:%p";
-        controlPersist = "no";
+      settings."*" = {
+        ForwardAgent = false;
+        AddKeysToAgent = "yes";
+        Compression = false;
+        ServerAliveInterval = 0;
+        ServerAliveCountMax = 3;
+        HashKnownHosts = false;
+        UserKnownHostsFile = "~/.ssh/known_hosts";
+        ControlMaster = "no";
+        ControlPath = "~/.ssh/master-%r@%n:%p";
+        ControlPersist = "no";
       };
 
       includes = [ config.age.secrets.ssh-config.path ];
     };
 
-    vicinae = {
-      # Schema: https://www.vicinae.com/schemas/config.json
-      # Default Config: `vicinae config default`
-      #
-      # Use the flake HM module (settings via VICINAE_OVERRIDES). HM's built-in
-      # module is disabled in home/default.nix — it writes obsolete vicinae.json.
-      # Input-server wrapper still comes from vicinae.nixosModules.default.
-
+    yazi = {
       enable = true;
-
-      # Defaults true, but we don't use HM's firefox/chrome program modules.
-      enableFirefoxIntegration = true;
-      enableChromeIntegration = true;
-
-      systemd = {
-        enable = true;
-        autoStart = true;
-
-        environment = {
-          USE_LAYER_SHELL = 1;
-        };
-      };
-
-      settings = {
-        close_on_focus_loss = false;
-        consider_preedit = true;
-        pop_to_root_on_close = true;
-        search_files_in_root = true;
-
-        favicon_service = "twenty";
-
-        font = {
-          rendering = "native";
-
-          normal = {
-            size = 10;
-            family = "Geist Medium";
-          };
-        };
-
-        theme = {
-          light = {
-            name = "nord-light";
-            icon_theme = "Bibata-Modern-Classic";
-          };
-
-          dark = {
-            name = "stylix";
-            icon_theme = "Bibata-Modern-Classic";
-          };
-        };
-
-        launcher_window = {
-          opacity = 0.85;
-        };
-
-        favorites = [
-          "applications:zen-beta"
-          "applications:spotify"
-          "applications:obsidian"
-          "applications:cursor"
-          "applications:dev.zed.Zed-Nightly.desktop"
-          "applications:whatsApp"
-          "applications:google-drive"
-          "@Gelei/vicinae-extension-bluetooth-0:devices"
-        ];
-
-        fallbacks = [
-          "shortcuts:6449e19e-177d-462b-86d7-ca7fb01b9753" # Google Search
-          "files:search"
-        ];
-
-        telemetry = {
-          system_info = false;
-        };
-
-        providers = {
-          files = {
-            entrypoints = {
-              search = {
-                "alias" = "f";
-              };
-            };
-          };
-
-          clipboard = {
-            enabled = true;
-
-            entrypoints = {
-              history = {
-                preferences = {
-                  defaultAction = "copy";
-                };
-              };
-            };
-
-            preferences = {
-              encryption = false;
-              eraseOnStartup = false;
-              ignorePasswords = false;
-              monitoring = true;
-            };
-          };
-
-          # "files": {
-          #    "preferences": {
-          #       "excludedIndexingPaths": [
-          #          "/home/e/documents"
-          #       ],
-          #       "": [
-          #          "/home/e"
-          #       ]
-          #    }
-
-          files = {
-            preferences = {
-              autoIndexing = true;
-              excludedIndexingPaths = [
-                "${data.homeDirectory}/.config/"
-                "${data.homeDirectory}/.local/"
-                "${data.homeDirectory}/.ssh/"
-                "${data.homeDirectory}/.cache/"
-                "${data.homeDirectory}/.cursor/"
-              ];
-              indexingPaths = [ "${data.homeDirectory}/" ];
-              watcherPaths = "";
-            };
-          };
-
-          applications = {
-            entrypoints = {
-              google-drive = {
-                alias = "gdrive";
-              };
-              "org.gnome.seahorse.Application" = {
-                alias = "seahorse";
-              };
-            };
-          };
-
-          power = {
-            entrypoints = {
-              power-off = {
-                preferences = {
-                  confirm = true;
-                  customProgram = "${data.configDirectory}/scripts/power/shutdown.sh";
-                };
-              };
-              reboot = {
-                preferences = {
-                  confirm = true;
-                  customProgram = "${data.configDirectory}/scripts/power/reboot.sh";
-                };
-              };
-              logout = {
-                preferences = {
-                  confirm = true;
-                  customProgram = "pidof hyprlock --no-fade-in || hyprlock";
-                };
-              };
-            };
-          };
-
-          "@Gelei/vicinae-extension-bluetooth-0" = {
-            entrypoints = {
-              devices = {
-                alias = "bluetooth";
-              };
-            };
-          };
-
-          "@botkooper/vicinae-extension-power-profile-0" = {
-            entrypoints = {
-              power-profile = {
-                alias = "power";
-              };
-            };
-          };
-
-          "@dagimg-dot/vicinae-extension-wifi-commander-0" = {
-            entrypoints = {
-              scan-wifi = {
-                alias = "wifi";
-              };
-            };
-          };
-        };
-      };
-
-      extensions = with inputs.vicinae-extensions.packages.${system}; [
-        # bluetooth  # removed upstream: fails node-gyp / dbus-next
-        nix
-        power-profile
-        wifi-commander
-        # systemd
-        # player-pilot
-        port-killer
-        # github
-        # flathub-search
-
-        # Raycast Extensions
-        # ---
-        # google-fonts
-
-        ssh
-        zed-recents
-        hypr
-        agent-skills-sh
-      ];
+      # 26.05 changes the default wrapper from yy to y. Keep yy.
+      shellWrapperName = "yy";
     };
   };
 
@@ -368,7 +176,15 @@ in
   };
 
   # Keep hardware as the default sink; EasyEffects attaches to it automatically.
-  systemd.user.services.easyeffects.Service.ExecStartPre = "${data.configDirectory}/scripts/audio/ensure-easyeffects-auto.sh";
+  systemd.user.services.easyeffects.Service.ExecStartPre =
+    "${data.configDirectory}/scripts/audio/ensure-easyeffects-auto.sh";
+
+  home.file."programs/hyperframes/open".source = hyperframesOpen;
+
+  # AppImage install drops this with Exec= the raw binary and the same scheme handlers.
+  home.activation.removeHyperframesAppImageDesktop = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD rm -f ${data.homeDirectory}/.local/share/applications/dev.hyperframes.desktop.desktop
+  '';
 
   xdg = {
     mimeApps = {
@@ -385,6 +201,8 @@ in
           "helium.desktop"
           "google-chrome.desktop"
         ];
+        "x-scheme-handler/hyperframes-signin" = "hyperframes.desktop";
+        "x-scheme-handler/hyperframes-open" = "hyperframes.desktop";
         "text/html" = [
           "helium.desktop"
           "zen-beta.desktop"
@@ -444,6 +262,14 @@ in
 
     configFile."mimeapps.list".force = true;
 
+    # hyperframes CLI reads this and spawns appImage. Must be the wrapper, not the raw AppImage.
+    configFile."HyperFrames/launcher.json" = {
+      force = true;
+      text = builtins.toJSON {
+        appImage = "${data.homeDirectory}/programs/hyperframes/open";
+      };
+    };
+
     # Workaround to support "Open in Terminal" in Thunar
     configFile."xfce4/helpers.rc".text = ''
       TerminalEmulator=kitty
@@ -451,6 +277,8 @@ in
 
     userDirs = {
       enable = true;
+      # 26.05 defaults this to false. Keep session variables exported.
+      setSessionVariables = true;
       desktop = "${data.homeDirectory}/desktop";
       documents = "${data.homeDirectory}/documents";
       download = "${data.homeDirectory}/downloads";
@@ -471,7 +299,7 @@ in
           let
             heliumBin = "${inputs.helium-browser.packages.${system}.default}/bin/helium";
           in
-          "hyprctl dispatch exec \"${heliumBin} --remote-debugging-port=9222 --remote-debugging-address=127.0.0.1 --remote-allow-origins=*\"";
+          "hyprctl dispatch \"hl.dsp.exec_cmd('${heliumBin} --remote-debugging-port=9222 --remote-debugging-address=127.0.0.1 --remote-allow-origins=*')\"";
         type = "Application";
         terminal = false;
         mimeType = [
@@ -513,6 +341,49 @@ in
         categories = [
           "Utility"
           "Graphics"
+        ];
+      };
+
+      hyperframes = {
+        name = "HyperFrames";
+        genericName = "Video Editor";
+        icon = "${data.configDirectory}/tools/hyperframes/icon.png";
+        exec = "${data.homeDirectory}/programs/hyperframes/open %U";
+        type = "Application";
+        terminal = false;
+        mimeType = [
+          "x-scheme-handler/hyperframes-signin"
+          "x-scheme-handler/hyperframes-open"
+        ];
+        categories = [
+          "AudioVideo"
+          "Video"
+        ];
+      };
+
+      spotifast = {
+        name = "Spotifast";
+        genericName = "Spotify Desktop Client";
+        icon = "${data.configDirectory}/tools/links/spotify.png";
+        exec = "appimage-run ${data.homeDirectory}/programs/spotifast/program.AppImage";
+        type = "Application";
+        terminal = false;
+        categories = [
+          "Audio"
+          "AudioVideo"
+        ];
+      };
+
+      zapfast = {
+        name = "Zapfast";
+        genericName = "WhatsApp Desktop Client";
+        icon = "${data.configDirectory}/tools/links/whatsApp.png";
+        exec = "appimage-run ${data.homeDirectory}/programs/zapfast/program.AppImage";
+        type = "Application";
+        terminal = false;
+        categories = [
+          "Network"
+          "InstantMessaging"
         ];
       };
 

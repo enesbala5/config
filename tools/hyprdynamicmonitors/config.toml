@@ -1,5 +1,5 @@
 [general]
-destination = "/home/e/.config/hypr/monitors.conf"
+destination = "/home/e/.config/hypr/monitors.lua"
 
 [power_events]
 
