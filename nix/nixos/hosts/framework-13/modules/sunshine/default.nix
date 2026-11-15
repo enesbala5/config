@@ -46,7 +46,15 @@
 
   # The upstream module supplies uinput and udev rules. Render-node access
   # supports VA-API; video membership is already set in base-configuration.nix.
-  users.users.${data.username}.extraGroups = [ "render" ];
+  #
+  # "uinput" is required for remote mouse/keyboard injection: hardware.uinput
+  # emits 99-local.rules (GROUP="uinput"), which sorts after Sunshine's own
+  # 60-sunshine.rules (GROUP="input"), so "input" membership alone is useless
+  # and the redundant uaccess tag does not apply to this static misc node.
+  users.users.${data.username}.extraGroups = [
+    "render"
+    "uinput"
+  ];
 
   # Match the upstream Sunshine port offsets, excluding the HTTPS admin UI
   # (47990). Do not use openFirewall: that exposes these on every interface.
