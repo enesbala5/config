@@ -60,6 +60,8 @@ export default class Spaces extends View {
   init(_props, cx) {
     this.git = {};
     this.wts = {};
+    // Per-space opt-in; a new view starts with the usual visibility rules.
+    this.allWorktrees = new Set();
     // path (norm) -> true when `git status --porcelain` is non-empty
     this.wtDirty = {};
     this.checked = {};
@@ -224,12 +226,12 @@ export default class Spaces extends View {
       out.push({ ...r, tree: null });
       if (!r.g || r.g.linked || placed.has(r.g.repo)) continue;
       placed.add(r.g.repo);
-      // Open worktree spaces always nest; closed worktrees only when dirty/agent-in.
+      // Open worktree spaces always nest; the parent can reveal all closed worktrees.
       const kids = list.filter((k) => nested(k) && k.g.repo === r.g.repo);
       const open = new Set(list.map((k) => norm(k.g?.top)).filter(Boolean));
       const on = r.w.machine ?? null;
       const ghosts = (this.wts[r.g.repo] ?? [])
-        .filter((wt) => !open.has(norm(wt.path)) && this.interestingGhost(wt, on))
+        .filter((wt) => !open.has(norm(wt.path)) && (this.allWorktrees.has(r.w.id) || this.interestingGhost(wt, on)))
         .map((wt) => ({ w: r.w, ghost: wt }));
       const all = [...kids, ...ghosts];
       all.forEach((k, n) => out.push({ ...k, tree: n === all.length - 1 ? "└─" : "├─" }));
@@ -400,7 +402,21 @@ export default class Spaces extends View {
           .when(Boolean(tree), el => el.child(h_flex().size(22).flex_none().items_center().justify_center().child(svg("mods/workspace-chrome/branch.svg").size(13).text_color(t.dim))))
           .when(!tree, el => el.child(h_flex().size(22).flex_none().rounded(6).bg(fill + "10").items_center().justify_center().text_size(12).font_bold().text_color(fill).child([...w.name][0]?.toUpperCase() ?? "?")))
           .child(div().flex_shrink(0).max_w(150).truncate().text_color(t.foreground).child(w.name))
-          .child(g ? this.gitTail(g, tree, w.name, t) : div().flex_1()),
+          .child(g ? this.gitTail(g, tree, w.name, t) : div().flex_1())
+          .when(Boolean(g && !g.linked && !tree && this.wts[g.repo]?.length), el => el.child(
+            h_flex().id(`space-worktrees-${w.id}`).size(20).flex_none().items_center().justify_center()
+              .rounded(4).cursor_pointer().text_color(t.dim)
+              .hover(s => s.bg(t.hover).text_color(t.foreground))
+              .tooltip(this.allWorktrees.has(w.id) ? "Show only worktrees allowed by visibility rules" : "Show all worktrees")
+              .on_mouse_down("left", (_e, cx) => cx.stop_propagation())
+              .on_mouse_up("left", (_e, cx) => cx.stop_propagation())
+              .on_click((_e, cx) => {
+                cx.stop_propagation();
+                this.allWorktrees.has(w.id) ? this.allWorktrees.delete(w.id) : this.allWorktrees.add(w.id);
+                cx.notify();
+              })
+              .child(svg(`mods/workspace-chrome/chevron-${this.allWorktrees.has(w.id) ? "down" : "right"}.svg`).size(11)),
+          )),
       );
   }
 

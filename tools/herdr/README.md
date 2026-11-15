@@ -53,6 +53,15 @@ publishes its state timestamps in shared `agents.changed`, so both views show
 the same elapsed time. The picker still selects tabs and shows sub-agent counts.
 Run its regression tests with `node --test tools/herdr/desktop/tests/picker.test.mjs`.
 
+### Desktop worktree visibility
+
+In the combined Spaces list, a repository space with linked worktrees has a
+chevron after its branch label. Click **›** to show all its worktrees, including
+clean ones; click **⌄** to restore the default visibility rules (closed worktrees
+only when dirty or containing a live agent). Open worktree spaces remain visible
+in either mode. The toggle affects only that parent space and resets to the
+filtered default when the view is recreated. Its tooltip describes the next action.
+
 ## New-machine setup
 
 Plugin registration is **runtime state in `~/.config/herdr/plugins.json`**, not
