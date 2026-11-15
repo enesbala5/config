@@ -30,9 +30,17 @@ Incus guest use `http://10.0.100.1:8080/v1`.
 
 ## Background tasks (`hc`)
 
-`hc run --bg ...` for a process, `hc run <template> "<task>"` for a coding
-agent. Inspect with `hc ls` / `hc read <t>`, wait with `hc wait <t>`. See
-`hc --help`.
+Prefer background jobs for slow or unpredictable commands: Docker builds,
+pulls/pushes and Compose startup, long tests, installs, and deployments.
+Keep quick checks (e.g. `docker ps`) in the foreground. Prefer
+`hc run --bg ...` for processes; `hc run <template> "<task>"` for coding
+agents. See `hc --help`. If unavailable, use a background mechanism that
+preserves logs and exit status.
+
+Track the task ID; inspect with `hc ls` / `hc read <t>`, wait with
+`hc wait <t>`. Do independent work meanwhile; avoid tight polling and
+repeated full-log reads. Check completion and exit status before dependent
+work or claiming success. Backgrounding never bypasses required approvals.
 
 ## Titles
 
