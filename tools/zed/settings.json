@@ -48,6 +48,10 @@
 			"url": "https://api.elevenlabs.io/v1/mcp",
 			"enabled": true
 		},
+		"higgsfield": {
+			"url": "https://mcp.higgsfield.ai/mcp",
+			"enabled": true
+		},
 		"synthesia": {
 			"url": "https://mcp.synthesia.io/mcp",
 			"enabled": true
