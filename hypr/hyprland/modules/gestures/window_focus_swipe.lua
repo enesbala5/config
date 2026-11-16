@@ -1,75 +1,129 @@
--- Three-finger horizontal swipe steps focus through the tiled windows on the
--- current workspace in visual order (left to right, then top to bottom),
--- clamped at both ends - it never wraps around. Hyprland's own movefocus falls
--- back to other windows at the edge, which is why this is done explicitly.
---
--- Maximize (Super+Shift+F) and fullscreen rewrite the focused window's
--- position, so the sort ping-pongs. The swipe does nothing in those modes.
+-- Three-finger horizontal drag continuously steps through tiled windows.
+-- Freeze the window order for the entire gesture: fullscreen focus transfers
+-- rewrite geometry, so re-sorting after each step can bounce between windows.
+local step = 180
+local distance = 0
+local swipe
 
-local function focusWindowBySwipe(direction)
+local function beginSwipe()
+	distance = 0
+	swipe = nil
+
 	local active = hl.get_active_window()
-	if not active or (active.fullscreen or 0) ~= 0 then
+	if not active or active.floating or not active.workspace then
 		return
 	end
 
+	local workspace = active.workspace
 	local windows = {}
-	for _, w in ipairs(hl.get_workspace_windows(active.workspace)) do
-		if not w.floating then
-			windows[#windows + 1] = w
+	local stableOrder = workspace.tiled_layout == "monocle"
+	for _, w in ipairs(hl.get_workspace_windows(workspace)) do
+		if w.mapped and not w.floating then
+			-- Copy values, not live window objects whose geometry can change.
+			windows[#windows + 1] = {
+				address = w.address,
+				id = w.stable_id,
+				x = w.at.x,
+				y = w.at.y,
+			}
+			stableOrder = stableOrder or (w.fullscreen or 0) ~= 0
 		end
 	end
 
 	table.sort(windows, function(a, b)
-		if a.at.x ~= b.at.x then
-			return a.at.x < b.at.x
+		if not stableOrder then
+			if a.x ~= b.x then
+				return a.x < b.x
+			end
+			if a.y ~= b.y then
+				return a.y < b.y
+			end
 		end
-		if a.at.y ~= b.at.y then
-			return a.at.y < b.at.y
-		end
-		return a.stable_id < b.stable_id
+		return a.id < b.id
 	end)
 
-	local index
 	for i, w in ipairs(windows) do
 		if w.address == active.address then
-			index = i
+			swipe = {
+				windows = windows,
+				index = i,
+				workspace = workspace.id,
+				monocle = workspace.tiled_layout == "monocle",
+			}
 			break
 		end
 	end
-	if not index then
-		return
-	end
-
-	local target = windows[index + (direction == "right" and 1 or -1)]
-	if not target then
-		return
-	end
-
-	hl.dispatch(hl.dsp.focus({ window = "address:" .. target.address }))
-	hl.dispatch(hl.dsp.window.bring_to_top())
 end
 
--- Switch focus every `step` units of finger travel instead of once per gesture.
--- delta.x is relative motion: right is positive, left is negative.
-local step = 150
-local distance = 0
-
 local windowSwipeAction = {
-	start = function()
-		distance = 0
-	end,
+	start = beginSwipe,
 	update = function(e)
-		distance = distance + e.delta.x
-
-		while math.abs(distance) >= step do
-			local left = distance < 0
-
-			distance = distance + (left and step or -step)
-			focusWindowBySwipe(left and "left" or "right")
+		if not swipe or #swipe.windows < 2 then
+			return
 		end
+
+		local active = hl.get_active_window()
+		if not active or not active.workspace or active.workspace.id ~= swipe.workspace then
+			-- Never continue a stale drag on another workspace.
+			swipe = nil
+			return
+		end
+
+		distance = distance + e.delta.x
+		if (swipe.index == 1 and distance < 0)
+			or (swipe.index == #swipe.windows and distance > 0) then
+			distance = 0
+			return
+		end
+
+		local steps = math.floor(math.abs(distance) / step)
+		if steps == 0 then
+			return
+		end
+
+		local direction = distance < 0 and -1 or 1
+		distance = distance - direction * steps * step
+
+		local requestedIndex = swipe.index + direction * steps
+		local index = math.max(1, math.min(#swipe.windows, requestedIndex))
+		if index ~= requestedIndex or index == 1 or index == #swipe.windows then
+			-- Discard overscroll at either edge, including partial steps, so
+			-- reversing responds without first undoing the excess travel.
+			distance = 0
+		end
+		if index == swipe.index then
+			return
+		end
+
+		if swipe.monocle then
+			-- Native cycling reveals monocle's transparent/input-blocked target,
+			-- but wraps by default. Limit it to the remaining windows so a long
+			-- drag cannot endlessly cycle the same windows.
+			local command = direction > 0 and "cyclenext" or "cycleprev"
+			local count = math.abs(index - swipe.index)
+			swipe.index = index
+			for _ = 1, count do
+				hl.dispatch(hl.dsp.layout(command))
+			end
+			return
+		end
+
+		local target = hl.get_window("address:" .. swipe.windows[index].address)
+		if not target or not target.mapped or target.floating or not target.workspace
+			or target.workspace.id ~= swipe.workspace then
+			-- A window closed or moved mid-drag; wait for a fresh snapshot.
+			swipe = nil
+			return
+		end
+
+		swipe.index = index
+		-- One dispatch per event, even if a large delta crosses several steps.
+		-- Focus handles fullscreen transfer; do not raise the window again.
+		hl.dispatch(hl.dsp.focus({ window = "address:" .. target.address }))
 	end,
 	finish = function()
 		distance = 0
+		swipe = nil
 	end,
 }
 
