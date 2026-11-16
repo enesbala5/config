@@ -24,6 +24,7 @@
     ./dsh.nix
     ./vicinae.nix
     ./figma-linux.nix
+    ./chatgpt.nix
 
     # ./firefox # web browser
     # ./spicetify.nix # spotify retheming
