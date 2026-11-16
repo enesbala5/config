@@ -39,7 +39,14 @@ local function reset(list, focused)
 	action.start()
 	return action
 end
-local function move(action, delta) action.update({ delta = { x = delta } }) end
+-- Test motion uses a 150-unit reference step; scale to the configured
+-- sensitivity so tuning swipe distance does not change these behavior tests.
+local sourceFile = assert(io.open("hypr/hyprland/modules/gestures/window_focus_swipe.lua", "r"))
+local configuredStep = assert(tonumber(sourceFile:read("*a"):match("local step = (%d+)")))
+sourceFile:close()
+local function move(action, delta)
+	action.update({ delta = { x = delta * configuredStep / 150 } })
+end
 local function expect(...)
 	local expected = { ... }
 	assert(#dispatched == #expected, "unexpected dispatch count: " .. #dispatched)
