@@ -10,6 +10,7 @@
   imports = [
     # shell
     ./zsh
+    ./commands
 
     ./git
 
