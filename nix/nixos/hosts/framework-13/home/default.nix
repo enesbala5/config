@@ -31,6 +31,18 @@
     modules.home.chatgpt.enable = true;
     modules.home.easyeffects.enable = true;
 
+    modules.home.commands = {
+      manage-sunshine = "${data.configDirectory}/scripts/utilities/manage-sunshine.sh";
+      reload-hyprlock = "${data.configDirectory}/scripts/utilities/reload-hyprlock.sh";
+      clear-monitor-config = "${data.configDirectory}/scripts/utilities/clear-monitor-lua.sh";
+      toggle-polarity = "${data.configDirectory}/scripts/utilities/toggle-polarity.sh";
+      toggle-dnd = "${data.configDirectory}/scripts/utilities/dnd-toggle.sh";
+      soft-shutdown = "${data.configDirectory}/scripts/power/shutdown.sh";
+      soft-reboot = "${data.configDirectory}/scripts/power/reboot.sh";
+      stt = "${data.configDirectory}/scripts/audio/handy-bt-toggle.sh";
+      tts = "${data.configDirectory}/scripts/audio/hypr-piper-speak.sh";
+    };
+
     # Antseed buyer proxy
     modules.home.antseed.enable = false;
 

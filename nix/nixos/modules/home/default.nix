@@ -34,6 +34,29 @@
   home.username = data.username;
   home.homeDirectory = data.homeDirectory;
 
+  # Live scripts on PATH for every host. Host home configs add their own
+  # entries to the same option; the sets merge by name.
+  modules.home.commands = {
+    # Tailnet HTTPS previews, independent of Herdr/Ovis. Live repo source;
+    # explicit runtime tools also work from agents with a minimal PATH.
+    network-serve = {
+      script = "${data.configDirectory}/scripts/utilities/network-serve";
+      runtimeInputs = [
+        pkgs.tailscale
+        pkgs.nodejs
+      ];
+    };
+
+    # One prompt, no harness, against the home-server model. Reads
+    # ~/.agents/skills for --skill and refuses oversized prompts.
+    ask-local = "${data.configDirectory}/scripts/utilities/ask-local";
+
+    telegram-notify = "${data.configDirectory}/tools/telegram/notify.sh";
+    fix-history = "${data.configDirectory}/tools/zsh/scripts/fix-history.sh";
+    stu-rclone = "${data.configDirectory}/scripts/utilities/stu-rclone.sh";
+    nixos-rebuild-switch = "${data.configDirectory}/scripts/rebuild-switch.sh";
+  };
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
