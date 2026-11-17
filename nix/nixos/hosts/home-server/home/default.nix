@@ -12,7 +12,12 @@
     ../../../modules/home/programs/opencode
   ];
 
-  modules.home.commands.acknowledge-smartd-error = "${data.configDirectory}/scripts/hosts/home-server/smartd/acknowledge-error.sh";
+  modules.home.commands = [
+    {
+      prefix = "${data.configDirectory}/scripts/hosts/home-server/smartd";
+      entries.acknowledge-smartd-error = "acknowledge-error.sh";
+    }
+  ];
 
   modules.home.herdr.enable = true;
   modules.home.herdr.core.enable = true;

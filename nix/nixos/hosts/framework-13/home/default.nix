@@ -31,17 +31,32 @@
     modules.home.chatgpt.enable = true;
     modules.home.easyeffects.enable = true;
 
-    modules.home.commands = {
-      manage-sunshine = "${data.configDirectory}/scripts/utilities/manage-sunshine.sh";
-      reload-hyprlock = "${data.configDirectory}/scripts/utilities/reload-hyprlock.sh";
-      clear-monitor-config = "${data.configDirectory}/scripts/utilities/clear-monitor-lua.sh";
-      toggle-polarity = "${data.configDirectory}/scripts/utilities/toggle-polarity.sh";
-      toggle-dnd = "${data.configDirectory}/scripts/utilities/dnd-toggle.sh";
-      soft-shutdown = "${data.configDirectory}/scripts/power/shutdown.sh";
-      soft-reboot = "${data.configDirectory}/scripts/power/reboot.sh";
-      stt = "${data.configDirectory}/scripts/audio/handy-bt-toggle.sh";
-      tts = "${data.configDirectory}/scripts/audio/hypr-piper-speak.sh";
-    };
+    modules.home.commands = [
+      {
+        prefix = "${data.configDirectory}/scripts/utilities";
+        entries = {
+          manage-sunshine = "manage-sunshine.sh";
+          reload-hyprlock = "reload-hyprlock.sh";
+          clear-monitor-config = "clear-monitor-lua.sh";
+          toggle-polarity = "toggle-polarity.sh";
+          toggle-dnd = "dnd-toggle.sh";
+        };
+      }
+      {
+        prefix = "${data.configDirectory}/scripts/power";
+        entries = {
+          soft-shutdown = "shutdown.sh";
+          soft-reboot = "reboot.sh";
+        };
+      }
+      {
+        prefix = "${data.configDirectory}/scripts/audio";
+        entries = {
+          stt = "handy-bt-toggle.sh";
+          tts = "hypr-piper-speak.sh";
+        };
+      }
+    ];
 
     # Antseed buyer proxy
     modules.home.antseed.enable = false;
