@@ -106,6 +106,111 @@ export interface TodoItem {
 	completed: boolean;
 }
 
+// ---------------------------------------------------------------------------
+// Plan file persistence
+// ---------------------------------------------------------------------------
+
+/** Explicit marker lines, e.g. `plans-dir: docs/plans`. */
+const PLAN_DIR_MARKERS = /^(?:plans?[\s_-]*(?:dir|path|folder)|plans?[\s_-]*files?|plans?[\s_-]*output)\s*[:=]\s*(.+)$/i;
+
+/** Natural-language overrides, e.g. "Use docs/plans to store plans". */
+const PLAN_DIR_SENTENCES = [
+	/\buse\s+`?([^\s`'"]+)`?\s+(?:to\s+)?(?:store|save|keep|write)\s+(?:the\s+)?plans?\b/i,
+	/\b(?:store|save|keep|write)\s+(?:the\s+)?plans?\s+(?:in|under|at|to)\s+`?([^\s`'"]+)`?/i,
+	/\bplans?\s+(?:are|should\s+be|must\s+be|go|live|belong)\s+(?:stored|saved|written|kept)?\s*(?:in|under|at|to)\s+`?([^\s`'"]+)`?/i,
+	/\bplans?\s+(?:go|live|belong)\s+(?:in|under|at)\s+`?([^\s`'"]+)`?/i,
+];
+
+const NEGATED_LINE = /^(?:do\s+not|don't|never|avoid)\b/i;
+
+function cleanPlanDir(value: string): string | undefined {
+	let cleaned = value.trim().replace(/^[`'"(\[]+|[`'")\]]+$/g, "");
+	cleaned = cleaned.replace(/[.,;:]+$/, "").replace(/\/+$/, "");
+	if (!cleaned || cleaned.includes("<") || cleaned.includes(">") || /^[a-z]+:\/\//i.test(cleaned)) {
+		return undefined;
+	}
+	return cleaned;
+}
+
+/**
+ * Find a plans-directory override in an AGENTS.md body.
+ *
+ * Explicit markers win. Otherwise common phrasings such as
+ * "Use docs/plans to store plans" are recognised. Returns the raw path
+ * (still relative to the AGENTS.md file) or undefined.
+ */
+export function extractPlansDirFromAgents(text: string): string | undefined {
+	const lines = text.split(/\r?\n/);
+
+	for (const line of lines) {
+		const trimmed = line.replace(/^\s*(?:[-*+]|\d+[.)])\s+/, "").trim();
+		if (!trimmed || NEGATED_LINE.test(trimmed)) continue;
+		const match = trimmed.match(PLAN_DIR_MARKERS);
+		if (match) {
+			const dir = cleanPlanDir(match[1]);
+			if (dir) return dir;
+		}
+	}
+
+	for (const line of lines) {
+		const trimmed = line.trim();
+		if (!trimmed || NEGATED_LINE.test(trimmed)) continue;
+		for (const pattern of PLAN_DIR_SENTENCES) {
+			const match = trimmed.match(pattern);
+			if (match) {
+				const dir = cleanPlanDir(match[1]);
+				if (dir) return dir;
+			}
+		}
+	}
+
+	return undefined;
+}
+
+/** Turn a plan title into a short, filename-safe slug. */
+export function slugifyPlanName(text: string, maxLength = 40): string {
+	const slug = text
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "")
+		.slice(0, maxLength)
+		.replace(/-+$/g, "");
+	return slug || "plan";
+}
+
+export type PlanFileStatus = "draft" | "in-progress" | "complete";
+
+export interface PlanFileData {
+	title: string;
+	project: string;
+	created: string;
+	status: PlanFileStatus;
+	body: string;
+	todos: TodoItem[];
+}
+
+/** Render the markdown plan document written under the plans directory. */
+export function renderPlanMarkdown(data: PlanFileData): string {
+	const statusLabel = data.status === "complete" ? "complete" : data.status === "in-progress" ? "in progress" : "draft";
+	const lines = [
+		`# Plan: ${data.title}`,
+		"",
+		`- Status: ${statusLabel}`,
+		`- Created: ${data.created}`,
+		`- Project: \`${data.project}\``,
+	];
+
+	if (data.todos.length > 0) {
+		lines.push("", "## Steps", "");
+		for (const item of data.todos) {
+			lines.push(`- [${item.completed ? "x" : " "}] ${item.step}. ${item.text}`);
+		}
+	}
+
+	lines.push("", "## Plan", "", data.body.trim(), "");
+	return lines.join("\n");
+}
+
 export function cleanStepText(text: string): string {
 	let cleaned = text
 		.replace(/\*{1,2}([^*]+)\*{1,2}/g, "$1") // Remove bold/italic

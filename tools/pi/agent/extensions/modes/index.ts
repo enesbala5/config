@@ -15,6 +15,13 @@
  * - Shift+Tab   cycle modes (normal -> plan -> ask -> normal)
  * - Ctrl+Alt+P  jump straight to/from plan mode
  *
+ * Plan files:
+ * - Plan mode writes every plan to a markdown file on disk.
+ * - Override the directory with a line in AGENTS.md, e.g.
+ *   "Use docs/plans to store plans" or "plans-dir: docs/plans".
+ * - Otherwise it uses misc/plans when that directory exists, and asks before
+ *   creating it in the current repo.
+ *
  * Commands:
  * - /mode [name]  show the current mode, or switch to one
  * - /plan         toggle plan mode (kept for muscle memory)
@@ -26,9 +33,21 @@
 
 import type { AgentMessage } from "@earendil-works/pi-agent-core";
 import type { AssistantMessage, TextContent } from "@earendil-works/pi-ai";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { dirname, join, relative, resolve } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Key } from "@earendil-works/pi-tui";
-import { extractTodoItems, isSafeCommand, markCompletedSteps, type TodoItem } from "./utils.ts";
+import {
+	extractPlansDirFromAgents,
+	extractTodoItems,
+	isSafeCommand,
+	markCompletedSteps,
+	renderPlanMarkdown,
+	slugifyPlanName,
+	type PlanFileStatus,
+	type TodoItem,
+} from "./utils.ts";
 
 type ModeName = "normal" | "plan" | "ask";
 
@@ -76,7 +95,9 @@ Plan:
 ...
 
 For each step: what to change, why, and potential risks. List files that will be modified.
-After the plan, stop and wait for the user to choose whether to execute it.`,
+After the plan, stop and wait for the user to choose whether to execute it.
+
+The mode saves your plan to a markdown file on disk automatically. Do not try to create or edit files yourself.`,
 	},
 	ask: {
 		summary: "Read-only Q&A; explains without changing anything",
@@ -107,6 +128,13 @@ interface ModesState {
 	executing: boolean;
 	todos: TodoItem[];
 	toolsBeforeMode?: string[];
+	/** Absolute plans directory, null when the user declined, or undefined when unresolved. */
+	planDir?: string | null;
+	planDirResolved?: boolean;
+	/** Absolute path of the saved plan file for the current plan. */
+	planFile?: string;
+	/** Raw plan text, kept so progress updates can rewrite the file. */
+	planBody?: string;
 }
 
 function isAssistantMessage(m: AgentMessage): m is AssistantMessage {
@@ -129,6 +157,10 @@ export default function modesExtension(pi: ExtensionAPI): void {
 	let executing = false;
 	let todoItems: TodoItem[] = [];
 	let toolsBeforeMode: string[] | undefined;
+	let planDir: string | null | undefined;
+	let planDirResolved = false;
+	let planFile: string | undefined;
+	let planBody: string | undefined;
 
 	pi.registerFlag("mode", {
 		description: "Start in a mode: normal, plan, or ask",
@@ -141,6 +173,168 @@ export default function modesExtension(pi: ExtensionAPI): void {
 
 	function defaultNormalTools(): string[] {
 		return uniqueToolNames([...DEFAULT_NORMAL_TOOLS, ...pi.getActiveTools().filter((n) => !MANAGED_TOOLS.has(n))]);
+	}
+
+	// ---------------------------------------------------------------------------
+	// Plan files
+	// ---------------------------------------------------------------------------
+
+	function findRepoRoot(start: string): string {
+		let dir = resolve(start);
+		for (;;) {
+			if (existsSync(join(dir, ".git"))) return dir;
+			const parent = dirname(dir);
+			if (parent === dir) return resolve(start);
+			dir = parent;
+		}
+	}
+
+	/** Nearest AGENTS.md first, walking from cwd up to the repo root. */
+	function findAgentsFile(cwd: string): { path: string; text: string } | undefined {
+		const root = findRepoRoot(cwd);
+		let dir = resolve(cwd);
+		for (;;) {
+			const file = join(dir, "AGENTS.md");
+			if (existsSync(file)) {
+				try {
+					return { path: file, text: readFileSync(file, "utf8") };
+				} catch {
+					// Unreadable: keep walking up.
+				}
+			}
+			if (dir === root) break;
+			const parent = dirname(dir);
+			if (parent === dir) break;
+			dir = parent;
+		}
+		return undefined;
+	}
+
+	function displayPath(ctx: ExtensionContext, path: string): string {
+		const rel = relative(ctx.cwd, path);
+		return rel && !rel.startsWith("..") ? rel : path;
+	}
+
+	function ensurePlanDir(dir: string): boolean {
+		try {
+			mkdirSync(dir, { recursive: true });
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	/**
+	 * Resolve where plans go, in order: AGENTS.md override, existing misc/plans,
+	 * then ask before creating misc/plans. The answer is cached for the session.
+	 */
+	async function resolvePlanDir(ctx: ExtensionContext): Promise<string | null> {
+		if (planDirResolved) return planDir ?? null;
+		planDirResolved = true;
+		planDir = null;
+
+		const agents = findAgentsFile(ctx.cwd);
+		const override = agents ? extractPlansDirFromAgents(agents.text) : undefined;
+
+		if (override && agents) {
+			const expanded =
+				override === "~" ? homedir() : override.startsWith("~/") ? join(homedir(), override.slice(2)) : override;
+			const target = resolve(dirname(agents.path), expanded);
+			const existed = existsSync(target);
+			if (ensurePlanDir(target)) {
+				planDir = target;
+				if (!existed) {
+					ctx.ui.notify(`Created plans directory ${displayPath(ctx, target)} (from AGENTS.md).`, "info");
+				}
+			} else {
+				ctx.ui.notify(`Could not create plans directory ${target} (from AGENTS.md). Plan not saved.`, "warning");
+			}
+			persistState();
+			return planDir;
+		}
+
+		const fallback = join(findRepoRoot(ctx.cwd), "misc", "plans");
+		if (existsSync(fallback)) {
+			planDir = fallback;
+			persistState();
+			return planDir;
+		}
+
+		// No override and no default directory: ask before adding one to the repo.
+		if (!ctx.hasUI) {
+			if (ensurePlanDir(fallback)) planDir = fallback;
+			persistState();
+			return planDir;
+		}
+
+		const choice = await ctx.ui.select(
+			`Plan mode saves plans to:\n${displayPath(ctx, fallback)}\n\nThat folder does not exist in this repo. Create it?`,
+			["Create misc/plans", "Don't save plan files in this project"],
+		);
+
+		if (choice === "Create misc/plans") {
+			if (ensurePlanDir(fallback)) {
+				planDir = fallback;
+				ctx.ui.notify(`Created ${displayPath(ctx, fallback)}.`, "info");
+			} else {
+				ctx.ui.notify(`Could not create ${fallback}. Plan not saved.`, "warning");
+			}
+		}
+
+		persistState();
+		return planDir;
+	}
+
+	function planFileName(todos: TodoItem[], now: Date): string {
+		const pad = (value: number) => String(value).padStart(2, "0");
+		const stamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
+		const slug = slugifyPlanName(todos[0]?.text ?? "plan");
+		return `${stamp}-${slug}.md`;
+	}
+
+	/** Write or refresh the plan file. Returns its path when it was saved. */
+	async function savePlanFile(
+		ctx: ExtensionContext,
+		text: string | undefined,
+		todos: TodoItem[],
+		status: PlanFileStatus,
+		options?: { announce?: boolean },
+	): Promise<string | null> {
+		if (text && text.trim()) planBody = text;
+		if (!planBody) return null;
+
+		const dir = await resolvePlanDir(ctx);
+		if (!dir) return null;
+
+		const isNew = !planFile;
+		if (!planFile) planFile = join(dir, planFileName(todos, new Date()));
+
+		const content = renderPlanMarkdown({
+			title: todos[0]?.text ?? "Plan",
+			project: findRepoRoot(ctx.cwd),
+			created: new Date().toISOString(),
+			status,
+			body: planBody,
+			todos,
+		});
+
+		try {
+			writeFileSync(planFile, content, "utf8");
+		} catch (error) {
+			ctx.ui.notify(`Could not save plan file ${planFile}: ${String(error)}`, "warning");
+			return null;
+		}
+
+		persistState();
+		if (isNew && options?.announce !== false) {
+			const shown = displayPath(ctx, planFile);
+			ctx.ui.notify(`Plan saved to ${shown}`, "info");
+			pi.sendMessage(
+				{ customType: "modes-plan-saved", content: `Plan saved to \`${shown}\``, display: true },
+				{ triggerTurn: false },
+			);
+		}
+		return planFile;
 	}
 
 	function applyModeTools(): void {
@@ -190,6 +384,10 @@ export default function modesExtension(pi: ExtensionAPI): void {
 			executing,
 			todos: todoItems,
 			toolsBeforeMode,
+			planDir,
+			planDirResolved,
+			planFile,
+			planBody,
 		} satisfies ModesState);
 	}
 
@@ -199,6 +397,12 @@ export default function modesExtension(pi: ExtensionAPI): void {
 	 */
 	function setMode(next: ModeName, ctx: ExtensionContext, options?: { silent?: boolean; keepExecution?: boolean }): void {
 		if (next === mode) return;
+
+		// Entering plan mode starts a fresh plan; keep the directory decision.
+		if (next === "plan") {
+			planFile = undefined;
+			planBody = undefined;
+		}
 
 		mode = next;
 		if (!options?.keepExecution) {
@@ -391,6 +595,7 @@ After completing a step, include a [DONE:n] tag in your response.`,
 		const text = getTextContent(event.message);
 		if (markCompletedSteps(text, todoItems) > 0) {
 			updateStatus(ctx);
+			await savePlanFile(ctx, undefined, todoItems, "in-progress");
 		}
 		persistState();
 	});
@@ -399,6 +604,7 @@ After completing a step, include a [DONE:n] tag in your response.`,
 		// Execution finished?
 		if (executing && todoItems.length > 0) {
 			if (todoItems.every((t) => t.completed)) {
+				await savePlanFile(ctx, undefined, todoItems, "complete", { announce: false });
 				const completedList = todoItems.map((t) => `~~${t.text}~~`).join("\n");
 				pi.sendMessage(
 					{ customType: "modes-plan-complete", content: `**Plan Complete!** ✓\n\n${completedList}`, display: true },
@@ -412,18 +618,25 @@ After completing a step, include a [DONE:n] tag in your response.`,
 			return;
 		}
 
-		if (mode !== "plan" || !ctx.hasUI) return;
+		if (mode !== "plan") return;
 
 		// Extract todos from the last assistant message.
 		const lastAssistant = [...event.messages].reverse().find(isAssistantMessage);
+		const planText = lastAssistant ? getTextContent(lastAssistant) : "";
 		if (lastAssistant) {
-			const extracted = extractTodoItems(getTextContent(lastAssistant));
+			const extracted = extractTodoItems(planText);
 			if (extracted.length > 0) {
 				todoItems = extracted;
 			}
 		}
 
-		if (todoItems.length === 0) return;
+		// Always persist the plan itself, even when no numbered steps were found.
+		const hasPlanHeader = /\*{0,2}Plan:\*{0,2}/i.test(planText);
+		if (hasPlanHeader || todoItems.length > 0) {
+			await savePlanFile(ctx, planText, todoItems, "draft");
+		}
+
+		if (!ctx.hasUI || todoItems.length === 0) return;
 		persistState();
 
 		const todoListText = todoItems.map((t, i) => `${i + 1}. ☐ ${t.text}`).join("\n");
@@ -487,6 +700,10 @@ After completing a step, include a [DONE:n] tag in your response.`;
 			executing = stateEntry.data.executing ?? executing;
 			todoItems = stateEntry.data.todos ?? todoItems;
 			toolsBeforeMode = stateEntry.data.toolsBeforeMode ?? toolsBeforeMode;
+			planDir = stateEntry.data.planDir ?? planDir;
+			planDirResolved = stateEntry.data.planDirResolved ?? planDirResolved;
+			planFile = stateEntry.data.planFile ?? planFile;
+			planBody = stateEntry.data.planBody ?? planBody;
 		}
 
 		// On resume, rebuild completion state by scanning messages after the last

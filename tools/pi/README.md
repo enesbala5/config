@@ -207,9 +207,36 @@ Apply changes to `kitty.nix` with Home Manager and reload Kitty's configuration.
   optionally restores a `git stash create` checkpoint of the worktree.
 - **sidebar-toggle.ts** — `Ctrl+Shift+\` toggles the `pi-sidebar-tui` sidebar.
 - **modes/** — persistent normal/plan/ask mode system (custom prompts, tool
-  restrictions, todo tracking); replaces the standalone plan-mode extension.
+  restrictions, todo tracking); replaces the standalone plan-mode extension. It
+  also writes every plan to a markdown file; see [Plan files](#plan-files).
 - **herdr-agent-state.ts** — *not* in this repo; written by Herdr into
   `~/.pi/agent/extensions/` at runtime. See `tools/herdr/README.md`.
+
+### Plan files
+
+Plan mode saves each plan to `<repo>/misc/plans/YYYY-MM-DD-HHMM-<slug>.md`, with
+status, project, checklist, and the full plan. The file is refreshed as steps
+complete and marked `complete` when the plan finishes.
+
+Resolution order:
+
+1. An override in the project's `AGENTS.md` (nearest file first, walking up to
+   the repo root). Relative paths resolve from the `AGENTS.md` location.
+2. Otherwise `misc/plans` in the repo root, if it already exists.
+3. Otherwise pi asks whether to create `misc/plans`. Declining disables plan
+   files for that session; it never adds the folder silently.
+
+Supported overrides (any one line):
+
+```md
+Use docs/plans to store plans
+Store plans in docs/plans
+Plans should be saved in docs/plans
+plans-dir: docs/plans
+```
+
+Headless sessions (no UI) fall back to creating `misc/plans` so a plan is never
+lost. Run `/reload` after changing the extension or an `AGENTS.md` override.
 
 ### Slash-command behavior and checks
 
