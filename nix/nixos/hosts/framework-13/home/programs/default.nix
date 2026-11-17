@@ -165,19 +165,7 @@ in
 
   services = {
     kdeconnect.enable = true;
-
-    # Audio
-    easyeffects = {
-      enable = true;
-
-      package = pkgs.easyeffects;
-      preset = "HifiScan+EEGuide"; # Profile from framework-dsp repository - Installation guide at README
-    };
   };
-
-  # Keep hardware as the default sink; EasyEffects attaches to it automatically.
-  systemd.user.services.easyeffects.Service.ExecStartPre =
-    "${data.configDirectory}/scripts/audio/ensure-easyeffects-auto.sh";
 
   home.file."programs/hyperframes/open".source = hyperframesOpen;
 

@@ -37,5 +37,9 @@ set_ini_key() {
   ' "$file" >"$tmp" && mv "$tmp" "$file"
 }
 
+preset="${EASYEFFECTS_PRESET:-HifiScan+EEGuide}"
+
 set_ini_key "EffectsPipelines" "processAllOutputs" "true"
 set_ini_key "StreamOutputs" "useDefaultOutputDevice" "true"
+set_ini_key "Presets" "lastLoadedOutputPreset" "$preset"
+set_ini_key "Window" "outputAutoloadingFallbackPreset" "$preset"

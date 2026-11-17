@@ -29,6 +29,7 @@
     modules.home.vicinae.enable = true;
     modules.home.figmaLinux.enable = true;
     modules.home.chatgpt.enable = true;
+    modules.home.easyeffects.enable = true;
 
     # Antseed buyer proxy
     modules.home.antseed.enable = false;

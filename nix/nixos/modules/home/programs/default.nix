@@ -25,6 +25,7 @@
     ./vicinae.nix
     ./figma-linux.nix
     ./chatgpt.nix
+    ./easyeffects.nix
 
     # ./firefox # web browser
     # ./spicetify.nix # spotify retheming

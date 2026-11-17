@@ -143,11 +143,9 @@ Restart Waybar after rebuilding. With the lid open, enable Ignore Lid and verify
 
 #### Audio Setup
 
-In order to have good audio, we need to install Easyeffects (configured through Nix) and also the [Framework DSP](https://github.com/cab404/framework-dsp).
+Speaker DSP is the toggleable Home Manager module `modules.home.easyeffects` (Framework 13 enables it). It installs current EasyEffects from nixpkgs-unstable and [cab404/framework-dsp](https://github.com/cab404/framework-dsp) presets patched for EasyEffects 8+ (`kernel-name` instead of the old `kernel-path`).
 
-Run the installation steps detailed in the "Installing" section of the README (in the framework-dsp) repository.
-
-Once that is completed, the profile "HifiScan+EEGuide" should be automatically selected on startup.
+After a rebuild, `HifiScan+EEGuide` loads on login. Toggle with `modules.home.easyeffects.enable`.
 
 
 ## Secret Management
