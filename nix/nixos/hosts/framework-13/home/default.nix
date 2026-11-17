@@ -31,6 +31,33 @@
     modules.home.chatgpt.enable = true;
     modules.home.easyeffects.enable = true;
 
+    modules.home.commands = [
+      {
+        prefix = "${data.configDirectory}/scripts/utilities";
+        entries = {
+          manage-sunshine = "manage-sunshine.sh";
+          reload-hyprlock = "reload-hyprlock.sh";
+          clear-monitor-config = "clear-monitor-lua.sh";
+          toggle-polarity = "toggle-polarity.sh";
+          toggle-dnd = "dnd-toggle.sh";
+        };
+      }
+      {
+        prefix = "${data.configDirectory}/scripts/power";
+        entries = {
+          soft-shutdown = "shutdown.sh";
+          soft-reboot = "reboot.sh";
+        };
+      }
+      {
+        prefix = "${data.configDirectory}/scripts/audio";
+        entries = {
+          stt = "handy-bt-toggle.sh";
+          tts = "hypr-piper-speak.sh";
+        };
+      }
+    ];
+
     # Antseed buyer proxy
     modules.home.antseed.enable = false;
 

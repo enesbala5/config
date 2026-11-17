@@ -1,6 +1,5 @@
 {
   config,
-  data,
   lib,
   pkgs,
   ...
@@ -12,7 +11,7 @@ let
     options = {
       script = lib.mkOption {
         type = lib.types.str;
-        description = "Executable to exec. A repo path stays live across edits.";
+        description = "Script filename relative to the group's prefix.";
       };
 
       runtimeInputs = lib.mkOption {
@@ -32,59 +31,58 @@ let
       }
     else
       spec;
+
+  # Shared home and each host append groups. prefix is always a directory;
+  # the command name is the entry key.
+  commands = lib.foldl' (
+    defined: group:
+    lib.foldl' (
+      defined: name:
+      if defined ? ${name} then
+        throw "modules.home.commands: duplicate command '${name}'"
+      else
+        let
+          command = normalize group.entries.${name};
+        in
+        defined
+        // {
+          ${name} = command // {
+            script = "${group.prefix}/${command.script}";
+          };
+        }
+    ) defined (lib.attrNames group.entries)
+  ) { } cfg;
 in
 {
   options.modules.home.commands = lib.mkOption {
-    type = lib.types.attrsOf (lib.types.either lib.types.str commandType);
-    default = { };
-    description = "Commands on PATH that exec a live script.";
+    type = lib.types.listOf (
+      lib.types.submodule {
+        options = {
+          prefix = lib.mkOption {
+            type = lib.types.str;
+            description = "Directory prepended to each entry's script.";
+          };
+
+          entries = lib.mkOption {
+            type = lib.types.attrsOf (lib.types.either lib.types.str commandType);
+            description = "Command name to a script filename, or to { script, runtimeInputs }.";
+          };
+        };
+      }
+    );
+    default = [ ];
+    description = "Commands on PATH that exec a live script. Host lists are concatenated onto the shared list.";
   };
 
   config = {
-    modules.home.commands = {
-      # Tailnet HTTPS previews, independent of Herdr/Ovis. Live repo source;
-      # explicit runtime tools also work from agents with a minimal PATH.
-      network-serve = {
-        script = "${data.configDirectory}/scripts/utilities/network-serve";
-        runtimeInputs = [
-          pkgs.tailscale
-          pkgs.nodejs
-        ];
-      };
-
-      # One prompt, no harness, against the home-server model. Reads
-      # ~/.agents/skills for --skill and refuses oversized prompts.
-      ask-local = "${data.configDirectory}/scripts/utilities/ask-local";
-
-      telegram-notify = "${data.configDirectory}/tools/telegram/notify.sh";
-      fix-history = "${data.configDirectory}/tools/zsh/scripts/fix-history.sh";
-
-      manage-sunshine = "${data.configDirectory}/scripts/utilities/manage-sunshine.sh";
-      reload-hyprlock = "${data.configDirectory}/scripts/utilities/reload-hyprlock.sh";
-      clear-monitor-config = "${data.configDirectory}/scripts/utilities/clear-monitor-lua.sh";
-      toggle-polarity = "${data.configDirectory}/scripts/utilities/toggle-polarity.sh";
-      toggle-dnd = "${data.configDirectory}/scripts/utilities/dnd-toggle.sh";
-
-      acknowledge-smartd-error = "${data.configDirectory}/scripts/hosts/home-server/smartd/acknowledge-error.sh";
-      stu-rclone = "${data.configDirectory}/scripts/utilities/stu-rclone.sh";
-      nixos-rebuild-switch = "${data.configDirectory}/scripts/rebuild-switch.sh";
-      soft-shutdown = "${data.configDirectory}/scripts/power/shutdown.sh";
-      soft-reboot = "${data.configDirectory}/scripts/power/reboot.sh";
-      stt = "${data.configDirectory}/scripts/audio/handy-bt-toggle.sh";
-      tts = "${data.configDirectory}/scripts/audio/hypr-piper-speak.sh";
-    };
-
     home.packages = lib.mapAttrsToList (
-      name: spec:
-      let
-        command = normalize spec;
-      in
+      name: command:
       pkgs.writeShellScriptBin name ''
         ${lib.optionalString (command.runtimeInputs != [ ]) ''
           export PATH="${lib.makeBinPath command.runtimeInputs}:$PATH"
         ''}
         exec ${lib.escapeShellArg command.script} "$@"
       ''
-    ) cfg;
+    ) commands;
   };
 }
