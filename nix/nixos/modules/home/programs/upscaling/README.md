@@ -52,25 +52,30 @@ llvmpipe. If device permissions fail, inspect render/video group membership and
 NixOS device permissions before changing anything; log in again after group changes.
 The NCNN GPU index can differ from the DRM card number. Its log lists detected GPUs.
 
-When you can interrupt inference, explicitly release its GPU allocation:
+When you can interrupt inference, `gpu-lease` stops `llama-cpp.service` for one
+command and starts it again only if this command stopped it. A service you had
+left stopped stays stopped. In-flight `/v1` requests end when the unit stops, and
+`http://home-server:8080/v1` is down until the command exits.
 
 ```bash
-sudo systemctl stop llama-cpp.service
-# Confirm it is stopped, then run the job below.
-systemctl is-active llama-cpp.service
+gpu-lease -- upscale-video input.mp4 output.mp4 --profile ugc
 
-# Restore inference afterward, including after an unsuccessful job:
+# SIGKILL skips the restore trap. If inference does not come back:
 sudo systemctl start llama-cpp.service
-systemctl is-active llama-cpp.service
 ```
 
-Track whether inference was initially running; don't start a service that you had
-intentionally left stopped. Prefer `hc` for jobs that should survive disconnects.
+Prefer `hc` for jobs that should survive disconnects:
+
+```bash
+hc run --bg 'gpu-lease -- upscale-video input.mp4 output.mp4 --profile cartoon'
+```
+
 No extra ports, firewall rules, root-run upscaler, or always-on worker are required.
 
 ## Usage (after deploying the configuration)
 
-Commands run on the machine holding the GPU and input files; there is no implicit
+On `home-server`, put `gpu-lease --` in front of AI runs. `--method lanczos` does not
+use the GPU. Commands run on the machine holding the GPU and input files; there is no implicit
 SSH transfer or remote backend. Copy files with SSH/SFTP or use an existing mount.
 
 ```bash
@@ -93,7 +98,7 @@ upscale-video input.mp4 baseline.mp4 \
 upscale-video input.mp4 output.mp4 \
   --profile ugc --tile 64 --chunk-size 4 --gpu 0
 
-hc run --bg 'upscale-video input.mp4 output.mp4 --profile cartoon'
+hc run --bg 'gpu-lease -- upscale-video input.mp4 output.mp4 --profile cartoon'
 # Keep the returned task ID; use hc read <id> and hc wait <id>.
 ```
 
@@ -211,6 +216,16 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
   -s nix/nixos/modules/home/programs/upscaling/video/tests -v
 ```
 
+`gpu-lease` (stop llama only if it was running, restore on failure, lock, VRAM gate):
+
+```bash
+hc run --bg 'nix build --impure --no-link --expr '\''
+  let f = builtins.getFlake (toString ./nix/nixos);
+      pkgs = f.inputs.nixpkgs.legacyPackages.x86_64-linux;
+  in import ./nix/nixos/hosts/home-server/modules/ai/gpu-lease-tests.nix { inherit pkgs; }
+'\'''
+```
+
 Before rebuilding from a Git-backed flake, ensure the new module files are included
 in its source (Nix excludes untracked files). No deployment is performed by tests.
 
@@ -218,7 +233,7 @@ in its source (Nix excludes untracked files). No deployment is performed by test
 
 No server deployment or RX 570 benchmark was performed during implementation.
 
-- [ ] Deploy explicitly; verify Vulkan as `e` and release llama.cpp's GPU memory.
+- [ ] Deploy explicitly; verify Vulkan as `e`, then `gpu-lease -- true` and confirm llama-cpp returns.
 - [ ] Choose one 3–5-second UGC clip and one representative cartoon clip.
 - [ ] Generate matching AI/Lanczos previews and keep their JSON summaries.
 - [ ] Watch each at normal speed for eye/teeth/skin artifacts and outline shimmer.

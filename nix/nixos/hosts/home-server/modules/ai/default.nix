@@ -3,6 +3,7 @@
   lib,
   pkgs,
   unstable,
+  data,
   ...
 }:
 
@@ -23,6 +24,9 @@ let
     };
 
   modelPath = "${cfg.models.directory}/${activeModel.file}";
+
+  # Stops llama-cpp only. llama-cpp-model downloads the GGUF and holds no GPU memory.
+  gpuLease = pkgs.callPackage ./gpu-lease.nix { };
 in
 {
   imports = [ ./models ];
@@ -145,6 +149,21 @@ in
       clinfo
       vulkan-tools
       cfg.package
+      gpuLease
+    ];
+
+    # Store path, not a PATH lookup: this is not a general systemctl grant.
+    # The script stops only llama-cpp.service and drops back to the invoking user.
+    security.sudo.extraRules = [
+      {
+        users = [ data.username ];
+        commands = [
+          {
+            command = "${gpuLease}/bin/gpu-lease";
+            options = [ "NOPASSWD" ];
+          }
+        ];
+      }
     ];
 
     systemd.tmpfiles.rules = [

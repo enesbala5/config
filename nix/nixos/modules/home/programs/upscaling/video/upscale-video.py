@@ -583,7 +583,7 @@ def execute(args):
             args.start = math.floor(first / rate * 1_000_000) / 1_000_000
         if args.method == "ai":
             print(
-                "AI upscaling: ensure llama-cpp has released GPU memory; this tool never stops services.",
+                "AI upscaling never stops services. On home-server: gpu-lease -- upscale-video ...",
                 file=sys.stderr,
             )
         work = Path(tempfile.mkdtemp(prefix="video-", dir=args.scratch_dir))

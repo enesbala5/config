@@ -26,6 +26,10 @@ be up on the client. LAN clients need `homeServer.ai.openFirewall = true` on
 the server first. Incus guests reach the host at `10.0.100.1` because
 `incusbr0` is a trusted interface — no firewall change needed.
 
+`gpu-lease` on this host stops `llama-cpp` for one command, then starts it again
+only if it was running. While that command runs, `http://home-server:8080/v1` is
+down (including for Incus guests). It comes back when the command exits.
+
 ## Rules of thumb
 
 - **Turn thinking off for agent loops.** Qwen3 thinks by default and spends
