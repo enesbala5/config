@@ -9,23 +9,24 @@
 {
   imports = [
     # shell
-    ./zsh.nix
+    ./zsh
 
-    ./git.nix
+    ./git
 
     # window manager / desktop stuff
     ./waybar # status bar
     # ./hyprland # window manager
     # ./tofi.nix # app launcher
 
-    ./dunst.nix # notification daemon
-    ./kitty.nix # terminal emulator
+    ./dunst # notification daemon
+    ./kitty # terminal emulator
     ./herdr
-    ./dsh.nix
-    ./vicinae.nix
-    ./figma-linux.nix
-    ./chatgpt.nix
-    ./easyeffects.nix
+    ./dsh
+    ./vicinae
+    ./figma-linux
+    ./chatgpt
+    ./easyeffects
+    ./upscaling
 
     # ./firefox # web browser
     # ./spicetify.nix # spotify retheming
