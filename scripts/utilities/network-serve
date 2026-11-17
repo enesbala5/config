@@ -1,0 +1,179 @@
+#!/usr/bin/env node
+// Tailnet-only HTTPS previews. No dependencies beyond Node and the Tailscale CLI.
+'use strict';
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const net = require('node:net');
+const { spawnSync } = require('node:child_process');
+
+const skill = `Run network-serve <port|local-http(s)-url> on the machine hosting the app.
+Share stdout as "Network: <url>" alongside the local link. Never invent the URL.
+Only localhost, 127.0.0.1, 0.0.0.0 and [::1] are accepted; the app must be running.
+Creates persistent tailnet-only HTTPS forwarding; both devices need Tailscale access.
+Reuses a matching root mapping; otherwise prefers :443, then :8443 upwards.
+Paths/query/fragments are preserved. No automatic path-prefix hosting or public Funnel.
+Use network-serve --stop <local-port> to remove only this utility's unchanged mapping.
+If forwarding fails, report stderr. Apps may need allowed-host/origin/HMR settings.`;
+const help = `Usage: network-serve <port|local-http(s)-url>
+       network-serve --stop <local-port>
+       network-serve --help | --skill
+
+${skill}
+
+Examples:
+  network-serve 3000
+  network-serve 'http://localhost:5173/settings?tab=profile#details'
+
+stdout contains only the HTTPS URL; diagnostics go to stderr.
+State: $XDG_STATE_HOME/network-serve (default ~/.local/state/network-serve).
+Requires Node.js and tailscale, logged in with HTTPS enabled and Serve permission.
+Never runs sudo or resets existing Serve configuration. Mappings survive app exit;
+stop them when finished. Does not start the app or publish a separate localhost API.`;
+
+function fail(message) { throw new Error(message); }
+function port(value) {
+  if (!/^\d+$/.test(String(value)) || +value < 1 || +value > 65535) fail('port must be between 1 and 65535');
+  return +value;
+}
+function target(input) {
+  let url;
+  try { url = new URL(/^\d+$/.test(input) ? `http://127.0.0.1:${port(input)}/` : input); }
+  catch { fail('expected a port or a full local HTTP(S) URL'); }
+  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) fail('expected HTTP(S) without credentials');
+  if (!['localhost', '127.0.0.1', '0.0.0.0', '[::1]'].includes(url.hostname)) fail('only local loopback upstreams are allowed');
+  if (url.hostname !== '[::1]') url.hostname = '127.0.0.1';
+  const localPort = port(url.port || (url.protocol === 'https:' ? 443 : 80));
+  return { url, localPort, upstream: url.origin };
+}
+function ts(args) {
+  const result = spawnSync('tailscale', args, { encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] });
+  if (result.error || result.status !== 0) fail(`tailscale ${args.join(' ')} failed: ${result.error?.message || result.stderr.trim() || result.stdout.trim()}. Check tailscale status and Serve/operator permissions.`);
+  return result.stdout;
+}
+function json(args) {
+  try { return JSON.parse(ts(args)); }
+  catch (error) { fail(`cannot read Tailscale configuration: ${error.message}`); }
+}
+function config() { return json(['serve', 'status', '--json']) || {}; }
+function handlers(cfg, host, p) { return cfg.Web?.[`${host}:${p}`]?.Handlers; }
+function matches(cfg, host, p, upstream) {
+  const h = handlers(cfg, host, p);
+  const tcp = cfg.TCP?.[p];
+  if (!tcp?.HTTPS || Object.keys(tcp).length !== 1 || !h || Object.keys(h).length !== 1
+    || !h['/']?.Proxy || Object.keys(h['/']).length !== 1) return false;
+  // Only whole-origin proxies can be reused; no path stripping or sibling handlers.
+  try { return target(h['/'].Proxy).upstream === upstream && new URL(h['/'].Proxy).pathname === '/' && !new URL(h['/'].Proxy).search; }
+  catch { return false; }
+}
+function publicPort(cfg, host, p) { return cfg.AllowFunnel?.[`${host}:${p}`] === true; }
+function reservedPorts(cfg, result = new Set()) {
+  // Include foreground Serve sessions and service configurations, not only background TCP.
+  if (!cfg || typeof cfg !== 'object') return result;
+  for (const [key, value] of Object.entries(cfg)) {
+    if (key === 'TCP') for (const p of Object.keys(value || {})) result.add(+p);
+    if (key === 'Web' || key === 'AllowFunnel') for (const address of Object.keys(value || {})) result.add(+address.slice(address.lastIndexOf(':') + 1));
+    if (value && typeof value === 'object') reservedPorts(value, result);
+  }
+  return result;
+}
+async function reachable(url, p) {
+  await new Promise((resolve, reject) => {
+    const socket = net.connect({ host: url.hostname === '[::1]' ? '::1' : '127.0.0.1', port: p });
+    const finish = (error) => { socket.destroy(); error ? reject(error) : resolve(); };
+    socket.setTimeout(3000, () => finish(new Error('connection timed out')));
+    socket.once('connect', () => finish());
+    socket.once('error', finish);
+  }).catch(error => fail(`app is not reachable at ${url.origin}: ${error.message}`));
+}
+async function available(address, p) {
+  return await new Promise(resolve => {
+    const server = net.createServer();
+    server.once('error', error => {
+      // A privileged bind may be unavailable to us even though tailscaled can use it.
+      if (error.code === 'EACCES') resolve(true);
+      else if (error.code === 'EADDRINUSE') resolve(false);
+      else resolve(false);
+    });
+    server.listen({ host: address, port: p, exclusive: true }, () => server.close(() => resolve(true)));
+  });
+}
+function save(file, value) {
+  const tmp = `${file}.${process.pid}.tmp`;
+  fs.writeFileSync(tmp, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 });
+  fs.renameSync(tmp, file);
+}
+async function main(args) {
+  if (args.length === 1 && ['--help', '-h', '--skill'].includes(args[0])) {
+    console.log(args[0] === '--skill' ? skill : help); return;
+  }
+  const stop = args[0] === '--stop';
+  if ((!stop && args.length !== 1) || (stop && args.length !== 2) || (!stop && args[0].startsWith('-'))) fail('usage: network-serve <port|local-url> | --stop <local-port> | --help | --skill');
+  const requested = stop ? { localPort: port(args[1]) } : target(args[0]);
+  const stateDir = path.join(process.env.XDG_STATE_HOME || path.join(os.homedir(), '.local/state'), 'network-serve');
+  fs.mkdirSync(stateDir, { recursive: true, mode: 0o700 });
+  const lock = path.join(stateDir, 'lock');
+  try { fs.mkdirSync(lock, { mode: 0o700 }); }
+  catch (error) {
+    if (error.code !== 'EEXIST') throw error;
+    fail(`another invocation holds ${lock}; retry when it finishes. After a crash, remove this directory only after confirming no network-serve process is running`);
+  }
+  try {
+    const file = path.join(stateDir, 'mappings.json');
+    let owned = [];
+    if (fs.existsSync(file)) {
+      owned = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (!Array.isArray(owned) || owned.some(item => !item || typeof item.host !== 'string'
+        || !Number.isInteger(item.port) || !Number.isInteger(item.localPort)
+        || typeof item.upstream !== 'string')) fail(`invalid state in ${file}; refusing to change Serve`);
+    }
+    const status = json(['status', '--json']);
+    if (status.BackendState !== 'Running') fail('Tailscale is not running/logged in; run tailscale up first');
+    const host = status.Self?.DNSName?.replace(/\.$/, '');
+    if (!host || !/^[a-z0-9.-]+\.ts\.net$/i.test(host)) fail('this node has no Tailscale HTTPS DNS name');
+    let cfg = config();
+    if (stop) {
+      const entries = owned.filter(item => item.host === host && item.localPort === requested.localPort);
+      if (!entries.length) fail('no mapping owned by network-serve for that local port');
+      for (const item of entries) {
+        if (reservedPorts(cfg.Foreground).has(item.port) || !matches(cfg, host, item.port, item.upstream)
+          || publicPort(cfg, host, item.port)) fail(`mapping on :${item.port} changed or uses Funnel; refusing to remove it`);
+        // Check the complete handler shape before deleting this port, never global reset.
+        ts(['serve', '--bg', `--https=${item.port}`, 'off']);
+        cfg = config();
+        if (cfg.TCP?.[item.port] || handlers(cfg, host, item.port)) fail(`mapping on :${item.port} was not removed`);
+        owned = owned.filter(other => other !== item);
+        save(file, owned);
+      }
+      return;
+    }
+    await reachable(requested.url, requested.localPort);
+    const foregroundPorts = reservedPorts(cfg.Foreground);
+    let selected = Object.keys(cfg.TCP || {}).map(Number).sort((a, b) => a - b)
+      .find(p => !foregroundPorts.has(p) && matches(cfg, host, p, requested.upstream) && !publicPort(cfg, host, p));
+    if (!selected) {
+      const reserved = reservedPorts(cfg);
+      const address = status.TailscaleIPs?.find(ip => net.isIPv4(ip));
+      if (!address) fail('no local Tailscale IPv4 address');
+      for (const p of [443, ...Array.from({ length: 100 }, (_, i) => 8443 + i)]) {
+        if (!reserved.has(p) && p !== requested.localPort && await available(address, p)) { selected = p; break; }
+      }
+      if (!selected) fail('no free preview port (443 or 8443–8542)');
+      // Recheck after probing: serialize our invocations, and detect external changes too.
+      if (JSON.stringify(config()) !== JSON.stringify(cfg)) fail('Serve configuration changed; retry');
+      // Journal intent before mutation, so interruption cannot leave an untracked mapping.
+      owned = owned.filter(item => !(item.host === host && item.port === selected));
+      owned.push({ host, port: selected, localPort: requested.localPort, upstream: requested.upstream });
+      save(file, owned);
+      ts(['serve', '--bg', '--yes', `--https=${selected}`, requested.upstream]);
+      cfg = config();
+      if (!matches(cfg, host, selected, requested.upstream) || publicPort(cfg, host, selected)) fail('Serve did not confirm a private root mapping; inspect tailscale serve status');
+    }
+    const output = new URL(`https://${host}${selected === 443 ? '' : `:${selected}`}/`);
+    output.pathname = requested.url.pathname;
+    output.search = requested.url.search;
+    output.hash = requested.url.hash;
+    console.log(output.href);
+  } finally { fs.rmdirSync(lock); }
+}
+main(process.argv.slice(2)).catch(error => { console.error(`network-serve: ${error.message}`); process.exitCode = 1; });

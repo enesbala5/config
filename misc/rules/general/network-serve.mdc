@@ -1,0 +1,11 @@
+---
+description: Include a Tailscale HTTPS preview when sharing local web-app links
+alwaysApply: true
+---
+
+## Local web links
+
+When sharing a local web-app link, also run `network-serve <local-url>` on the
+machine hosting the app and include `Network: <returned-url>`. Use
+`network-serve --skill` for usage. If forwarding fails, report it; do not invent
+a network URL.

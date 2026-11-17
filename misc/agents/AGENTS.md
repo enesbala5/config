@@ -22,6 +22,13 @@ every request.
 Cursor does not read this file. Mirror any new rule as an `alwaysApply` file
 under `misc/rules/general/`; see `tools/pi/README.md`.
 
+## Local web links
+
+When sharing a local web-app link, also run `network-serve <local-url>` on the
+machine hosting the app and include `Network: <returned-url>`. Use
+`network-serve --skill` for usage. If forwarding fails, report it; do not invent
+a network URL.
+
 ## Local inference
 
 `home-server` serves `qwen` at `http://home-server:8080/v1` (llama.cpp, tool

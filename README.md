@@ -73,6 +73,47 @@ cd ~/config/nix/secrets && EDITOR='zeditor --wait' agenix -e rclone-conf.age
 
 Then rebuild — activation overwrites `~/.config/rclone/rclone.conf` from the updated secret.
 
+## Local app previews over Tailscale
+
+`network-serve` publishes a running local web app as a private HTTPS URL:
+
+```sh
+network-serve 3000
+network-serve 'http://localhost:5173/settings?tab=profile#details'
+network-serve --skill       # Minimal agent instructions
+network-serve --help
+network-serve --stop 3000   # Local app port, not the public HTTPS port
+```
+
+Share the returned address as `Network: https://framework-13.<tailnet>.ts.net/`.
+The utility returns the certificate-valid full hostname, reuses an existing private
+root mapping, or chooses port 443 followed by 8443–8542 without replacing other
+services. Additional apps get separate HTTPS ports rather than fragile URL prefixes.
+Paths, queries and fragments are preserved; forwarding always targets the app root.
+Only local HTTP(S) upstreams are accepted. The app must already be listening;
+`localhost` and `0.0.0.0` normalize to `127.0.0.1`, while `[::1]` remains IPv6.
+
+Both devices need Tailscale and tailnet permission. This does not use Funnel or
+expose the app publicly, but other permitted tailnet devices can access it.
+The app may need allowed-host/public-origin/HMR settings. A separate API hardcoded
+to localhost needs its own reachable URL; this utility does not rewrite app code.
+
+Installed independently of Herdr through Home Manager on `framework-13` after
+rebuild/activation. Before activation, use `./scripts/utilities/network-serve`.
+Requires Node.js and a logged-in Tailscale daemon with HTTPS enabled and Serve
+permission; errors never trigger sudo or a global Serve reset.
+
+Mappings persist until stopped, even when the app exits. `--stop` only removes
+unchanged mappings created by this utility, never borrowed existing mappings.
+Ownership state lives in `$XDG_STATE_HOME/network-serve` (default
+`~/.local/state/network-serve`). Invocations are serialized; after a crash, remove
+that directory's `lock` subdirectory only after confirming no invocation is running.
+External Serve changes are checked before creation, but avoid changing the same
+mapping manually while the command runs.
+
+Tests: `node --test scripts/utilities/tests/network-serve.test.mjs` (fake Tailscale;
+no changes to real network configuration).
+
 ## Hosts
 
 ### Home Server

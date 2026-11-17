@@ -24,7 +24,7 @@
     modules.home.herdr.enable = true;
     modules.home.herdr.gpui = false;
     modules.home.herdr.desktop.enable = true;
-    modules.home.herdr.mobile.enable = true;
+    modules.home.herdr.mobile.enable = false;
     modules.home.dsh.enable = true;
     modules.home.vicinae.enable = true;
     modules.home.figmaLinux.enable = true;
@@ -39,6 +39,12 @@
     modules.home.localAi.enable = true;
 
     home.packages = [
+      # Tailnet HTTPS previews, independent of Herdr/Ovis. Live repo source;
+      # explicit runtime tools also work from agents with a minimal PATH.
+      (pkgs.writeShellScriptBin "network-serve" ''
+        export PATH="${lib.makeBinPath [ pkgs.tailscale ]}:$PATH"
+        exec ${pkgs.nodejs}/bin/node ${data.configDirectory}/scripts/utilities/network-serve "$@"
+      '')
       # ask-local: one prompt, no harness, against the home-server model. Wraps
       # the repo script so edits apply without a rebuild. It reads
       # ~/.agents/skills for --skill and refuses oversized prompts.

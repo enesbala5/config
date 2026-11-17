@@ -211,6 +211,14 @@ the pane pts via `hc get $HC_TERMINAL_ID` and writes OSC 7501 there. Details:
 
 ## Phone
 
+Ovis is disabled on `framework-13` (`modules.home.herdr.mobile.enable = false`).
+Disabling the module removes its managed configuration/activation on rebuild; it
+is not a plugin uninstall and does not stop a previously installed process or
+remove its Tailscale Serve mapping. Existing runtime state is left intact.
+App previews now use the independent `scripts/utilities/network-serve` utility;
+see the root README. The setup below is optional, for hosts explicitly enabling
+Ovis, not the current Framework setup.
+
 Ovis ([devswha/ovis](https://github.com/devswha/ovis)) follows the TUI
 (`OVIS_RUNTIME=herdr` in `plugins/ovis/env`). The desktop app's core is a
 different socket, and this config does not use it.
