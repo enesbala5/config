@@ -1,6 +1,6 @@
 import { View, div, image, svg } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { agents, terminals, panes, focused, spaces, run, theme, shared, setShared, setAgentOrder, openOverlay, closeOverlay, props, window, layout, exec } from "herdr";
+import { agents, terminals, panes, focused, spaces, run, theme, shared, setShared, setAgentOrder, openOverlay, closeOverlay, props, window, layout, exec, nextCommand } from "herdr";
 
 const GLYPH = { pi: "π" };
 function sessionTitle(title, prog, space) {
@@ -104,6 +104,16 @@ export default class Agents extends View {
     this.git = {};
     this.asking = new Set();
     cx.timer.every(30000, (cx) => cx.notify());
+    this.order = [];
+    // Alt+Shift+N (keymapper sends Ctrl+Alt+N) focuses the Nth agent in the list order (keys.json: agents-list.select:N).
+    cx.spawn(async () => {
+      for (;;) {
+        const command = await nextCommand();
+        if (!command.startsWith("select:")) continue;
+        const pane = this.order[Number(command.slice(7)) - 1];
+        if (pane) run("pane.focus", { pane });
+      }
+    });
   }
 
   gitOf(folder, machine, cx) {
@@ -279,6 +289,7 @@ export default class Agents extends View {
     const rest = list.filter((a) => !this.pins.includes(a.address));
     list = [...pinned, ...rest];
     setAgentOrder(list.map((a) => a.address));
+    this.order = list.map((a) => a.pane);
 
     const withKids = (a, i, extra = [], line = null) => {
       const subs = collapsed ? [] : this.tree(all, a.address, line ? [line === "└" ? "" : "│"] : []);

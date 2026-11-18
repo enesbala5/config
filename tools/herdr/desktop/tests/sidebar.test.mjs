@@ -175,3 +175,10 @@ test('space chevron follows branch, toggles visibility, and isolates row mouse e
       .some(n => n?.attrs?.id?.[0] === 'space-worktrees-main'));
   }
 });
+
+test('Ctrl+Alt+1-9 (sent by keymapper for Alt+Shift+1-9) select agents by list position', () => {
+  const keys = JSON.parse(readFileSync(new URL('../keys.json', import.meta.url), 'utf8'));
+  for (let n = 1; n <= 9; n++) {
+    assert.equal(keys.global[`ctrl-alt-${n}`], `agents-list.select:${n}`);
+  }
+});
