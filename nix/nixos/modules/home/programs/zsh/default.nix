@@ -77,6 +77,7 @@
       # Hyprland / DE
       # ---------------
       reload-waybar = "pkill -9 waybar && hyprctl --instance 0 dispatch 'hl.dsp.exec_cmd(\"waybar\")'";
+      toggle-special = "hyprctl --instance 0 dispatch 'hl.dsp.workspace.toggle_special(\"magic\")'";
 
       # DevOps / Config
       # ---------------
