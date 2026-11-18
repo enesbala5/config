@@ -146,7 +146,10 @@ test('worktree rows are smaller and dimmer; compact worktrees have no number', (
 test('worktree layout binds all numeric shortcuts to the filtered selector', () => {
   const keys = JSON.parse(readFileSync(new URL('../keys.json', import.meta.url), 'utf8'));
   for (let n = 1; n <= 9; n++) {
-    assert.equal(keys['layout:herdr-t3-worktrees'][`alt-${n}`], `spaces-with-worktrees.select:${n}`);
+    assert.equal(keys.global[`alt-${n}`], `tab.select:${n}`);
+    assert.equal(keys.global[`ctrl-${n}`], `space.select:${n}`);
+    assert.equal(keys['layout:herdr-t3-worktrees'][`ctrl-${n}`], `spaces-with-worktrees.select:${n}`);
+    assert.equal(keys['layout:herdr-t3-worktrees'][`alt-${n}`], undefined);
   }
 });
 
