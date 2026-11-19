@@ -31,7 +31,14 @@ if [[ $# -lt 1 ]]; then
 fi
 
 if [[ "${GPU_LEASE_TEST:-}" != 1 && "$(id -u)" -ne 0 ]]; then
-  exec sudo -n -- "$0" --user-path "${PATH-}" -- "$@"
+  # sudoers lists the store path. $0 is usually the /run/current-system symlink,
+  # and sudo does not follow it when matching NOPASSWD.
+  self=$0
+  if [[ "$self" != /* ]]; then
+    self=$(command -v -- "$self")
+  fi
+  self=$(readlink -f -- "$self")
+  exec sudo -n -- "$self" --user-path "${PATH-}" -- "$@"
 fi
 
 export PATH="${tool_path}:${PATH-}"
