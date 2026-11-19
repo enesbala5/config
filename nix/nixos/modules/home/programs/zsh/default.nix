@@ -124,7 +124,9 @@
       gc = "git commit";
       gp = "git push";
       gpr = "git pull --rebase";
-      chunk-and-commit = "cursor-agent --model auto /chunk-and-commit";
+      # Interactive OpenCode mini on a $0 model; the prompt loads the shared
+      # chunk-and-commit skill, which stops for approval before git commit.
+      chunk-and-commit = "opencode mini --model opencode/hy4-flash-free --prompt 'Use the chunk-and-commit skill to inspect the working tree, propose logical commits, and STOP before committing.'";
     };
   };
 }

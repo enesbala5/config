@@ -79,8 +79,9 @@ not fit it exits with the numbers instead of letting llama-server return 400.
 
 This is the right shape for skills against a small local model: the skill text
 is a few thousand tokens, the answer is one turn, and nothing else competes for
-the window. Multi-turn skills (chunk-and-commit over a real working tree) still
-want a hosted model and a full harness.
+the window. Multi-turn skills (chunk-and-commit over a real working tree) use
+`opencode mini` with a free hosted model instead — see the `chunk-and-commit`
+zsh alias, which pins `opencode/hy4-flash-free` and preloads the skill prompt.
 
 ## Wiring a harness
 

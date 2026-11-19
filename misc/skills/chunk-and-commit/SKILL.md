@@ -15,6 +15,20 @@ confirms the proposed list.
 Honor grouping the user already named in this turn (e.g. "telegram and smartd
 together"). Do not invent extra commits for formatting-only noise.
 
+## Shell entry point
+
+The `chunk-and-commit` shell alias runs this skill in OpenCode mini on a free
+(`$0`) model:
+
+```bash
+opencode mini --model opencode/hy4-flash-free --prompt 'Use the chunk-and-commit skill to inspect the working tree, propose logical commits, and STOP before committing.'
+```
+
+It opens the interactive mini UI with the prompt already sent, so the proposal
+and the user's confirmation happen in the same session. If that model has hit
+its daily free-message cap, swap in another `opencode/*-free` model; the rest of
+the command stays the same.
+
 ## When to use
 
 - "commit all changes" / "chunk them" / "split into commits"
@@ -110,9 +124,9 @@ For each approved commit, in order:
 
 1. `git add` only that chunk's paths
 2. Commit with plain `git commit` in the **Shell** tool only — HEREDOC message
-   (no `-i`, no `--no-verify` unless they asked). **Never** use Cursor's
-   commit UI, commit harness, or Source Control commit button.
-3. **Never** add `Co-authored-by`, `Signed-off-by`, or any Cursor/agent trailer.
+   (no `-i`, no `--no-verify` unless they asked). **Never** use a harness commit
+   UI or commit button (Cursor, OpenCode, Zed, etc.).
+3. **Never** add `Co-authored-by`, `Signed-off-by`, or any agent/harness trailer.
 4. Verify with `git log -1 --format='%B'` that no co-author trailer was injected.
 5. After the last one: `git status`
 
@@ -125,7 +139,7 @@ Do not commit when there is nothing to commit.
 
 - Never `push --force`, hard reset, or skip hooks unless they asked in this turn
 - Never `--amend` a pushed commit unless they asked (needs force-push)
-- Never prefix branches with `cursor/`
+- Never prefix branches with `cursor/` or `agent/`
 - NEVER add a co-author (`Co-authored-by` trailer or any equivalent)
-- NEVER use Cursor's commit UI / harness — Shell `git commit` only
+- NEVER use a harness commit UI / harness — Shell `git commit` only
 - Do not push unless they asked
