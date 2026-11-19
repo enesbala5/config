@@ -15,20 +15,6 @@ confirms the proposed list.
 Honor grouping the user already named in this turn (e.g. "telegram and smartd
 together"). Do not invent extra commits for formatting-only noise.
 
-## Shell entry point
-
-The `chunk-and-commit` shell alias runs this skill in OpenCode mini on a free
-(`$0`) model:
-
-```bash
-opencode mini --model opencode/hy4-flash-free --prompt 'Use the chunk-and-commit skill to inspect the working tree, propose logical commits, and STOP before committing.'
-```
-
-It opens the interactive mini UI with the prompt already sent, so the proposal
-and the user's confirmation happen in the same session. If that model has hit
-its daily free-message cap, swap in another `opencode/*-free` model; the rest of
-the command stays the same.
-
 ## When to use
 
 - "commit all changes" / "chunk them" / "split into commits"
