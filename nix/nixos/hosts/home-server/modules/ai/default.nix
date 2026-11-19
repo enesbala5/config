@@ -139,9 +139,16 @@ in
     # Mesa RADV is the only GPU compute path that still works on Polaris.
     hardware.graphics.enable = true;
 
-    boot.kernelParams = lib.mkIf (cfg.gttSizeMiB != null) [
-      "amdgpu.gttsize=${toString cfg.gttSizeMiB}"
-    ];
+    # gpu_recovery=1 is required on Polaris. The default -1 (auto) disables
+    # reset for this ASIC, so a stuck Vulkan fence stays in D state: the
+    # manual recover node returns EPERM, and shutdown cannot SIGKILL the
+    # waiter. That is what made the 2026-11-19 reboot sit on nftables until
+    # the machine was power-cycled.
+    boot.kernelParams =
+      lib.optionals (cfg.gttSizeMiB != null) [
+        "amdgpu.gttsize=${toString cfg.gttSizeMiB}"
+      ]
+      ++ [ "amdgpu.gpu_recovery=1" ];
 
     environment.systemPackages = with pkgs; [
       amdgpu_top
