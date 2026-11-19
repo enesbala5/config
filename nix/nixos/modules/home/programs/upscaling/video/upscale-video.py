@@ -2,6 +2,8 @@
 """Bounded-frame, offline SDR/CFR upscaling. No service management or network IO."""
 
 import argparse
+import contextlib
+import datetime
 import fcntl
 from fractions import Fraction
 import json
@@ -214,7 +216,7 @@ def stop(process):
                     pass
 
 
-def pipeline(args, stream, rate, work):
+def pipeline(args, stream, rate, work, progress=None):
     model, scale = PROFILES[args.profile]
     width, height = stream["width"], stream["height"]
     out_w, out_h = target_size(width, height, args.size)
@@ -373,6 +375,8 @@ def pipeline(args, stream, rate, work):
                     if args.method == "ai":
                         image_path.unlink()
                 frames += len(names)
+                if progress:
+                    progress(frames)
                 elapsed = time.monotonic() - began
                 print(
                     f"{frames} frames; {frames / elapsed:.2f} fps; scratch: {work}",
@@ -484,10 +488,40 @@ def positive_int(value):
     return number
 
 
+USAGE = """upscale-video [options] INPUT OUTPUT
+       upscale-video [options] --out-dir DIR INPUT [INPUT ...]"""
+
+
+class Parser(argparse.ArgumentParser):
+    """Accepts one INPUT OUTPUT pair, or --out-dir with any number of inputs."""
+
+    def parse_args(self, args=None, namespace=None):
+        parsed = self.parse_intermixed_args(args, namespace)
+        if parsed.out_dir is None:
+            if len(parsed.paths) != 2:
+                self.error("expected INPUT OUTPUT, or --out-dir DIR INPUT [INPUT ...]")
+            parsed.input, parsed.output = parsed.paths
+            parsed.inputs = None
+        else:
+            parsed.inputs = parsed.paths
+            parsed.input = parsed.output = None
+        return parsed
+
+
 def parser():
-    p = argparse.ArgumentParser(prog="upscale-video", description=__doc__)
-    p.add_argument("input", type=Path)
-    p.add_argument("output", type=Path)
+    p = Parser(prog="upscale-video", usage=USAGE, description=__doc__)
+    p.add_argument("paths", nargs="+", type=Path, metavar="PATH")
+    p.add_argument(
+        "--out-dir",
+        type=Path,
+        help="batch mode: write <input name>.mp4 here for every INPUT, in order; "
+        "outputs that already exist are skipped, so a rerun resumes",
+    )
+    p.add_argument(
+        "--status-file",
+        type=Path,
+        help="rewrite this JSON file atomically with per-file progress",
+    )
     p.add_argument("--profile", choices=PROFILES, default="ugc")
     p.add_argument(
         "--method",
@@ -538,7 +572,131 @@ def parser():
     return p
 
 
-def execute(args):
+def now():
+    return datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
+
+
+class Status:
+    """Per-file progress, rewritten atomically so a reader never sees half a file."""
+
+    def __init__(self, path, args, jobs):
+        self.path = path.expanduser().absolute() if path else None
+        self.data = {
+            "version": 1,
+            "state": "running",
+            "profile": args.profile,
+            "method": args.method,
+            "started_at": now(),
+            "updated_at": now(),
+            "files": [
+                {
+                    "name": source.name,
+                    "output": str(output),
+                    "state": "queued",
+                    "frames": 0,
+                    "frames_total": None,
+                }
+                for source, output in jobs
+            ],
+        }
+        self.write()
+
+    def write(self):
+        if not self.path:
+            return
+        self.data["updated_at"] = now()
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        temp = self.path.with_name(f".{self.path.name}.tmp")
+        temp.write_text(json.dumps(self.data, indent=2) + "\n")
+        os.replace(temp, self.path)
+
+    def update(self, index, **values):
+        self.data["files"][index].update(values)
+        self.write()
+
+    def start(self, index):
+        self.update(index, state="running", started_at=now())
+
+    def progress(self, index, frames, total):
+        self.update(index, frames=frames, frames_total=total)
+
+    def skip(self, index):
+        self.update(index, state="skipped", finished_at=now())
+
+    def done(self, index, summary):
+        self.update(
+            index,
+            state="done",
+            finished_at=now(),
+            frames=summary["frames"],
+            frames_total=summary["frames"],
+            summary=summary,
+        )
+
+    def fail(self, index, error):
+        self.data["state"] = "failed"
+        self.update(
+            index,
+            state="failed",
+            finished_at=now(),
+            error=str(error) or type(error).__name__,
+        )
+
+    def finish(self):
+        self.data["state"] = "done"
+        self.write()
+
+
+def estimate_frames(info, rate, args):
+    try:
+        seconds = float(info["format"]["duration"])
+    except (KeyError, ValueError):
+        return None
+    seconds = max(0.0, seconds - args.start)
+    if args.duration is not None:
+        seconds = min(seconds, args.duration)
+    return max(1, math.ceil(seconds * float(rate)))
+
+
+def plan_jobs(args):
+    """(input, output) pairs. Batch mode names outputs after their inputs."""
+    if args.out_dir is None:
+        return [(args.input, args.output)]
+    out_dir = args.out_dir.expanduser().absolute()
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_dir = out_dir.resolve()
+    jobs, seen = [], set()
+    for path in args.inputs:
+        source = path.expanduser().resolve(strict=True)
+        output = out_dir / f"{source.stem}.mp4"
+        if output == source:
+            raise UpscaleError(f"{source.name}: --out-dir would overwrite the input.")
+        if output in seen:
+            raise UpscaleError(f"Two inputs would write {output.name}.")
+        seen.add(output)
+        jobs.append((source, output))
+    return jobs
+
+
+@contextlib.contextmanager
+def job_lock():
+    # A fixed per-user lock: changing scratch directories must not bypass it.
+    lock_dir = (
+        Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "upscaling"
+    )
+    lock_dir.mkdir(parents=True, exist_ok=True)
+    with (lock_dir / "video.lock").open("a") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise UpscaleError(
+                "Another upscale-video job is running for this user."
+            ) from None
+        yield
+
+
+def process(args, progress=None):
+    """Upscale one file. The caller holds the job lock."""
     began = time.monotonic()
     args.input = args.input.expanduser().resolve(strict=True)
     args.output = args.output.expanduser().absolute()
@@ -561,52 +719,80 @@ def execute(args):
             )
     args.scratch_dir = args.scratch_dir.expanduser().resolve()
     args.scratch_dir.mkdir(parents=True, exist_ok=True)
-    # A fixed per-user lock: changing scratch directories must not bypass it.
-    lock_dir = (
-        Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "upscaling"
-    )
-    lock_dir.mkdir(parents=True, exist_ok=True)
-    with (lock_dir / "video.lock").open("a") as lock:
+    info = probe(args.input)
+    stream, rate = validate_source(info)
+    print("Checking frame timestamps (CFR only)...", file=sys.stderr)
+    validate_timestamps(args.input, stream, rate)
+    if args.start:
+        # Select the first frame at/after the requested time. Round the seek
+        # down to microseconds so FFmpeg cannot skip that frame by rounding.
+        first = math.ceil(Fraction(str(args.start)) * rate)
+        args.start = math.floor(first / rate * 1_000_000) / 1_000_000
+    total = estimate_frames(info, rate, args)
+    if args.method == "ai":
+        print(
+            "AI upscaling never stops services. On home-server: gpu-lease -- upscale-video ...",
+            file=sys.stderr,
+        )
+    work = Path(tempfile.mkdtemp(prefix="video-", dir=args.scratch_dir))
+    print(f"Job scratch/logs: {work}", file=sys.stderr)
+    try:
+        result, stats = pipeline(
+            args,
+            stream,
+            rate,
+            work,
+            (lambda frames: progress(frames, total)) if progress else None,
+        )
+        (work / "stats.json").write_text(json.dumps(stats, indent=2) + "\n")
+        publish(result, args.output)
+    except BaseException as error:
         try:
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
-            raise UpscaleError(
-                "Another upscale-video job is running for this user."
-            ) from None
-        stream, rate = validate_source(probe(args.input))
-        print("Checking frame timestamps (CFR only)...", file=sys.stderr)
-        validate_timestamps(args.input, stream, rate)
-        if args.start:
-            # Select the first frame at/after the requested time. Round the seek
-            # down to microseconds so FFmpeg cannot skip that frame by rounding.
-            first = math.ceil(Fraction(str(args.start)) * rate)
-            args.start = math.floor(first / rate * 1_000_000) / 1_000_000
-        if args.method == "ai":
-            print(
-                "AI upscaling never stops services. On home-server: gpu-lease -- upscale-video ...",
-                file=sys.stderr,
-            )
-        work = Path(tempfile.mkdtemp(prefix="video-", dir=args.scratch_dir))
-        print(f"Job scratch/logs: {work}", file=sys.stderr)
-        try:
-            result, stats = pipeline(args, stream, rate, work)
-            (work / "stats.json").write_text(json.dumps(stats, indent=2) + "\n")
-            publish(result, args.output)
-        except BaseException as error:
+            (work / "error.txt").write_text(f"{type(error).__name__}: {error}\n")
+        except OSError:
+            pass  # Disk exhaustion must not prevent cleanup.
+        # Retain small diagnostics, not potentially gigabytes of intermediate frames.
+        for directory in (work / "input", work / "upscaled"):
+            shutil.rmtree(directory, ignore_errors=True)
+        for name in ("video.mp4", "result.mp4"):
+            (work / name).unlink(missing_ok=True)
+        print(f"Failed; diagnostics retained at {work}", file=sys.stderr)
+        raise
+    shutil.rmtree(work)
+    stats["processing_seconds"] = round(time.monotonic() - began, 3)
+    summary = {"output": str(args.output), **stats}
+    print(json.dumps(summary))
+    return summary
+
+
+def execute(args):
+    batch = args.out_dir is not None
+    jobs = plan_jobs(args)
+    status = Status(args.status_file, args, jobs)
+    with job_lock():
+        for index, (source, output) in enumerate(jobs):
+            if batch and output.is_file() and not output.is_symlink():
+                if output.stat().st_size > 0:
+                    print(f"skip {output.name} (already done)", file=sys.stderr)
+                    status.skip(index)
+                    continue
+            job = argparse.Namespace(**vars(args))
+            job.input, job.output = source, output
+            status.start(index)
             try:
-                (work / "error.txt").write_text(f"{type(error).__name__}: {error}\n")
-            except OSError:
-                pass  # Disk exhaustion must not prevent cleanup.
-            # Retain small diagnostics, not potentially gigabytes of intermediate frames.
-            for directory in (work / "input", work / "upscaled"):
-                shutil.rmtree(directory, ignore_errors=True)
-            for name in ("video.mp4", "result.mp4"):
-                (work / name).unlink(missing_ok=True)
-            print(f"Failed; diagnostics retained at {work}", file=sys.stderr)
-            raise
-        shutil.rmtree(work)
-        stats["processing_seconds"] = round(time.monotonic() - began, 3)
-        print(json.dumps({"output": str(args.output), **stats}))
+                summary = process(
+                    job,
+                    lambda frames, total, index=index: status.progress(
+                        index, frames, total
+                    ),
+                )
+            except BaseException as error:
+                status.fail(index, error)
+                if batch and isinstance(error, Exception):
+                    raise UpscaleError(f"{source.name}: {error}") from error
+                raise
+            status.done(index, summary)
+    status.finish()
 
 
 def main():

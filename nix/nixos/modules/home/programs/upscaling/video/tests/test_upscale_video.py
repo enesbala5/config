@@ -324,6 +324,109 @@ class Integration(unittest.TestCase):
         )
         self.assertIn("VFR", self.cli(input_path=source, success=False).stderr)
 
+    def batch(self, inputs, *extra, success=True, env=None):
+        command = [
+            sys.executable,
+            str(SCRIPT),
+            "--out-dir",
+            str(self.root / "out"),
+            "--status-file",
+            str(self.root / "status.json"),
+            "--method",
+            "lanczos",
+            "--size",
+            "720p",
+            "--chunk-size",
+            "2",
+            *map(str, extra),
+            "--",
+            *map(str, inputs),
+        ]
+        result = subprocess.run(
+            command, env=env or self.env, capture_output=True, text=True, timeout=120
+        )
+        self.assertEqual(result.returncode == 0, success, result.stdout + result.stderr)
+        return result
+
+    def status(self):
+        return json.loads((self.root / "status.json").read_text())
+
+    def second_input(self):
+        second = self.root / "second.mp4"
+        second.write_bytes(self.input.read_bytes())
+        return second
+
+    def test_batch_runs_every_input_and_reports_status(self):
+        second = self.second_input()
+        result = self.batch([self.input, second])
+        self.assertEqual(len(result.stdout.strip().splitlines()), 2)
+        out = self.root / "out"
+        self.assertEqual(
+            sorted(p.name for p in out.iterdir()),
+            ["second.mp4", "source with spaces.mp4"],
+        )
+        status = self.status()
+        self.assertEqual(status["state"], "done")
+        self.assertEqual([f["state"] for f in status["files"]], ["done", "done"])
+        self.assertEqual(status["files"][0]["frames"], 7)
+        self.assertEqual(status["files"][0]["frames_total"], 7)
+        self.assertFalse(list(self.root.glob(".*.tmp")))
+
+    def test_batch_rerun_skips_finished_outputs(self):
+        second = self.second_input()
+        self.batch([self.input])
+        done = self.root / "out" / "source with spaces.mp4"
+        before = done.read_bytes()
+        result = self.batch([self.input, second])
+        self.assertEqual(len(result.stdout.strip().splitlines()), 1)
+        self.assertEqual(done.read_bytes(), before)
+        self.assertEqual(
+            [f["state"] for f in self.status()["files"]], ["skipped", "done"]
+        )
+
+    def test_batch_stops_at_first_failure_and_names_the_file(self):
+        second = self.second_input()
+        models, env = self.mock_ai(fail=True)
+        result = self.batch(
+            [self.input, second], "--method", "ai", "--models", models, env=env,
+            success=False,
+        )
+        self.assertIn("source with spaces.mp4:", result.stderr)
+        status = self.status()
+        self.assertEqual(status["state"], "failed")
+        self.assertEqual([f["state"] for f in status["files"]], ["failed", "queued"])
+        self.assertTrue(status["files"][0]["error"])
+        self.assertEqual(list((self.root / "out").iterdir()), [])
+
+    def test_batch_refuses_clobbering_names(self):
+        second = self.root / "sub" / self.input.name
+        second.parent.mkdir()
+        second.write_bytes(self.input.read_bytes())
+        result = self.batch([self.input, second], success=False)
+        self.assertIn("Two inputs would write", result.stderr)
+        # An input already named <stem>.mp4 inside --out-dir would be skipped
+        # as "done" instead of processed, so it is rejected up front.
+        out = self.root / "out"
+        out.mkdir(exist_ok=True)
+        inside = out / "inside.mp4"
+        inside.write_bytes(self.input.read_bytes())
+        result = self.batch([inside], success=False)
+        self.assertIn("would overwrite the input", result.stderr)
+
+    def test_positional_shapes(self):
+        for args in (
+            [str(self.input)],
+            [str(self.input), str(self.output), str(self.root / "third.mp4")],
+        ):
+            result = subprocess.run(
+                [sys.executable, str(SCRIPT), *args],
+                env=self.env,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("expected INPUT OUTPUT", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
