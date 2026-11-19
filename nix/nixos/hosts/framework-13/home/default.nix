@@ -31,6 +31,13 @@
     modules.home.chatgpt.enable = true;
     modules.home.easyeffects.enable = true;
 
+    # Client for the GPU host: upscale-remote copies clips to home-server, runs
+    # upscale-video there under gpu-lease, and pulls the results back.
+    modules.home.upscaling = {
+      enable = true;
+      remote.enable = true;
+    };
+
     modules.home.commands = [
       {
         prefix = "${data.configDirectory}/scripts/utilities";

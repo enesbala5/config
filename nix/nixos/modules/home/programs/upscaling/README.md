@@ -75,8 +75,9 @@ No extra ports, firewall rules, root-run upscaler, or always-on worker are requi
 ## Usage (after deploying the configuration)
 
 On `home-server`, put `gpu-lease --` in front of AI runs. `--method lanczos` does not
-use the GPU. Commands run on the machine holding the GPU and input files; there is no implicit
-SSH transfer or remote backend. Copy files with SSH/SFTP or use an existing mount.
+use the GPU. Commands run on the machine holding the GPU and input files; `upscale-video`
+has no implicit SSH transfer or remote backend. Copy files yourself, or use
+`upscale-remote` from another machine (see below).
 
 ```bash
 # Landscape 720p -> 1080p, or portrait 720x1280 -> 1080x1920.
@@ -105,10 +106,106 @@ hc run --bg 'gpu-lease -- upscale-video input.mp4 output.mp4 --profile cartoon'
 Output must be `.mp4` in an existing directory and **must not already exist**.
 No overwrite flag is provided. Input is never modified. Spaces in filenames work.
 
+### Batch form and status file
+
+```bash
+gpu-lease -- upscale-video --profile ugc --out-dir out --status-file status.json \
+  -- VID-1.mp4 VID-2.mp4
+```
+
+- Writes `out/<input stem>.mp4` for each input, in order, in one process: one job
+  lock and, under `gpu-lease`, one llama stop/restart for the whole batch. `out/` is
+  created if needed.
+- **Resume:** an input whose output already exists (non-empty) is skipped. Outputs are
+  published atomically, so an existing file is a finished one. Rerun the same command
+  after a failure or interruption.
+- **Stops at the first failure** with a non-zero exit; stderr names the file. Later
+  inputs stay `queued`. Two inputs that would write the same output name, or an
+  input already at `<out-dir>/<stem>.mp4`, are rejected before any work.
+- Each finished file still prints its JSON summary on stdout, one line per file.
+- `--status-file` (also valid in the single-file form) is rewritten atomically as
+  progress is made. A reader sees either the old or the new document, never half:
+
+```jsonc
+{
+  "version": 1,
+  "state": "running",            // running | done | failed
+  "profile": "ugc",
+  "method": "ai",
+  "started_at": "2026-11-19T20:00:00+00:00",
+  "updated_at": "2026-11-19T20:03:10+00:00",
+  "files": [
+    { "name": "VID-1.mp4", "output": "/abs/out/VID-1.mp4",
+      "state": "done",           // queued | running | skipped | done | failed
+      "frames": 240, "frames_total": 240,
+      "started_at": "...", "finished_at": "...",
+      "summary": { "output": "...", "frames": 240, "processing_seconds": 412.3 } },
+    { "name": "VID-2.mp4", "output": "/abs/out/VID-2.mp4",
+      "state": "running", "frames": 64, "frames_total": 240 }
+  ]
+}
+```
+
+`frames_total` is an estimate from the container duration until the file finishes.
+A failed file carries an `error` string.
+
 `--size` supports `720p`, `1080p`, `1440p`, and `2160p`. Sizes are landscape or
 portrait 16:9 bounding boxes. Other aspect ratios fit inside them without cropping,
 padding, or stretching; dimensions round to even pixels for H.264. A square source
 at `1080p` becomes 1080x1080. Larger targets are not necessarily useful on this GPU.
+
+### Running from another machine (`upscale-remote`)
+
+`upscale-video` has no SSH transfer or remote backend of its own. `upscale-remote`
+(enabled with `modules.home.upscaling.remote.enable`; `framework-13` has it) is the
+client. It uses `ssh` and `rsync` against `modules.home.upscaling.remote.host`
+(default `home-server`), so it needs the remote-host approval you give for any ssh
+run.
+
+```bash
+upscale-remote run [--profile ugc] [--job ID] [--out DIR] VID-1.mp4 VID-2.mp4
+upscale-remote watch  JOB      # re-attach after a closed terminal or a sleeping laptop
+upscale-remote status JOB      # one-shot; exit 0 done, 1 failed, 3 running
+upscale-remote pull   JOB      # fetch finished files only
+```
+
+What `run` does:
+
+1. One ssh round trip checks that `amdgpu.gpu_recovery` is `1` (a stuck RX 570 is not
+   reset otherwise) and that this job id is not already running, and creates
+   `~/upscale-jobs/<job>/{in,out}`.
+2. `rsync`s the inputs to `in/`. Inputs whose `<name>.mp4` is already in the output
+   directory are left out, so rerunning the same command resumes.
+3. Starts `gpu-lease -- upscale-video --out-dir out --status-file status.json -- …`
+   with `setsid nohup`. It does not need the laptop or the ssh connection afterwards.
+   The exit code lands in `exitcode` and the log in `run.log` next to `status.json`.
+   While it runs, `http://home-server:8080/v1` is down.
+4. Polls `status.json` every 10 s (`UPSCALE_REMOTE_POLL`), prints a line whenever
+   progress changes (`2/5 done, running VID-3.mp4 14/40 frames (35%)`), and `rsync`s
+   each finished file into the output directory (default `<dir of first input>/upscaled`,
+   remembered per job in `~/.local/state/upscale-remote/`).
+5. Exits 0 only when every file is done and copied. On a failed file it still copies
+   the finished ones, prints `failed: <name>: <error>`, and exits 1. Fix the cause and
+   rerun with the same `--job` to resume.
+
+The job's state lives on the server, so `watch` just reads it again. A dropped
+connection is retried (`UPSCALE_REMOTE_MAX_UNREACHABLE`, default 30 polls) and then
+gives up with the re-attach command; the job keeps running meanwhile. For a
+long run, `hc run --bg 'upscale-remote run …'` keeps the progress log.
+
+Detaching: `gpu-lease` calls `sudo -n` (the NOPASSWD rule is in `hosts/home-server/modules/ai`),
+so it needs no terminal, and nothing in this configuration enables linger or
+`KillUserProcesses`. A plain `setsid nohup` therefore survives the ssh session;
+that is what the earlier one-off script relied on. `systemd-run --user` was not
+chosen because a user unit stops at logout unless linger is enabled. Whether it
+survives on the real host is part of the first-run item in the checklist below.
+
+Tests, with fake `ssh` (runs the command in a scratch home) and real `rsync`; only
+`upscale-video` and `gpu-lease` are stand-ins:
+
+```bash
+nix-shell -p jq rsync util-linux --run 'bash nix/nixos/modules/home/programs/upscaling/remote/tests/test-upscale-remote.sh'
+```
 
 ### Profiles
 
@@ -196,7 +293,8 @@ It does not establish actual model quality or RX 570 compatibility/performance.
 
 Implementation checks: both complete NixOS configurations evaluated to derivations;
 Home Manager enables the tool only on `home-server`; the packaged CLI builds; and
-15 automated tests pass in the Nix sandbox. Existing Stylix/Zen Browser and Vicinae
+15 automated tests pass in the Nix sandbox. Batch mode later added five more (20 total,
+run with the `unittest` command below under a Python with Pillow and FFmpeg). Existing Stylix/Zen Browser and Vicinae
 evaluation warnings are unrelated to this module. No system configuration was activated.
 
 From the repository root, run the reproducible test derivation using locked inputs:
@@ -234,6 +332,7 @@ in its source (Nix excludes untracked files). No deployment is performed by test
 No server deployment or RX 570 benchmark was performed during implementation.
 
 - [ ] Deploy explicitly; verify Vulkan as `e`, then `gpu-lease -- true` and confirm llama-cpp returns.
+- [ ] `upscale-remote`, first real run: a short clip, check the batch survives closing the ssh/terminal (`watch` re-attaches), `upscale-video`/`gpu-lease` are on PATH in a non-interactive ssh shell, and llama-cpp comes back at the end.
 - [ ] Choose one 3–5-second UGC clip and one representative cartoon clip.
 - [ ] Generate matching AI/Lanczos previews and keep their JSON summaries.
 - [ ] Watch each at normal speed for eye/teeth/skin artifacts and outline shimmer.
