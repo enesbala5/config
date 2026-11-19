@@ -216,20 +216,23 @@ cmd_run() {
   remember_out
 
   # Preflight, and make the job directory, in one round trip.
-  local pre recovery alive
+  local pre recovery alive batch
   pre=$("${SSH[@]}" "$HOST" bash -s -- "$ROOT/$JOB" <<'EOF'
 mkdir -p "$1/in" "$1/out"
 echo "recovery=$(cat /sys/module/amdgpu/parameters/gpu_recovery 2>/dev/null)"
+if upscale-video --help 2>&1 | grep -q -- --out-dir; then echo batch=1; else echo batch=0; fi
 if [ -f "$1/pid" ] && kill -0 "$(cat "$1/pid")" 2>/dev/null; then echo alive=1; else echo alive=0; fi
 EOF
   ) || die "cannot reach $HOST over ssh"
   recovery=$(sed -n '/^recovery=/{s///p;q}' <<<"$pre")
   alive=$(sed -n '/^alive=/{s///p;q}' <<<"$pre")
+  batch=$(sed -n '/^batch=/{s///p;q}' <<<"$pre")
   if [[ "$recovery" != 1 ]]; then
     echo "$HOST amdgpu.gpu_recovery is '${recovery}', not 1." >&2
     echo "The running kernel will not reset a stuck RX 570. Reboot into the generation that sets amdgpu.gpu_recovery=1, then run this again." >&2
     exit 1
   fi
+  [[ "$batch" == 1 ]] || die "upscale-video on $HOST does not support --out-dir (still the single-file version). Rebuild $HOST from this config first; nothing was uploaded or stopped."
   [[ "$alive" == 0 ]] || die "job $JOB is already running on $HOST; attach with: upscale-remote watch $JOB"
 
   echo "uploading ${#pending[@]} file(s) to $HOST:$ROOT/$JOB/in/"

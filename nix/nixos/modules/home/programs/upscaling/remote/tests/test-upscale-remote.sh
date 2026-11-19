@@ -52,6 +52,7 @@ while (($#)); do
   case "$1" in
     --out-dir) out=$2; shift 2 ;;
     --status-file) status=$2; shift 2 ;;
+    --help) if [[ -n "${FAKE_OLD:-}" ]]; then echo "usage: upscale-video input output"; else echo "--out-dir --status-file"; fi; exit 0 ;;
     --profile) shift 2 ;;
     --) shift; inputs=("$@"); break ;;
     *) exit 64 ;;
@@ -197,6 +198,14 @@ export FAKE_SSH_DOWN=1
 run unreachable 1 watch happy --out "$work/out-u" || true
 expect unreachable "the job continues there"
 unset FAKE_SSH_DOWN
+
+# 8b. a server that still has the single-file upscale-video is refused before upload
+export FAKE_OLD=1
+if run old-server 1 run --job oldsrv --out "$work/out-o" "$work/in/a.mp4"; then
+  expect old-server "does not support --out-dir"
+  check old-server-no-upload test ! -e "$FAKE_REMOTE_HOME/upscale-jobs/oldsrv/in/a.mp4"
+fi
+unset FAKE_OLD
 
 # 9. argument errors
 run no-args 2 || true
