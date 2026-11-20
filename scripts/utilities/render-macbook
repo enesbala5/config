@@ -69,7 +69,11 @@ else
   merged=$(jq -s '.[0]' "$DIR/scene.json")
 fi
 resolved_engine=$(jq -r '.engine // "EEVEE"' <<<"$merged")
+if ! jq -e '.duration != null and .fps != null' <<<"$merged" >/dev/null; then
+  die "scene.json (after merging --config/--engine) must have numeric duration and fps"
+fi
 frames_total=$(jq -r '(.duration * .fps | floor)' <<<"$merged")
+[[ "$frames_total" =~ ^[0-9]+$ ]] || die "could not derive a frame count from duration and fps (got: $frames_total)"
 
 uploads=("$recording")
 remote_recording="../in/$(basename -- "$recording")"
@@ -103,4 +107,4 @@ done
 args+=("$DIR" -- "${cmd[@]}")
 
 echo "engine=$resolved_engine frames=$frames_total mode=$([[ $look == 1 ]] && echo look || echo render)" >&2
-exec render-remote "${args[@]}"
+render-remote "${args[@]}"

@@ -50,6 +50,10 @@
           clear-monitor-config = "clear-monitor-lua.sh";
           toggle-polarity = "toggle-polarity.sh";
           toggle-dnd = "dnd-toggle.sh";
+          render-macbook = {
+            script = "render-macbook";
+            runtimeInputs = [ pkgs.jq ];
+          };
         };
       }
       {

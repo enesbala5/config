@@ -162,7 +162,7 @@ watch_job() {
       fi
     fi
 
-    if [[ "$state" == done ]]; then
+    if [[ "$state" == "done" ]]; then
       echo "all done; results in $OUT_DIR"
       return 0
     fi
@@ -259,18 +259,22 @@ done
 echo "tools:$tools"
 if command -v xvfb-run >/dev/null 2>&1; then echo xvfb=1; else echo xvfb=0; fi
 if command -v gpu-lease >/dev/null 2>&1; then echo lease=1; else echo lease=0; fi
+if command -v setsid >/dev/null 2>&1; then echo setsid=1; else echo setsid=0; fi
 if [ -f "$1/pid" ] && kill -0 "$(cat "$1/pid")" 2>/dev/null; then echo alive=1; else echo alive=0; fi
 EOF
   ) || die "cannot reach $HOST over ssh"
-  local worker tools xvfb lease alive
+  local worker tools xvfb lease setsid_ok alive
   worker=$(sed -n '/^worker=/{s///p;q}' <<<"$pre")
   tools=$(sed -n '/^tools:/{s///p;q}' <<<"$pre")
   xvfb=$(sed -n '/^xvfb=/{s///p;q}' <<<"$pre")
   lease=$(sed -n '/^lease=/{s///p;q}' <<<"$pre")
+  setsid_ok=$(sed -n '/^setsid=/{s///p;q}' <<<"$pre")
   alive=$(sed -n '/^alive=/{s///p;q}' <<<"$pre")
   [[ "$worker" == 1 ]] || die "render-worker on $HOST is missing. Rebuild $HOST from this config first; nothing was uploaded."
-  for file in make jq blender ffmpeg; do
-    [[ " $tools " == *" $file "* ]] || die "$file is missing on $HOST; nothing was uploaded."
+  [[ " $tools " == *" jq "* ]] || die "jq is missing on $HOST; nothing was uploaded."
+  [[ "$setsid_ok" == 1 ]] || die "setsid is missing on $HOST; nothing was uploaded."
+  for file in make blender ffmpeg; do
+    [[ " $tools " == *" $file "* ]] || printf 'render-remote: warning: %s is missing on %s\n' "$file" "$HOST" >&2
   done
   if ((gpu)); then
     [[ "$xvfb" == 1 && "$lease" == 1 ]] || die "--gpu needs xvfb-run and gpu-lease on $HOST; nothing was uploaded."
@@ -292,6 +296,7 @@ EOF
   args+=(-- "${cmd[@]}")
   {
     echo '#!/usr/bin/env bash'
+    # shellcheck disable=SC2016 # expands on the server, not here
     echo 'cd "$(dirname "$0")" || exit 1'
     printf '%q ' "${args[@]}"
     echo
@@ -356,7 +361,7 @@ cmd_status() {
   summary_line
   jq -r '.state | "  state\t\(.)"' <<<"$STATUS_JSON"
   case "$(jq -r .state <<<"$STATUS_JSON")" in
-    done) exit 0 ;;
+    "done") exit 0 ;;
     failed) failure_report; exit 1 ;;
     *) [[ "$ALIVE" == 1 ]] && exit 3
        echo "process is gone without finishing (exit=$EXIT_CODE)" >&2
@@ -364,9 +369,9 @@ cmd_status() {
   esac
 }
 
-cmd=${1:-}
+subcommand=${1:-}
 shift || true
-case "$cmd" in
+case "$subcommand" in
   run) cmd_run "$@" ;;
   watch) cmd_watch "$@" ;;
   pull) cmd_pull "$@" ;;
