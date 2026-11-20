@@ -109,9 +109,12 @@ version — do not silently revert to the old plan.
 For each approved commit, in order:
 
 1. `git add` only that chunk's paths
-2. Commit with plain `git commit` in the **Shell** tool only — HEREDOC message
-   (no `-i`, no `--no-verify` unless they asked). **Never** use a harness commit
-   UI or commit button (Cursor, OpenCode, Zed, etc.).
+2. Commit with plain `git commit` in the **Shell** tool only — pass the message
+   explicitly with `git commit -F - <<'EOF' ... EOF` (or `-m` flags). A bare
+   `git commit <<'EOF'` fails here: git ignores stdin for the message and opens
+   `$EDITOR` (`zeditor`), producing "Aborting commit due to empty commit
+   message." No `-i`, no `--no-verify` unless asked. **Never** use a harness
+   commit UI or commit button (Cursor, OpenCode, Zed, etc.).
 3. **Never** add `Co-authored-by`, `Signed-off-by`, or any agent/harness trailer.
 4. Verify with `git log -1 --format='%B'` that no co-author trailer was injected.
 5. After the last one: `git status`
