@@ -52,24 +52,19 @@ let
       tar -xzf $src
     '';
     installPhase = ''
-      mkdir -p $out/bin $out/share/aliasmode
-      # The tarball layout is expected to contain the AppImage or binary + resources.
-      # Adjust paths after inspecting the archive if the first build fails.
-      cp -r * $out/share/aliasmode/ || true
-      if [ -f AliasMode ]; then
-        install -m755 AliasMode $out/bin/aliasmode
-      elif [ -f aliasmode ]; then
-        install -m755 aliasmode $out/bin/aliasmode
-      else
-        # Fallback: look for an AppImage
-        appimage=$(find . -name '*.AppImage' | head -1)
-        if [ -n "$appimage" ]; then
-          install -m755 "$appimage" $out/bin/aliasmode
-        else
-          echo "Could not locate AliasMode binary in tarball" >&2
-          exit 1
-        fi
-      fi
+      runHook preInstall
+
+      # The tarball has no top-level binary or AppImage. Its layout is:
+      #   AliasMode/bin/{aliasmode,aliasmode-sidecar,aliasmode-mcp}
+      #   AliasMode/lib/AliasMode/{firefox,playwright,...}
+      #   AliasMode/share/{applications,icons,...}
+      # Mirror it under $out verbatim: the Tauri launcher resolves its bundled
+      # Firefox/Playwright resources relative to itself (../lib/AliasMode), so
+      # flattening the binary into $out/bin would leave it unable to find them.
+      mkdir -p $out
+      cp -a AliasMode/bin AliasMode/lib AliasMode/share $out/
+
+      runHook postInstall
     '';
     meta.mainProgram = "aliasmode";
   };
@@ -81,6 +76,7 @@ in
     name = "AliasMode";
     genericName = "Anti-Detect Browser";
     comment = "Open-source antidetect browser with AliasMode Firefox / Chromium engines";
+    icon = "${aliasmode}/share/icons/hicolor/512x512/apps/aliasmode.png";
     exec = "${lib.getExe aliasmode} %U";
     type = "Application";
     terminal = false;
