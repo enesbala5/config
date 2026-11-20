@@ -4,3 +4,6 @@
 [submodule "nix/nixos/hosts/framework-13/home/programs/omacut"]
 	path = nix/nixos/hosts/framework-13/home/programs/omacut
 	url = https://github.com/enesbala5/omacut-nix.git
+[submodule "nix/nixos/hosts/framework-13/home/programs/quiet-md-nix"]
+	path = nix/nixos/hosts/framework-13/home/programs/quiet-md-nix
+	url = https://github.com/enesbala5/quiet-md-nix.git

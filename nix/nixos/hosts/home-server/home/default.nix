@@ -12,7 +12,14 @@
     ../../../modules/home/programs/opencode
   ];
 
+  # DaVinci Resolve moved here from framework-13 (this is the GPU host).
+  modules.home.davinciResolve.enable = true;
+
   modules.home.commands = [
+    {
+      prefix = "${data.configDirectory}/scripts/utilities";
+      entries.manage-sunshine = "manage-sunshine.sh";
+    }
     {
       prefix = "${data.configDirectory}/scripts/hosts/home-server/smartd";
       entries.acknowledge-smartd-error = "acknowledge-error.sh";
