@@ -1359,6 +1359,26 @@
         "type": "github"
       }
     },
+    "quiet-md-nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795179136,
+        "narHash": "sha256-1vs/n9oEg+nSQ8MjSLDFr/ecOoer0Iw5P/CgmjWDwsc=",
+        "owner": "enesbala5",
+        "repo": "quiet-md-nix",
+        "rev": "0d3f85c95bd4b909c7e31cec08c8a0ed6869ca21",
+        "type": "github"
+      },
+      "original": {
+        "owner": "enesbala5",
+        "repo": "quiet-md-nix",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "agenix": "agenix",
@@ -1384,6 +1404,7 @@
         "omacut": "omacut",
         "pi": "pi",
         "plasma-manager": "plasma-manager",
+        "quiet-md-nix": "quiet-md-nix",
         "stylix": "stylix",
         "vicinae": "vicinae",
         "vicinae-extensions": "vicinae-extensions",
