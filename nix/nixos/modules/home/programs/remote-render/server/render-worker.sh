@@ -7,6 +7,8 @@
 # RENDER_WORKER_POLL (from the Nix wrapper) controls status update frequency.
 # This runs on the render host, reached only through ssh by render-remote.
 
+set -euo pipefail
+
 usage() {
   cat <<'EOF'
 usage: render-worker [--progress GLOB:TOTAL] [--pull GLOB]... [--gpu] -- CMD ARGS...
@@ -73,16 +75,17 @@ glob_matches() {
   pattern=${glob##*/}
   [[ "$dir" != "$glob" ]] || dir=.
   [[ -n "$pattern" ]] || pattern='*'
-  find "$dir" -maxdepth 1 -type f -name "$pattern" -print 2>/dev/null | sed 's#^\./##'
+  [[ -d "$dir" ]] || return 0
+  find "$dir" -maxdepth 1 -type f -name "$pattern" -print | sed 's#^\./##'
 }
 
 count_progress() {
   [[ -n "$progress_glob" ]] || { echo 0; return; }
-  glob_matches "$progress_glob" | wc -l
+  glob_matches "$progress_glob" | wc -l | tr -d ' '
 }
 
 write_status() {
-  local state=$1 done=$2 error=$3
+  local state=$1 progress_done=$2 error=$3
   [[ -f started_at ]] || date -u +%Y-%m-%dT%H:%M:%SZ >started_at
   local started
   started=$(<started_at)
@@ -90,7 +93,7 @@ write_status() {
     --arg state "$state" \
     --arg started "$started" \
     --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-    --argjson done "$done" \
+    --argjson progress_done "$progress_done" \
     --argjson total "$progress_total" \
     --arg error "$error" \
     --argjson has_progress "$([[ -n "$progress_glob" ]] && echo true || echo false)" \
@@ -100,7 +103,7 @@ write_status() {
       started_at: $started,
       updated_at: $now
     }
-    + (if $has_progress then {progress_done: $done, progress_total: $total} else {} end)
+    + (if $has_progress then {progress_done: $progress_done, progress_total: $total} else {} end)
     + (if $error != "" then {error: $error} else {} end)' \
     >"$STATUS.tmp"
   mv "$STATUS.tmp" "$STATUS"
@@ -150,7 +153,7 @@ echo "$code" >exitcode
 
 if ((code == 0)); then
   write_outputs
-  write_status done "$(count_progress)" ""
+  write_status "done" "$(count_progress)" ""
 else
   error=$(tail -n 15 run.log 2>/dev/null | tr '\n' ' ' | cut -c1-400)
   write_status failed "$(count_progress)" "$error"

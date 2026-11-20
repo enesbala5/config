@@ -64,17 +64,22 @@ render-remote status JOB
 render-remote pull   JOB [--out DIR]
 ```
 
-`run` syncs first, then starts `render-worker` with `nohup setsid`, polls
-`status.json` every 10 s (`RENDER_REMOTE_POLL`), and copies each matched output
-into `--out` by basename as soon as it appears. The job survives a closed
-terminal or sleeping laptop; `watch` re-attaches. `--out` is remembered per job
-under `$XDG_STATE_HOME/render-remote/`. `--gpu` wraps the command in
+`run` syncs first, then starts `render-worker` with `nohup setsid`, and polls
+`status.json` every 10 s (`RENDER_REMOTE_POLL`). `--pull` matches are listed in
+`outputs.json` only after CMD exits 0, and are then copied into `--out` by
+basename. `watch` and `pull` can fetch them at that point, not incrementally
+while the command is still running. The job survives a closed terminal or
+sleeping laptop; `watch` re-attaches. `--out` is remembered per job under
+`$XDG_STATE_HOME/render-remote/`. `--gpu` wraps the command in
 `gpu-lease -- xvfb-run -a` — the same lease upscaling uses, so inference comes
 back when the render ends.
 
 `status` exits 0 when done, 1 on failure, 3 while still running. Re-running
-with the same `--job` resumes a finished job; a job whose named outputs are
-already local is skipped entirely.
+with the same `--job` starts the command again unless every named `--pull`
+output is already local, in which case the job is skipped entirely. Sync does
+not use `--delete`, and a rerun does not clear the host `out/` directory, so
+stale files can remain under `src/` and leftover frames can inflate `--progress`
+until the command itself removes them.
 
 Both `--progress` and `--pull` globs must have a fixed directory with the
 wildcard only in the last component (`out/frames/*.png`), since expansion uses
