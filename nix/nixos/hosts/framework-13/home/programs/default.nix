@@ -1,1 +1,497 @@
-PLACEHOLDER
+{
+  pkgs,
+  lib,
+  config,
+  inputs,
+  system,
+  unstable,
+  data,
+  ...
+}:
+let
+  hyperframesAppImage = "${data.homeDirectory}/programs/hyperframes/hyperframes.AppImage";
+  # CLI `hyperframes open` execs launcher.json's appImage directly and ignores stdio.
+  # The raw AppImage has no NixOS libglib; this wrapper is the only launch path.
+  hyperframesOpen = pkgs.writeShellScript "hyperframes-open" ''
+    exec ${pkgs.appimage-run}/bin/appimage-run ${hyperframesAppImage} "$@"
+  '';
+in
+{
+  imports = [
+    ./activitywatch
+    ./antidetect
+    ./caffeinate
+    ./hermes-agent
+    ./hypruse
+    ./lid-inhibit
+    ./piper-tts
+    ./plasma
+    ./playwright
+  ];
+
+  home.packages =
+    (with pkgs; [
+      # System
+      # ------------------------------------------------------------------------------------------
+      dunst # Notification Interface
+      brillo # Brightness Control
+
+      hyprsunset # Night Light
+      hypridle # Idle State
+      hyprlock # Lock Screen
+
+      # Documents
+      #  ------------------------------------------------------------------------------------------
+      libreoffice-qt
+      hunspell
+      hunspellDicts.en_US
+
+      # Development
+      # ------------------------------------------------------------------------------------------
+      beekeeper-studio # Database Management
+      neovim # Neovim
+      vim # Vim
+      sqlite # SQLite CLI
+
+      # Graphic Design & Video Editing
+      # ------------------------------------------------------------------------------------------
+      shotcut # Video Editor
+      kdePackages.kdenlive # Video Editor
+      wl-screenrec # Wayland screen recorder (region via slurp)
+      ffmpeg
+
+      # Tools
+      # ------------------------------------------------------------------------------------------
+      obsidian # Note Taking App
+      typora # Markdown Note Taking & PDF Exporting
+
+      blender # 3D Modeling
+      pdfarranger
+
+      nomacs # Image Viewer
+      remmina # Remote Desktop
+      firefox
+
+      markdown-oxide # Markdown LSP
+
+      # Calculators
+      gnome-calculator
+
+      # Functionality
+      # ------------------------------------------------------------------------------------------
+      wtype # Needed for Text Insertion in Waybar (for Handy TTS)
+
+      proton-pass
+      dua # CLI File Tree
+
+      handbrake # Video Encoder
+    ])
+    # Unstable packages
+    # ---
+    ++ (with unstable; [
+      telegram-desktop
+      discord
+
+      proton-vpn
+
+      # IDE
+      vscode
+
+      # TTS
+      handy
+
+      # Hyprland
+      hyprpicker # screen color picker (stable nixpkgs ships 0.4.5, which crashes Hyprland)
+
+    ])
+    # Flakes
+    # ---
+    ++ (with inputs; [
+      hyprshutdown.packages.${system}.default
+      zed-editor.packages.${system}.default
+      cursor-nix.packages.${system}.default
+      cursor-nix.packages.${system}.cursor-cli
+      antigravity-nix.packages.${system}.google-antigravity-no-fhs
+      antigravity-nix.packages.${system}.google-antigravity-ide-no-fhs
+      antigravity-nix.packages.${system}.google-antigravity-cli
+      grok-bot.packages.${system}.default
+      omacut.packages.${system}.default
+      zaku.packages.${system}.default # API Client
+      dbflux.packages.${system}.default
+      pi.packages.${system}.pi
+    ]);
+
+  programs = {
+    zen-browser.enable = true;
+
+    obs-studio = {
+      enable = true;
+
+      plugins = with pkgs.obs-studio-plugins; [
+        wlrobs
+        obs-backgroundremoval
+        obs-pipewire-audio-capture
+        obs-vaapi # optional AMD hardware acceleration
+        obs-gstreamer
+        obs-vkcapture
+      ];
+    };
+
+    ssh = {
+      enable = true;
+      enableDefaultConfig = false;
+
+      settings."*" = {
+        ForwardAgent = false;
+        AddKeysToAgent = "yes";
+        Compression = false;
+        ServerAliveInterval = 0;
+        ServerAliveCountMax = 3;
+        HashKnownHosts = false;
+        UserKnownHostsFile = "~/.ssh/known_hosts";
+        ControlMaster = "no";
+        ControlPath = "~/.ssh/master-%r@%n:%p";
+        ControlPersist = "no";
+      };
+
+      includes = [ config.age.secrets.ssh-config.path ];
+    };
+
+    yazi = {
+      enable = true;
+      # 26.05 changes the default wrapper from yy to y. Keep yy.
+      shellWrapperName = "yy";
+    };
+  };
+
+  services = {
+    kdeconnect.enable = true;
+  };
+
+  home.file."programs/hyperframes/open".source = hyperframesOpen;
+
+  # AppImage install drops this with Exec= the raw binary and the same scheme handlers.
+  home.activation.removeHyperframesAppImageDesktop = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD rm -f ${data.homeDirectory}/.local/share/applications/dev.hyperframes.desktop.desktop
+  '';
+
+  xdg = {
+    mimeApps = {
+      enable = true;
+      defaultApplications = {
+        "inode/directory" = "org.kde.dolphin.desktop";
+        "x-scheme-handler/http" = [
+          "zen-beta.desktop"
+          "helium.desktop"
+          "google-chrome.desktop"
+        ];
+        "x-scheme-handler/https" = [
+          "zen-beta.desktop"
+          "helium.desktop"
+          "google-chrome.desktop"
+        ];
+        "x-scheme-handler/hyperframes-signin" = "hyperframes.desktop";
+        "x-scheme-handler/hyperframes-open" = "hyperframes.desktop";
+        "text/html" = [
+          "helium.desktop"
+          "zen-beta.desktop"
+          "google-chrome.desktop"
+        ];
+        "text/plain" = [
+          "dev.zed.Zed-Nightly.desktop"
+          "dev.zed.Zed.desktop"
+        ];
+        "text/markdown" = [
+          "dev.zed.Zed-Nightly.desktop"
+          "dev.zed.Zed.desktop"
+          "org.gnome.gedit.desktop"
+        ];
+        "image/jpeg" = [
+          "org.nomacs.ImageLounge.desktop"
+          "helium.desktop"
+          "zen-beta.desktop"
+          "google-chrome.desktop"
+        ];
+        "image/png" = [
+          "org.nomacs.ImageLounge.desktop"
+          "helium.desktop"
+          "zen-beta.desktop"
+          "google-chrome.desktop"
+        ];
+        "image/svg+xml" = [
+          "org.nomacs.ImageLounge.desktop"
+          "helium.desktop"
+          "zen-beta.desktop"
+          "google-chrome.desktop"
+        ];
+        "video/mp4" = [
+          "vlc.desktop"
+          "org.shotcut.Shotcut.desktop"
+        ];
+        "video/mp3" = [
+          "vlc.desktop"
+          "helium.desktop"
+          "zen-beta.desktop"
+          "google-chrome.desktop"
+        ];
+        "video/webm" = [
+          "vlc.desktop"
+          "org.shotcut.Shotcut.desktop"
+          "helium.desktop"
+          "zen-beta.desktop"
+          "google-chrome.desktop"
+        ];
+        "application/pdf" = [
+          "helium.desktop"
+          "zen-beta.desktop"
+          "google-chrome.desktop"
+        ];
+      };
+    };
+
+    configFile."mimeapps.list".force = true;
+
+    # hyperframes CLI reads this and spawns appImage. Must be the wrapper, not the raw AppImage.
+    configFile."HyperFrames/launcher.json" = {
+      force = true;
+      text = builtins.toJSON {
+        appImage = "${data.homeDirectory}/programs/hyperframes/open";
+      };
+    };
+
+    # Workaround to support "Open in Terminal" in Thunar
+    configFile."xfce4/helpers.rc".text = ''
+      TerminalEmulator=kitty
+    '';
+
+    userDirs = {
+      enable = true;
+      # 26.05 defaults this to false. Keep session variables exported.
+      setSessionVariables = true;
+      desktop = "${data.homeDirectory}/desktop";
+      documents = "${data.homeDirectory}/documents";
+      download = "${data.homeDirectory}/downloads";
+      pictures = "${data.homeDirectory}/gdrive/Media/Temporary";
+      videos = "${data.homeDirectory}/gdrive/Media/Temporary";
+      music = null;
+      publicShare = null;
+      templates = null;
+    };
+
+    desktopEntries = {
+      helium = {
+        name = "Helium";
+        genericName = "Web Browser";
+        icon = "helium";
+        # Becomes ~/.nix-profile and /etc/profiles/per-user/e/share/applications/helium.desktop
+        exec =
+          let
+            heliumBin = "${inputs.helium-browser.packages.${system}.default}/bin/helium";
+          in
+          "hyprctl dispatch \"hl.dsp.exec_cmd('${heliumBin} --remote-debugging-port=9222 --remote-debugging-address=127.0.0.1 --remote-allow-origins=*')\"";
+        type = "Application";
+        terminal = false;
+        mimeType = [
+          "text/html"
+          "text/xml"
+          "application/xhtml+xml"
+          "x-scheme-handler/http"
+          "x-scheme-handler/https"
+        ];
+        categories = [
+          "Network"
+          "WebBrowser"
+        ];
+      };
+
+      # Avoid libsecret/keyring hangs after keyring resets on Hyprland.
+      discord = {
+        name = "Discord";
+        genericName = "All-in-one cross-platform voice and text chat for gamers";
+        icon = "discord";
+        exec = "Discord --password-store=basic";
+        type = "Application";
+        terminal = false;
+        mimeType = [ "x-scheme-handler/discord" ];
+        categories = [
+          "Network"
+          "InstantMessaging"
+        ];
+        settings.StartupWMClass = "discord";
+      };
+
+      pen = {
+        name = "Pen";
+        genericName = "Vector Graphics Editor";
+        icon = "${data.configDirectory}/tools/pen/icon.png";
+        exec = "appimage-run ${data.homeDirectory}/programs/pen/pen.AppImage";
+        type = "Application";
+        terminal = false;
+        categories = [
+          "Utility"
+          "Graphics"
+        ];
+      };
+
+      hyperframes = {
+        name = "HyperFrames";
+        genericName = "Video Editor";
+        icon = "${data.configDirectory}/tools/hyperframes/icon.png";
+        exec = "${data.homeDirectory}/programs/hyperframes/open %U";
+        type = "Application";
+        terminal = false;
+        mimeType = [
+          "x-scheme-handler/hyperframes-signin"
+          "x-scheme-handler/hyperframes-open"
+        ];
+        categories = [
+          "AudioVideo"
+          "Video"
+        ];
+      };
+
+      spotifast = {
+        name = "Spotifast";
+        genericName = "Spotify Desktop Client";
+        icon = "${data.configDirectory}/tools/links/spotify.png";
+        exec = "appimage-run ${data.homeDirectory}/programs/spotifast/program.AppImage";
+        type = "Application";
+        terminal = false;
+        categories = [
+          "Audio"
+          "AudioVideo"
+        ];
+      };
+
+      zapfast = {
+        name = "Zapfast";
+        genericName = "WhatsApp Desktop Client";
+        icon = "${data.configDirectory}/tools/links/whatsApp.png";
+        exec = "appimage-run ${data.homeDirectory}/programs/zapfast/program.AppImage";
+        type = "Application";
+        terminal = false;
+        categories = [
+          "Network"
+          "InstantMessaging"
+        ];
+      };
+
+      analytics = {
+        name = "Analytics";
+        icon = "${data.configDirectory}/tools/links/analytics.png";
+        settings.URL = "https://analytics.enesbala.com";
+        genericName = "Analytics Dashboard";
+        type = "Link";
+        terminal = null;
+      };
+
+      status-monitoring = {
+        name = "Status Monitoring";
+        icon = "${data.configDirectory}/tools/links/status-monitoring.png";
+        settings.URL = "https://status.enesbala.com";
+        genericName = "Status Page";
+        type = "Link";
+        terminal = null;
+      };
+
+      mail = {
+        name = "Zoho Mail";
+        icon = "${data.configDirectory}/tools/links/zoho-mail.png";
+        settings.URL = "https://mail.zoho.eu";
+        genericName = "Email Client";
+        type = "Link";
+        terminal = null;
+      };
+
+      toggl-track = {
+        name = "Toggl Track";
+        icon = "${data.configDirectory}/tools/links/toggl-track.png";
+        settings.URL = "https://track.toggl.com/timer";
+        genericName = "Time Tracker";
+        type = "Link";
+        terminal = null;
+      };
+
+      google-tasks = {
+        name = "Google Tasks";
+        icon = "${data.configDirectory}/tools/links/google-tasks.png";
+        settings.URL = "https://tasks.google.com/tasks";
+        genericName = "Task Manager TODO";
+        type = "Link";
+        terminal = null;
+      };
+
+      hetzner-server = {
+        name = "Hetzner Server: Coolify";
+        icon = "${data.configDirectory}/tools/links/coolify.png";
+        settings.URL = "https://server.enesbala.com";
+        genericName = "Coolify Server Management";
+        type = "Link";
+        terminal = null;
+      };
+
+      home-server = {
+        name = "Home Server: Coolify";
+        icon = "${data.configDirectory}/tools/links/coolify.png";
+        settings.URL = "https://host.enesbala.com";
+        genericName = "Coolify Server Management";
+        type = "Link";
+        terminal = null;
+      };
+
+      whatsApp = {
+        name = "WhatsApp";
+        icon = "${data.configDirectory}/tools/links/whatsApp.png";
+        settings.URL = "https://web.whatsapp.com";
+        genericName = "WhatsApp Web";
+        type = "Link";
+        terminal = null;
+      };
+
+      # spotify = {
+      #   name = "Spotify";
+      #   icon = "${data.configDirectory}/tools/links/spotify.png";
+      #   settings.URL = "https://open.spotify.com";
+      #   genericName = "Spotify";
+      #   type = "Link";
+      #   terminal = null;
+      # };
+
+      google-drive = {
+        name = "Google Drive";
+        icon = "${data.configDirectory}/tools/links/google-drive.png";
+        exec = "xdg-open ${data.homeDirectory}/gdrive";
+        genericName = "Google Drive";
+        type = "Application";
+        terminal = false;
+      };
+
+      google-drive-web = {
+        name = "Google Drive Web";
+        icon = "${data.configDirectory}/tools/links/google-drive.png";
+        settings.URL = "https://drive.google.com";
+        genericName = "Google Drive Web";
+        type = "Link";
+        terminal = null;
+      };
+
+      google-calendar = {
+        name = "Google Calendar";
+        icon = "${data.configDirectory}/tools/links/google-calendar.png";
+        settings.URL = "https://calendar.google.com";
+        genericName = "Google Calendar";
+        type = "Link";
+        terminal = null;
+      };
+
+      github = {
+        name = "GitHub";
+        icon = "${data.configDirectory}/tools/links/github.png";
+        settings.URL = "https://github.com";
+        genericName = "GitHub";
+        type = "Link";
+        terminal = null;
+      };
+    };
+  };
+}
