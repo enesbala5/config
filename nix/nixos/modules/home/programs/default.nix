@@ -25,6 +25,8 @@
     ./dsh
     ./vicinae
     ./figma-linux
+    ./davinci-resolve
+    ./quiet-md
     ./chatgpt
     ./easyeffects
     ./upscaling

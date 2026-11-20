@@ -28,6 +28,8 @@
     modules.home.dsh.enable = true;
     modules.home.vicinae.enable = true;
     modules.home.figmaLinux.enable = true;
+    modules.home.davinciResolve.enable = true;
+    modules.home.quietMd.enable = true;
     modules.home.chatgpt.enable = true;
     modules.home.easyeffects.enable = true;
 
