@@ -20,8 +20,11 @@ in
     ./modules/backups
 
     # Existing Hyprland desktop streaming over Tailscale (issue #111).
-    ./modules/sunshine
+    # Shared, opt-in module; off by default until `manage-sunshine on`.
+    ../../modules/sunshine
   ];
+
+  modules.sunshine.enable = true;
 
   # Seed a writable rclone.conf for gdrive bisync (OAuth token refresh).
   # Overwritten on every activation (rebuild/boot) from the agenix secret.

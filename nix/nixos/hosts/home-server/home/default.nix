@@ -14,6 +14,10 @@
 
   modules.home.commands = [
     {
+      prefix = "${data.configDirectory}/scripts/utilities";
+      entries.manage-sunshine = "manage-sunshine.sh";
+    }
+    {
       prefix = "${data.configDirectory}/scripts/hosts/home-server/smartd";
       entries.acknowledge-smartd-error = "acknowledge-error.sh";
     }

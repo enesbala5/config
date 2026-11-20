@@ -28,7 +28,13 @@ in
     ./modules/incus-hermes-agent
     ./modules/helium-browser-mcp
     ./modules/caddy
+
+    # On-demand Hyprland desktop streaming over Tailscale. Shared module;
+    # installed but off by default until `manage-sunshine on` in the session.
+    ../../modules/sunshine
   ];
+
+  modules.sunshine.enable = true;
 
   homeServer.ai = {
     enable = true;
