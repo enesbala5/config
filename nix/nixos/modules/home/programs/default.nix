@@ -30,6 +30,7 @@
     ./chatgpt
     ./easyeffects
     ./upscaling
+    ./remote-render
 
     # ./firefox # web browser
     # ./spicetify.nix # spotify retheming

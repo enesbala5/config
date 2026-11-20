@@ -17,6 +17,12 @@ let
   '';
 in
 {
+  # Client for delegating renders to home-server's render-worker.
+  modules.home.remoteRender = {
+    enable = true;
+    remote.enable = true;
+  };
+
   imports = [
     ./activitywatch
     ./antidetect

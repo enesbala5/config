@@ -34,4 +34,10 @@
     enable = true;
     video.enable = true;
   };
+
+  # render-worker for delegating Blender composition renders from framework-13.
+  modules.home.remoteRender = {
+    enable = true;
+    server.enable = true;
+  };
 }
