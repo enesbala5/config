@@ -5,8 +5,8 @@
 #
 # Runs ssh and rsync against $UPSCALE_REMOTE_HOST (default home-server) and stops
 # llama-cpp there while batches run. Only run it when you mean to.
-# Makes two 2-second clips from SMOKE_SRC, then: preflight, a 2-clip batch, a
-# detach/re-attach run, a resume, a real failure, output check, and cleanup.
+# Makes 8-frame clips (one model chunk, about 3 minutes each on the RX 570) from
+# SMOKE_SRC, then: preflight, a 2-clip batch, a detach/re-attach run, a resume, a real failure, output check, and cleanup.
 # Exits non-zero if any check fails. --keep leaves the local and remote files.
 
 set -uo pipefail
@@ -19,6 +19,7 @@ keep=0
 stamp=$(date +%H%M%S)
 work=$(mktemp -d -t upscale-smoke.XXXXXX)
 fails=0
+finished=0
 
 step() { printf '\n=== %s (t+%ss)\n' "$*" "$SECONDS"; }
 pass() { printf 'PASS %s\n' "$*"; }
@@ -30,6 +31,9 @@ check() { # check <label> <command...>
 }
 
 cleanup() {
+  # An interrupted run may leave a batch running on the server: do not pull its
+  # directory out from under it.
+  ((finished)) || keep=1
   if ((keep)); then
     echo "kept: $work and $host:~/upscale-jobs/smoke-$stamp-*"
     return
@@ -43,8 +47,8 @@ trap cleanup EXIT
 cd "$work"
 
 step "1. local: make test clips"
-for n in a b c d; do
-  ffmpeg -v error -y -t 2 -i "$src" -an -c:v libx264 -pix_fmt yuv420p "clip-$n.mp4"
+for n in a b c; do
+  ffmpeg -v error -y -i "$src" -frames:v 8 -an -c:v libx264 -pix_fmt yuv420p "clip-$n.mp4"
 done
 ffprobe -v error -select_streams v:0 -show_entries stream=width,height,r_frame_rate \
   -of default=nw=1 clip-a.mp4
@@ -67,7 +71,7 @@ check "clip-b pulled" test -s "$work/out1/clip-b.mp4"
 
 step "4. detach, then re-attach"
 job2=smoke-$stamp-2
-upscale-remote run --job "$job2" --no-wait --out "$work/out2" clip-c.mp4 clip-d.mp4
+upscale-remote run --job "$job2" --no-wait --out "$work/out2" clip-c.mp4
 check "started detached" test $? -eq 0
 upscale-remote status "$job2"
 code=$?
@@ -76,7 +80,6 @@ check "status says running or done" test "$code" -eq 3 -o "$code" -eq 0
 upscale-remote watch "$job2"
 check "watch exit 0" test $? -eq 0
 check "clip-c pulled" test -s "$work/out2/clip-c.mp4"
-check "clip-d pulled" test -s "$work/out2/clip-d.mp4"
 upscale-remote status "$job2"
 check "status done exit 0" test $? -eq 0
 
@@ -105,6 +108,7 @@ echo "health: $health"
 check "llama health ok" grep -q '"ok"' <<<"$health"
 
 step "done"
+((fails)) || finished=1 # keep files for inspection when a check failed
 if ((fails)); then
   echo "$fails check(s) FAILED"
   exit 1
