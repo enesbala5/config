@@ -12,6 +12,9 @@
     ../../../modules/home/programs/opencode
   ];
 
+  # DaVinci Resolve moved here from framework-13 (this is the GPU host).
+  modules.home.davinciResolve.enable = true;
+
   modules.home.commands = [
     {
       prefix = "${data.configDirectory}/scripts/utilities";

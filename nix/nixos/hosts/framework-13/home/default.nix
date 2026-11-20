@@ -28,7 +28,8 @@
     modules.home.dsh.enable = true;
     modules.home.vicinae.enable = true;
     modules.home.figmaLinux.enable = true;
-    modules.home.davinciResolve.enable = true;
+    # DaVinci Resolve now lives on home-server (the GPU host).
+    modules.home.davinciResolve.enable = false;
     modules.home.quietMd.enable = true;
     modules.home.chatgpt.enable = true;
     modules.home.easyeffects.enable = true;
