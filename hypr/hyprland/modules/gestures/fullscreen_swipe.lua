@@ -40,6 +40,11 @@ local function directional(wantFullscreen)
 				return
 			end
 
+			-- Mark this as a deliberate toggle so the animation module can
+			-- re-enable geometry animations immediately on the way out. Focus
+			-- takeovers from the horizontal swipe do not set this, and keep
+			-- their flicker-free suppression.
+			hl.explicit_fullscreen_toggle = wantFullscreen
 			hl.dispatch(hl.dsp.window.fullscreen())
 		end,
 	}

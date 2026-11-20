@@ -23,9 +23,23 @@ local function setSuppressed(value)
 	})
 end
 
--- Fullscreen takeover emits an intermediate "not fullscreen" event before the
--- next window takes over. Keep geometry animations disabled through that gap.
--- Use one reusable timer; oneshot timer handles expire after their first firing.
+-- The vertical fullscreen gesture flags its dispatches via
+-- hl.explicit_fullscreen_toggle (true = entering, false = leaving). Consuming
+-- it here distinguishes a deliberate toggle from a focus takeover: toggles get
+-- to animate both ways, takeovers stay suppressed to avoid flicker.
+local function consumeToggle()
+	local pending = hl.explicit_fullscreen_toggle
+	hl.explicit_fullscreen_toggle = nil
+	return pending
+end
+
+-- An explicit fullscreen toggle (window.fullscreen) should animate: wait for
+-- the expand to finish before disabling windowsMove. Focus takeovers arrive via
+-- window.active and still suppress right away, so 3-finger horizontal swipes
+-- keep their flicker-free behavior. One reusable timer per delay, since oneshot
+-- handles expire after their first firing.
+local suppressDelay = 200
+
 local restoreTimer
 restoreTimer = hl.timer(function()
 	restoreTimer:set_enabled(false)
@@ -33,12 +47,38 @@ restoreTimer = hl.timer(function()
 end, { timeout = 80, type = "repeat" })
 restoreTimer:set_enabled(false)
 
-local function update()
+local suppressTimer
+suppressTimer = hl.timer(function()
+	suppressTimer:set_enabled(false)
+	-- The window may have left fullscreen before the delay elapsed.
+	if activeIsFullscreen() then
+		setSuppressed(true)
+	end
+end, { timeout = suppressDelay, type = "repeat" })
+suppressTimer:set_enabled(false)
+
+local function update(event)
 	if activeIsFullscreen() then
 		restoreTimer:set_enabled(false)
-		setSuppressed(true)
-	elseif suppressed then
-		restoreTimer:set_enabled(true)
+		if event == "window.fullscreen" then
+			consumeToggle()
+			suppressTimer:set_enabled(true)
+		else
+			-- A focus/workspace change supersedes any pending toggle flag.
+			consumeToggle()
+			suppressTimer:set_enabled(false)
+			setSuppressed(true)
+		end
+	else
+		suppressTimer:set_enabled(false)
+		-- A deliberate toggle off must re-enable right away, before Hyprland
+		-- configures the shrink animation. Takeover gaps keep the 80ms hold.
+		if consumeToggle() == false then
+			restoreTimer:set_enabled(false)
+			setSuppressed(false)
+		elseif suppressed then
+			restoreTimer:set_enabled(true)
+		end
 	end
 end
 
@@ -50,7 +90,7 @@ for _, event in ipairs({
 	"workspace.special_active",
 	"hyprland.start",
 }) do
-	hl.on(event, update)
+	hl.on(event, function() update(event) end)
 end
 
 -- Also apply on config reload, including when a window is already fullscreen.
