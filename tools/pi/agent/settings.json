@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "1.4.0",
   "defaultProvider": "openai",
-  "defaultModel": "gpt-6.1-sol",
+  "defaultModel": "gpt-6.2-sol",
   "hideThinkingBlock": false,
   "quietStartup": true,
   "packages": [
