@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+# Delegate a Blender macbook composition render to home-server via render-remote.
+#
+# usage: render-macbook [--look] [--engine EEVEE|CYCLES] [--job ID] [--out DIR]
+#                      [--at N] [--config JSON] RECORDING
+#
+# This ssh's to home-server and rsyncs the composition there. Run it only when
+# the user asked for a remote render in the current turn.
+set -euo pipefail
+
+DIR=${MACBOOK_DIR:-/home/e/dev/coverlttr/misc/video/hyperframes/compositions/digital/mockup/devices/laptop/macbook}
+
+usage() {
+  sed -n '2,8p' "$0" | sed 's/^# \?//'
+}
+
+die() {
+  printf 'render-macbook: %s\n' "$*" >&2
+  exit 1
+}
+
+look=0 engine="" job="" out="" at="" config="" recording=""
+while (($#)); do
+  case "$1" in
+    --look) look=1; shift ;;
+    --engine) engine=${2:?--engine needs EEVEE or CYCLES}; shift 2 ;;
+    --job) job=${2:?--job needs a value}; shift 2 ;;
+    --out) out=${2:?--out needs a directory}; shift 2 ;;
+    --at) at=${2:?--at needs a second}; shift 2 ;;
+    --config) config=${2:?--config needs a JSON file}; shift 2 ;;
+    -h | --help) usage; exit 0 ;;
+    -*) die "unknown option: $1" ;;
+    *)
+      [[ -z "$recording" ]] || die "only one RECORDING is accepted: $1"
+      recording=$1
+      shift
+      ;;
+  esac
+done
+
+[[ -n "$recording" ]] || { usage; exit 2; }
+[[ -f "$recording" ]] || die "not a file: $recording"
+[[ -d "$DIR" ]] || die "not a directory: $DIR"
+[[ -f "$DIR/scene.json" ]] || die "no scene.json in $DIR"
+[[ -z "$config" || -f "$config" ]] || die "not a file: $config"
+[[ -z "$engine" || "$engine" == EEVEE || "$engine" == CYCLES ]] || die "--engine must be EEVEE or CYCLES"
+
+tmp=""
+cleanup() {
+  [[ -z "$tmp" ]] || rm -f "$tmp"
+}
+trap cleanup EXIT
+
+# An --engine override is folded into an uploaded config so the composition's
+# own Makefile resolves it the same way a project CONFIG would.
+if [[ -n "$engine" ]]; then
+  tmp=$(mktemp)
+  if [[ -n "$config" ]]; then
+    jq --arg e "$engine" '.engine = $e' "$config" >"$tmp"
+  else
+    jq -n --arg e "$engine" '{engine: $e}' >"$tmp"
+  fi
+  config=$tmp
+fi
+
+if [[ -n "$config" ]]; then
+  merged=$(jq -s '.[0] * .[1]' "$DIR/scene.json" "$config")
+else
+  merged=$(jq -s '.[0]' "$DIR/scene.json")
+fi
+resolved_engine=$(jq -r '.engine // "EEVEE"' <<<"$merged")
+frames_total=$(jq -r '(.duration * .fps | floor)' <<<"$merged")
+
+uploads=("$recording")
+remote_recording="../in/$(basename -- "$recording")"
+
+if ((look)); then
+  pull=out/still.png
+  progress=""
+  cmd=(make -C src look OUT=../out RECORDING="$remote_recording")
+  [[ -z "$at" ]] || cmd+=("AT=$at")
+else
+  pull=out/macbook.mp4
+  progress="out/frames/*.png:$frames_total"
+  cmd=(make -C src render OUT=../out RECORDING="$remote_recording")
+fi
+
+if [[ -n "$config" ]]; then
+  uploads+=("$config")
+  cmd+=("CONFIG=../in/$(basename -- "$config")")
+fi
+
+args=(run --pull "$pull")
+[[ -z "$out" ]] || args+=(--out "$out")
+[[ -z "$job" ]] || args+=(--job "$job")
+[[ -z "$progress" ]] || args+=(--progress "$progress")
+if [[ "$resolved_engine" == EEVEE ]]; then
+  args+=(--gpu)
+fi
+for file in "${uploads[@]}"; do
+  args+=(--upload "$file")
+done
+args+=("$DIR" -- "${cmd[@]}")
+
+echo "engine=$resolved_engine frames=$frames_total mode=$([[ $look == 1 ]] && echo look || echo render)" >&2
+exec render-remote "${args[@]}"
