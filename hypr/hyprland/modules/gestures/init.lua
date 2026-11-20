@@ -10,3 +10,4 @@ hl.config({
 require("modules.gestures.workspace_swipe")
 require("modules.gestures.window_focus_swipe")
 require("modules.gestures.special_workspace_swipe")
+require("modules.gestures.fullscreen_swipe")
