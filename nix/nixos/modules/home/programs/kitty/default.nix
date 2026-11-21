@@ -6,7 +6,9 @@
     keybindings = {
   		# Clipboard
       "ctrl+c" = "interrupt";
-      "ctrl+shift+c" = "copy_to_clipboard";
+      # Copy a kitty mouse selection when there is one; otherwise pass the
+      # chord through to zsh, which copies its prompt selection via OSC 52.
+      "ctrl+shift+c" = "copy_or_noop";
       "ctrl+shift+v" = "paste_from_clipboard";
       "shift+insert" = "paste_from_clipboard";
 
@@ -26,6 +28,11 @@
       # Physical Ctrl+Shift+P. Herdr binds ctrl+alt+p (CSI-u 112;7). Ctrl+P
       # stays a raw ^P so shells, vim, and the bar's own movement still see it.
       "ctrl+shift+p" = "send_text all \\x1b[112;7u";
+
+      # Normalize Ctrl+Shift+X to fixed bytes. kitty otherwise varies the
+      # CSI-u encoding with keyboard mode (alternate-key fields, etc.), which
+      # makes zsh's binding miss it.
+      "ctrl+shift+x" = "send_text all \\x1b[120;6u";
 
       # Kitty's defaults are ctrl+tab next_tab and ctrl+shift+tab previous_tab.
       # Hand those chords to Herdr (Tab = codepoint 9; 5 = ctrl, 6 = ctrl+shift).

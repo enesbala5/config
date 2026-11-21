@@ -74,8 +74,10 @@
 
       # A plain arrow drops the selection and just moves the cursor. Bind the
       # sequences zsh uses for arrows in both normal and application cursor mode.
-      zle-plain-left()  { REGION_ACTIVE=0; zle .backward-char }
-      zle-plain-right() { REGION_ACTIVE=0; zle .forward-char }
+      # Call the current widget, not the builtin: zsh-autosuggestions wraps
+      # forward-char to accept its suggestion on Right arrow.
+      zle-plain-left()  { REGION_ACTIVE=0; zle backward-char }
+      zle-plain-right() { REGION_ACTIVE=0; zle forward-char }
       zle -N zle-plain-left
       zle -N zle-plain-right
       bindkey '^[[D' zle-plain-left
@@ -93,8 +95,24 @@
       }
       zle -N self-insert zle-select-self-insert
 
-      # Esc-w / Esc-W copy the selection. End the selection and leave the
-      # cursor at its right edge. Ctrl+Shift+X cuts it instead (CSI-u 120;6u).
+      # OSC 52 writes to the system clipboard (kitty allows writes by default).
+      zle-clipboard-set() {
+        [[ -n $1 ]] || return 0
+        local encoded=$(printf %s "$1" | base64 | tr -d '\n')
+        printf '\e]52;c;%s\a' "$encoded"
+      }
+
+      # Selected text, independent of which end the cursor is on.
+      zle-select-text() {
+        if (( MARK < CURSOR )); then
+          REPLY=''${BUFFER[MARK+1,CURSOR]}
+        else
+          REPLY=''${BUFFER[CURSOR+1,MARK]}
+        fi
+      }
+
+      # Esc-w / Esc-W copy to zsh's kill ring. End the selection and leave the
+      # cursor at its right edge.
       zle-select-copy() {
         local mark=$MARK cursor=$CURSOR
         zle .copy-region-as-kill
@@ -105,13 +123,33 @@
       }
       zle -N copy-region-as-kill zle-select-copy
 
+      # Ctrl+Shift+C copies the prompt selection to the system clipboard.
+      # kitty's ctrl+shift+c is copy_or_noop, so this runs only when kitty has
+      # no mouse selection of its own. kitty may add alternate-key fields
+      # (CSI key::base;mods u), so bind both encodings.
+      zle-select-copy-clipboard() {
+        (( REGION_ACTIVE )) || return 0
+        zle-select-text
+        zle-clipboard-set "$REPLY"
+        zle .copy-region-as-kill
+        (( MARK > CURSOR )) && CURSOR=$MARK
+        REGION_ACTIVE=0
+      }
+      zle -N zle-select-copy-clipboard
+      bindkey '^[[99;6u' zle-select-copy-clipboard
+      bindkey '^[[99::57344;6u' zle-select-copy-clipboard
+
+      # Ctrl+Shift+X cuts: clipboard + zsh kill ring, then remove the text.
       zle-select-cut() {
         (( REGION_ACTIVE )) || return 0
+        zle-select-text
+        zle-clipboard-set "$REPLY"
         zle .kill-region
         REGION_ACTIVE=0
       }
       zle -N zle-select-cut
       bindkey '^[[120;6u' zle-select-cut
+      bindkey '^[[120::57344;6u' zle-select-cut
 
       setopt AUTO_CD
       ''
