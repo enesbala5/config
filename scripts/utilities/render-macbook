@@ -2,16 +2,18 @@
 # Delegate a Blender macbook composition render to home-server via render-remote.
 #
 # usage: render-macbook [--look] [--engine EEVEE|CYCLES] [--job ID] [--out DIR]
-#                      [--at N] [--config JSON] RECORDING
+#                      [--at N] [--config JSON] [--start N] [--end N]
+#                      [--gpu] [--no-sync] RECORDING
 #
 # This ssh's to home-server and rsyncs the composition there. Run it only when
-# the user asked for a remote render in the current turn.
+# the user asked for a remote render in the current turn. Headless (no --gpu)
+# is the default: with --gpu, Blender 5.1.1 under xvfb segfaults on this scene.
 set -euo pipefail
 
 DIR=${MACBOOK_DIR:-/home/e/dev/coverlttr/misc/video/hyperframes/compositions/digital/mockup/devices/laptop/macbook}
 
 usage() {
-  sed -n '2,8p' "$0" | sed 's/^# \?//'
+  sed -n '2,10p' "$0" | sed 's/^# \?//'
 }
 
 die() {
@@ -19,7 +21,7 @@ die() {
   exit 1
 }
 
-look=0 engine="" job="" out="" at="" config="" recording=""
+look=0 engine="" job="" out="" at="" config="" start="" end="" gpu=0 no_sync=0 recording=""
 while (($#)); do
   case "$1" in
     --look) look=1; shift ;;
@@ -28,6 +30,10 @@ while (($#)); do
     --out) out=${2:?--out needs a directory}; shift 2 ;;
     --at) at=${2:?--at needs a second}; shift 2 ;;
     --config) config=${2:?--config needs a JSON file}; shift 2 ;;
+    --start) start=${2:?--start needs a frame number}; shift 2 ;;
+    --end) end=${2:?--end needs a frame number}; shift 2 ;;
+    --gpu) gpu=1; shift ;;
+    --no-sync) no_sync=1; shift ;;
     -h | --help) usage; exit 0 ;;
     -*) die "unknown option: $1" ;;
     *)
@@ -44,6 +50,13 @@ done
 [[ -f "$DIR/scene.json" ]] || die "no scene.json in $DIR"
 [[ -z "$config" || -f "$config" ]] || die "not a file: $config"
 [[ -z "$engine" || "$engine" == EEVEE || "$engine" == CYCLES ]] || die "--engine must be EEVEE or CYCLES"
+for number in "$start" "$end"; do
+  [[ -z "$number" || "$number" =~ ^[0-9]+$ ]] || die "--start/--end need positive integers"
+done
+[[ "$start" != 0 && "$end" != 0 ]] || die "--start/--end are 1-based"
+if ((look)) && [[ -n "$start$end" ]]; then
+  die "--start/--end are for a frame range, not --look"
+fi
 
 tmp=""
 cleanup() {
@@ -78,11 +91,25 @@ frames_total=$(jq -r '(.duration * .fps | floor)' <<<"$merged")
 uploads=("$recording")
 remote_recording="../in/$(basename -- "$recording")"
 
+range=0
+if [[ -n "$start$end" ]]; then
+  range=1
+  first=${start:-1}
+  last=${end:-$frames_total}
+  ((first <= last)) || die "--start must not exceed --end"
+  ((last <= frames_total)) || die "--end $last exceeds the $frames_total-frame shot"
+fi
+
 if ((look)); then
   pull=out/still.png
   progress=""
   cmd=(make -C src look OUT=../out RECORDING="$remote_recording")
   [[ -z "$at" ]] || cmd+=("AT=$at")
+elif ((range)); then
+  # Re-bake only the requested frames into an existing out/frames; no encode.
+  pull='out/frames/*.png'
+  progress="out/frames/*.png:$((last - first + 1))"
+  cmd=(make -C src frames OUT=../out RECORDING="$remote_recording" "START=$first" "END=$last")
 else
   pull=out/macbook.mp4
   progress="out/frames/*.png:$frames_total"
@@ -98,13 +125,18 @@ args=(run --pull "$pull")
 [[ -z "$out" ]] || args+=(--out "$out")
 [[ -z "$job" ]] || args+=(--job "$job")
 [[ -z "$progress" ]] || args+=(--progress "$progress")
-if [[ "$resolved_engine" == EEVEE ]]; then
+if ((gpu)); then
+  printf 'render-macbook: --gpu uses gpu-lease (stops llama-cpp.service) and Blender 5.1.1 segfaults under xvfb on this scene; headless is the tested path\n' >&2
   args+=(--gpu)
 fi
+((no_sync == 0)) || args+=(--no-sync)
 for file in "${uploads[@]}"; do
   args+=(--upload "$file")
 done
 args+=("$DIR" -- "${cmd[@]}")
 
-echo "engine=$resolved_engine frames=$frames_total mode=$([[ $look == 1 ]] && echo look || echo render)" >&2
+mode=render
+((look == 0)) || mode=look
+((range == 0)) || mode="frames $first-$last"
+echo "engine=$resolved_engine frames=$frames_total mode=$mode gpu=$gpu" >&2
 render-remote "${args[@]}"
