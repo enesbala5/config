@@ -7,3 +7,6 @@
 [submodule "nix/nixos/hosts/framework-13/home/programs/quiet-md-nix"]
 	path = nix/nixos/hosts/framework-13/home/programs/quiet-md-nix
 	url = https://github.com/enesbala5/quiet-md-nix.git
+[submodule "herdr-t3-worktrees"]
+	path = herdr-t3-worktrees
+	url = git@github.com:enesbala5/herdr-t3-worktrees.git

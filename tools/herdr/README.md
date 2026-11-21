@@ -33,6 +33,30 @@ tools/herdr/
 └── README.md
 ```
 
+## Published layout (submodule)
+
+`herdr-t3-worktrees/` at the repo root is a git submodule pointing at the
+public [enesbala5/herdr-t3-worktrees](https://github.com/enesbala5/herdr-t3-worktrees)
+repo (topic `herdr-layout`). It is the single source of truth for the desktop
+mods and the T3 worktrees layout: `desktop.nix` copies mods from
+`herdr-t3-worktrees/mods/` and symlinks
+`~/.config/herdr-app/layouts/herdr-t3-worktrees.{json,svg}` from it. The
+gallery repo's `keys.json` is only a shareable snippet; this repo's
+`desktop/keys.json` is the full personal keymap and binds the picker as
+`mod.open:t3-picker` so it matches the published, renamed mod.
+
+The rebuild script runs `git submodule update --init --recursive` first, so a
+rebuild uses the exact revision recorded here. To pull the newest published
+gallery revision into this config:
+
+```sh
+git -C ~/config submodule update --remote herdr-t3-worktrees
+git -C ~/config add herdr-t3-worktrees
+```
+
+Then commit the pointer change with the rest of your config work. The older
+`desktop/mods/` folder is legacy and no longer the source for those mods.
+
 Home-manager (`nix/nixos/modules/home/programs/herdr/`, enabled per host)
 symlinks `config.toml`, `plugins/auto-title/config.env`,
 `plugins/herdr-bar/config.json`, `plugins/ovis/env`, and (when desktop is

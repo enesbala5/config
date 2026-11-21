@@ -10,7 +10,12 @@
 let
   cfg = config.modules.home.herdr;
   packages = pkgs.callPackage ./packages.nix { };
-  desktopModsSrc = "${data.configDirectory}/tools/herdr/desktop/mods";
+  # The published gallery repo is a submodule of this config and is the source
+  # of truth for the desktop mods and the T3 worktrees layout. A submodule
+  # update followed by a rebuild picks up published changes without copying
+  # files into this repo a second time.
+  gallerySrc = "${data.configDirectory}/herdr-t3-worktrees";
+  desktopModsSrc = "${gallerySrc}/mods";
   # herdr-app's shipped SVG often fails to show in launchers; reuse the
   # GPUI artwork (same brand mark) under the herdr-app icon name, with the
   # graphite mark ~10% darker so the launcher tile reads a bit denser.
@@ -20,8 +25,9 @@ let
     ${pkgs.gnused}/bin/sed 's/#303438/#2b2e32/g' ${herdrGpuiSvg} > $out
   '';
   # Shipped mods under ~/.config/herdr-app/mods are restored on every
-  # herdr-app start. Re-apply every folder in tools/herdr/desktop/mods/
-  # after launch so hot-reload picks them up.
+  # herdr-app start. Re-apply every folder in the gallery submodule's mods/
+  # after launch so hot-reload picks them up. Renamed mods (t3-picker,
+  # t3-toast, ...) never replace a shipped mod; the layout points at them.
   herdrAppDesktop = pkgs.writeShellScriptBin "herdr-app-desktop" ''
     set -euo pipefail
     src=${lib.escapeShellArg desktopModsSrc}
@@ -58,11 +64,18 @@ in
 
     home.packages = [ packages.herdr-app ];
 
-    # Same pattern as the TUI config.toml: only keys.json is managed; the rest
-    # of ~/.config/herdr-app stays writable runtime state (desktop/mods are
-    # re-applied by the desktop entry wrapper after herdr-app restores shipped mods).
+    # Same pattern as the TUI config.toml: the keys and the published T3
+    # worktrees layout are managed; the rest of ~/.config/herdr-app stays
+    # writable runtime state (mods are re-applied by the desktop entry wrapper
+    # after herdr-app restores shipped mods). Clicks still live in layouts/.state.
     home.file.".config/herdr-app/keys.json" = {
       source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/desktop/keys.json";
+    };
+    home.file.".config/herdr-app/layouts/herdr-t3-worktrees.json" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${gallerySrc}/layouts/herdr-t3-worktrees.json";
+    };
+    home.file.".config/herdr-app/layouts/herdr-t3-worktrees.svg" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${gallerySrc}/layouts/herdr-t3-worktrees.svg";
     };
 
     # Cursor → herdr-core OSC 7501 bridge (Desktop Agents sidebar). See

@@ -114,6 +114,18 @@ if [ "$HAS_NIXFMT" = false ]; then
     fi
 fi
 
+# Materialize pinned submodules (including the published Herdr gallery repo)
+# so a rebuild always uses the code this config revision records. Advancing a
+# submodule to the newest published revision is a separate, deliberate step:
+#   git -C ~/config submodule update --remote herdr-t3-worktrees
+#   git -C ~/config add herdr-t3-worktrees
+if [ "$HAS_GIT" = true ]; then
+    echo "--------------------------------------"
+    echo "Updating submodules..."
+    (cd "$HOME/config" && git submodule update --init --recursive) ||
+        echo "Submodule update failed; rebuilding with the current checkout."
+fi
+
 # Change to your NixOS configuration directory
 pushd ~/config/nix/nixos/
 
