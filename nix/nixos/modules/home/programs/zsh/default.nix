@@ -72,6 +72,17 @@
       bindkey '^[[1;6D' zle-select-word-left
       bindkey '^[[1;6C' zle-select-word-right
 
+      # A plain arrow drops the selection and just moves the cursor. Bind the
+      # sequences zsh uses for arrows in both normal and application cursor mode.
+      zle-plain-left()  { REGION_ACTIVE=0; zle .backward-char }
+      zle-plain-right() { REGION_ACTIVE=0; zle .forward-char }
+      zle -N zle-plain-left
+      zle -N zle-plain-right
+      bindkey '^[[D' zle-plain-left
+      bindkey '^[OD' zle-plain-left
+      bindkey '^[[C' zle-plain-right
+      bindkey '^[OC' zle-plain-right
+
       # Typing over an active selection replaces it, like a normal editor.
       zle-select-self-insert() {
         if (( REGION_ACTIVE )); then
@@ -81,6 +92,26 @@
         zle .self-insert
       }
       zle -N self-insert zle-select-self-insert
+
+      # Esc-w / Esc-W copy the selection. End the selection and leave the
+      # cursor at its right edge. Ctrl+Shift+X cuts it instead (CSI-u 120;6u).
+      zle-select-copy() {
+        local mark=$MARK cursor=$CURSOR
+        zle .copy-region-as-kill
+        if (( mark != cursor )); then
+          (( mark > cursor )) && CURSOR=$mark
+          REGION_ACTIVE=0
+        fi
+      }
+      zle -N copy-region-as-kill zle-select-copy
+
+      zle-select-cut() {
+        (( REGION_ACTIVE )) || return 0
+        zle .kill-region
+        REGION_ACTIVE=0
+      }
+      zle -N zle-select-cut
+      bindkey '^[[120;6u' zle-select-cut
 
       setopt AUTO_CD
       ''
