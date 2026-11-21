@@ -446,6 +446,9 @@
 
   # Fonts
   fonts = {
+    # Test PR #47's only effective change: RGB subpixel rendering.
+    fontconfig.subpixel.rgba = "rgb";
+
     packages = with pkgs; [
       corefonts
       vista-fonts
