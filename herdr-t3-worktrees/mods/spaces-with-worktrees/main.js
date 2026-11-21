@@ -1,0 +1,1 @@
+/home/e/config/tools/herdr/desktop/mods/spaces-with-worktrees/main.js
