@@ -86,11 +86,20 @@ let
 
       # Wrap each launcher with its runtime library path while leaving the
       # underlying ELF binaries untouched (see note above).
-      for b in aliasmode aliasmode-sidecar aliasmode-mcp; do
-        mv "$out/bin/$b" "$out/bin/$b.real"
-        makeWrapper "$out/bin/$b.real" "$out/bin/$b" \
-          --prefix NIX_LD_LIBRARY_PATH : "${libPath}"
-      done
+      wrapLauncher() {
+        local bin="$1"
+        shift
+        mv "$out/bin/$bin" "$out/bin/$bin.real"
+        makeWrapper "$out/bin/$bin.real" "$out/bin/$bin" \
+          --prefix NIX_LD_LIBRARY_PATH : "${libPath}" "$@"
+      }
+
+      # WebKitGTK renders a blank webview under the Wayland GDK backend on this
+      # host: Tauri disables accelerated compositing, and the software path
+      # never paints the page. XWayland renders it correctly.
+      wrapLauncher aliasmode --set GDK_BACKEND x11
+      wrapLauncher aliasmode-sidecar
+      wrapLauncher aliasmode-mcp
 
       runHook postInstall
     '';
