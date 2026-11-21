@@ -83,6 +83,12 @@ while (($#)); do
   shift
 done
 [[ -n "$out" ]] || exit 64
+[[ -z "${FAKE_NO_OUTPUT:-}" ]] || exit 0
+if [[ -n "${FAKE_EARLY_ERROR:-}" ]]; then
+  echo "OSError: Python file blender/main.py could not be opened" >&2
+  for ((i = 1; i <= 30; i++)); do echo "noise line $i"; done
+  exit 0
+fi
 mkdir -p "$out/frames"
 if [[ "$target" == look ]]; then
   printf 'still\n' >"$out/still.png"
@@ -142,6 +148,7 @@ check() { # check <name> <test args...>
     fails=$((fails + 1))
   fi
 }
+jq_ok() { jq -e "$1" "$2" >/dev/null; }
 
 comp="$work/comp"
 rec="$work/input/take.mp4"
@@ -215,7 +222,76 @@ run unreachable 1 watch happy --out "$work/out-u" || true
 expect unreachable "the job continues there"
 unset FAKE_SSH_DOWN
 
-# 7. argument errors
+# 7. exit 0 with no outputs is a failure, not a done job
+export FAKE_NO_OUTPUT=1
+if run no-output 1 run --job no-output --out "$work/out-no" \
+  --pull 'out/macbook.mp4' "$comp" \
+  -- make -C src render OUT=../out RECORDING=../in/take.mp4; then
+  expect no-output "job failed"
+  expect no-output "no files matched --pull"
+  check no-output-status jq_ok '.state == "failed" and .exit_code == 0 and .pulled == 0' \
+    "$FAKE_REMOTE_HOME/render-jobs/no-output/status.json"
+fi
+unset FAKE_NO_OUTPUT
+
+# 7b. an early error in a long log still reaches status.json
+export FAKE_EARLY_ERROR=1
+if run early-error 1 run --job early-error --out "$work/out-early" \
+  --pull 'out/macbook.mp4' "$comp" \
+  -- make -C src render OUT=../out RECORDING=../in/take.mp4; then
+  expect early-error "OSError: Python file blender/main.py could not be opened"
+fi
+unset FAKE_EARLY_ERROR
+
+# 8. exit 0 with unmet --progress is a failure too
+export FAKE_FRAMES=2
+if run short-progress 1 run --job short --out "$work/out-short" \
+  --progress 'out/frames/*.png:4' --pull 'out/macbook.mp4' "$comp" \
+  -- make -C src render OUT=../out RECORDING=../in/take.mp4; then
+  expect short-progress "job failed"
+  expect short-progress "progress only 2/4"
+fi
+unset FAKE_FRAMES
+
+# 9. status and logs expose the real cause, not just a squashed tail
+run status-failed 1 status flaky || true
+expect status-failed "command exit code: 7"
+expect status-failed "fake make exploded"
+run logs-failed 0 logs flaky
+expect logs-failed "fake make exploded"
+
+# 10. --gpu-no-lease keeps the LLM service up
+: >"$work/calls"
+if run no-lease 0 run --job nolease --out "$work/out-nl" \
+  --pull 'out/macbook.mp4' --gpu-no-lease "$comp" \
+  -- make -C src render OUT=../out RECORDING=../in/take.mp4; then
+  check no-lease-xvfb grep -q xvfb "$work/calls"
+  check no-lease-no-lease bash -c '! grep -q lease "$FAKE_CALLS"'
+fi
+
+# 11. --no-sync reuses staged assets, but refuses an unstaged job
+run unstaged 1 run --job staged --no-sync --out "$work/out-staged" \
+  --pull 'out/macbook.mp4' "$comp" \
+  -- make -C src render OUT=../out RECORDING=../in/take.mp4 || true
+expect unstaged "already staged"
+if run staged 0 run --job staged --out "$work/out-staged" \
+  --pull 'out/macbook.mp4' "$comp" \
+  -- make -C src render OUT=../out RECORDING=../in/take.mp4; then
+  check staged-result test -s "$work/out-staged/macbook.mp4"
+fi
+if run nosync 0 run --job staged --no-sync --out "$work/out-nosync" \
+  --pull 'out/macbook.mp4' "$comp" \
+  -- make -C src render OUT=../out RECORDING=../in/take.mp4; then
+  expect nosync "reusing staged"
+  check nosync-result test -s "$work/out-nosync/macbook.mp4"
+fi
+
+# 12. the documented paths match the actual job layout
+run help 0 --help
+expect help "src/blender/main.py"
+expect help "llama-cpp.service"
+
+# 13. argument errors
 run no-args 2 || true
 run bad-job 2 status "Not_Kebab" || true
 run no-dir 2 run --job x || true

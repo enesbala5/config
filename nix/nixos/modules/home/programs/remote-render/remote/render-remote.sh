@@ -21,23 +21,34 @@ RSYNC=(rsync -a -s --partial -e "ssh -o BatchMode=yes -o ConnectTimeout=20")
 usage() {
   cat <<'EOF'
 usage:
-  render-remote run [--job ID] [--out DIR] [--gpu] [--no-wait]
+  render-remote run [--job ID] [--out DIR] [--gpu] [--gpu-no-lease]
+                    [--no-wait] [--no-sync]
                     [--progress GLOB:TOTAL] [--pull GLOB]... [--upload FILE]...
                     DIR -- CMD ARGS...
   render-remote watch  JOB [--out DIR]    re-attach: show progress, pull as files finish
   render-remote status JOB                one-shot summary
   render-remote pull   JOB [--out DIR]    fetch finished files, do not wait
+  render-remote logs   JOB                print the job's run.log from the host
 
   run       syncs DIR to the render host, uploads extra FILEs to in/, then runs
-            CMD in the job directory. CMD sees DIR as ./src and uploaded files
-            as ./in/<basename>. Use OUT=../out to write into the job's out/.
+            CMD with the job directory as cwd. Paths from that cwd: DIR is
+            ./src, uploads are ./in/<basename>, results go in ./out. A command
+            run via 'make -C src' uses OUT=../out because make changes into src;
+            a direct command uses --out out and -P src/blender/main.py. OUT=../out
+            without -C src writes outside the job and is never pulled.
   --progress count matches of GLOB toward TOTAL (e.g. 'out/frames/*.png:180').
+            Exiting 0 without reaching TOTAL is a failure, not a done job.
   --pull    a glob relative to the job dir; its matches are copied back by
-            basename into --out (default: <dir of DIR>/rendered).
+            basename into --out (default: <dir of DIR>/rendered). No matches
+            at all also makes a zero-exit command a failure.
   --upload  an extra local file, available to CMD as in/<basename>.
-  --gpu     wrap CMD in gpu-lease -- xvfb-run -a on the host.
+  --gpu     wrap CMD in gpu-lease -- xvfb-run -a on the host. gpu-lease stops
+            llama-cpp.service for the duration; in-flight /v1 requests fail.
+  --gpu-no-lease wrap CMD in xvfb-run -a only; llama-cpp keeps running.
+  --no-sync skip syncing DIR; use an existing job's staged src/ and upload only
+            the per-shot files with --upload (reuse the same --job).
   --job     lowercase kebab-case id (default: basename of DIR plus a stamp).
-            Reuse an id to resume a finished job.
+            Reuse an id to make rsync incremental and to reuse staged assets.
 
 exit: 0 all done and pulled, 1 failed, 2 usage, 3 status: still running
 The job keeps running on the host if this command or the laptop stops.
@@ -86,6 +97,18 @@ EOF
   return 0
 }
 
+# Status queries over the tunnel can hit a transient connection reset; a short
+# retry keeps `status` and `pull` from failing on the first hiccup.
+fetch_state_with_retry() {
+  local attempt
+  for ((attempt = 1; attempt <= 3; attempt++)); do
+    fetch_state && return 0
+    ((attempt == 3)) && break
+    sleep 1
+  done
+  return 1
+}
+
 remote_log_tail() {
   "${SSH[@]}" "$HOST" "tail -n 15 '$ROOT/$JOB/run.log' 2>/dev/null" || true
 }
@@ -121,7 +144,20 @@ summary_line() {
 }
 
 failure_report() {
-  jq -r '.error // "no error in status"' <<<"$STATUS_JSON" >&2
+  jq -r '
+    "state=\(.state) exit_code=\(.exit_code // "unknown")"
+    + (if .progress_total then " progress=\(.progress_done // 0)/\(.progress_total)" else "" end)
+    + (if .error then "\n\(.error)" else "\nno error in status" end)
+  ' <<<"$STATUS_JSON" >&2
+}
+
+# A worker that exits 0 still has to meet the contract it was given. Older
+# status.json files without pull_total/pulled pass by default.
+contract_ok() {
+  jq -e '
+    ((.progress_total // 0) == 0 or (.progress_done // 0) >= .progress_total)
+    and ((.pull_total // 0) == 0 or (.pulled // 1) > 0)
+  ' <<<"$STATUS_JSON" >/dev/null 2>&1
 }
 
 remember_out() {
@@ -163,11 +199,16 @@ watch_job() {
     fi
 
     if [[ "$state" == "done" ]]; then
+      if ! contract_ok; then
+        failure_report
+        die "job claimed done but missed its --progress/--pull contract; inspect with: render-remote logs $JOB. Rerun with: --job $JOB"
+      fi
       echo "all done; results in $OUT_DIR"
       return 0
     fi
     if [[ "$state" == failed ]]; then
       failure_report
+      echo "full log: render-remote logs $JOB" >&2
       die "job failed; finished files were copied to $OUT_DIR. Fix and rerun with: --job $JOB"
     fi
     if [[ "$ALIVE" == 0 ]]; then
@@ -180,7 +221,7 @@ watch_job() {
 }
 
 cmd_run() {
-  local JOB="" OUT_DIR="" progress="" gpu=0 no_wait=0
+  local JOB="" OUT_DIR="" progress="" gpu=0 no_lease=0 no_wait=0 no_sync=0
   local uploads=() pulls=() dir="" cmd=()
   while (($#)); do
     case "$1" in
@@ -190,7 +231,9 @@ cmd_run() {
       --pull) pulls+=("${2:?--pull needs a glob}"); shift 2 ;;
       --upload) uploads+=("${2:?--upload needs a file}"); shift 2 ;;
       --gpu) gpu=1; shift ;;
+      --gpu-no-lease) gpu=1; no_lease=1; shift ;;
       --no-wait) no_wait=1; shift ;;
+      --no-sync) no_sync=1; shift ;;
       -h | --help) usage; exit 0 ;;
       --)
         shift
@@ -261,15 +304,17 @@ if command -v xvfb-run >/dev/null 2>&1; then echo xvfb=1; else echo xvfb=0; fi
 if command -v gpu-lease >/dev/null 2>&1; then echo lease=1; else echo lease=0; fi
 if command -v setsid >/dev/null 2>&1; then echo setsid=1; else echo setsid=0; fi
 if [ -f "$1/pid" ] && kill -0 "$(cat "$1/pid")" 2>/dev/null; then echo alive=1; else echo alive=0; fi
+find "$1/src" -type f -print -quit 2>/dev/null | sed 's/.*/srcfiles=1/'
 EOF
   ) || die "cannot reach $HOST over ssh"
-  local worker tools xvfb lease setsid_ok alive
+  local worker tools xvfb lease setsid_ok alive staged
   worker=$(sed -n '/^worker=/{s///p;q}' <<<"$pre")
   tools=$(sed -n '/^tools:/{s///p;q}' <<<"$pre")
   xvfb=$(sed -n '/^xvfb=/{s///p;q}' <<<"$pre")
   lease=$(sed -n '/^lease=/{s///p;q}' <<<"$pre")
   setsid_ok=$(sed -n '/^setsid=/{s///p;q}' <<<"$pre")
   alive=$(sed -n '/^alive=/{s///p;q}' <<<"$pre")
+  staged=$(sed -n '/^srcfiles=/{s///p;q}' <<<"$pre")
   [[ "$worker" == 1 ]] || die "render-worker on $HOST is missing. Rebuild $HOST from this config first; nothing was uploaded."
   [[ " $tools " == *" jq "* ]] || die "jq is missing on $HOST; nothing was uploaded."
   [[ "$setsid_ok" == 1 ]] || die "setsid is missing on $HOST; nothing was uploaded."
@@ -277,12 +322,21 @@ EOF
     [[ " $tools " == *" $file "* ]] || printf 'render-remote: warning: %s is missing on %s\n' "$file" "$HOST" >&2
   done
   if ((gpu)); then
-    [[ "$xvfb" == 1 && "$lease" == 1 ]] || die "--gpu needs xvfb-run and gpu-lease on $HOST; nothing was uploaded."
+    [[ "$xvfb" == 1 ]] || die "--gpu needs xvfb-run on $HOST; nothing was uploaded."
+    if ((no_lease == 0)); then
+      [[ "$lease" == 1 ]] || die "--gpu needs gpu-lease on $HOST (or use --gpu-no-lease); nothing was uploaded."
+      printf 'render-remote: --gpu stops llama-cpp.service on %s for this job; in-flight /v1 requests will fail\n' "$HOST" >&2
+    fi
   fi
   [[ "$alive" == 0 ]] || die "job $JOB is already running on $HOST; attach with: render-remote watch $JOB"
 
-  echo "uploading $dir to $HOST:$ROOT/$JOB/src/"
-  "${RSYNC[@]}" --exclude 'out/' --exclude '.git/' -- "$dir/" "$HOST:$ROOT/$JOB/src/" || die "upload failed"
+  if ((no_sync)); then
+    [[ "$staged" == 1 ]] || die "--no-sync needs an already staged src/ for job $JOB on $HOST; run once without --no-sync first"
+    echo "reusing staged $HOST:$ROOT/$JOB/src/ (no sync)"
+  else
+    echo "uploading $dir to $HOST:$ROOT/$JOB/src/"
+    "${RSYNC[@]}" --exclude 'out/' --exclude '.git/' -- "$dir/" "$HOST:$ROOT/$JOB/src/" || die "upload failed"
+  fi
   if ((${#uploads[@]})); then
     echo "uploading ${#uploads[@]} extra file(s) to $HOST:$ROOT/$JOB/in/"
     "${RSYNC[@]}" -- "${uploads[@]}" "$HOST:$ROOT/$JOB/in/" || die "upload of extra files failed"
@@ -292,7 +346,9 @@ EOF
   local args=(render-worker)
   [[ -z "$progress" ]] || args+=(--progress "$progress")
   for pull in "${pulls[@]+"${pulls[@]}"}"; do args+=(--pull "$pull"); done
-  ((gpu == 0)) || args+=(--gpu)
+  if ((gpu)); then
+    if ((no_lease)); then args+=(--gpu-no-lease); else args+=(--gpu); fi
+  fi
   args+=(-- "${cmd[@]}")
   {
     echo '#!/usr/bin/env bash'
@@ -342,16 +398,26 @@ cmd_pull() {
   [[ -n "$JOB" ]] || usage_error "pull needs a job id"
   valid_job "$JOB"
   resolve_out
-  fetch_state || die "cannot reach $HOST over ssh"
+  fetch_state_with_retry || die "cannot reach $HOST over ssh"
   pull_ready || die "copying a result from $HOST failed"
   echo "pulled $PULLED file(s) into $OUT_DIR"
+}
+
+cmd_logs() {
+  local JOB=${1:-}
+  shift || true
+  (($# == 0)) || usage_error "logs takes only a job id"
+  [[ -n "$JOB" ]] || usage_error "logs needs a job id"
+  valid_job "$JOB"
+  "${SSH[@]}" "$HOST" "test -f '$ROOT/$JOB/run.log' && cat '$ROOT/$JOB/run.log'" \
+    || die "no log for job $JOB on $HOST (check: render-remote status $JOB)"
 }
 
 cmd_status() {
   JOB=${1:-}
   [[ -n "$JOB" ]] || usage_error "status needs a job id"
   valid_job "$JOB"
-  fetch_state || die "cannot reach $HOST over ssh"
+  fetch_state_with_retry || die "cannot reach $HOST over ssh"
   if [[ -z "$STATUS_JSON" ]]; then
     echo "no status yet (process alive=$ALIVE exit=$EXIT_CODE)"
     [[ "$ALIVE" == 1 ]] && exit 3
@@ -361,8 +427,19 @@ cmd_status() {
   summary_line
   jq -r '.state | "  state\t\(.)"' <<<"$STATUS_JSON"
   case "$(jq -r .state <<<"$STATUS_JSON")" in
-    "done") exit 0 ;;
-    failed) failure_report; exit 1 ;;
+    "done")
+      contract_ok || {
+        echo "render-remote: job claimed done but missed its --progress/--pull contract" >&2
+        echo "full log: render-remote logs $JOB" >&2
+        exit 1
+      }
+      exit 0
+      ;;
+    failed)
+      failure_report
+      echo "full log: render-remote logs $JOB" >&2
+      exit 1
+      ;;
     *) [[ "$ALIVE" == 1 ]] && exit 3
        echo "process is gone without finishing (exit=$EXIT_CODE)" >&2
        exit 1 ;;
@@ -375,6 +452,7 @@ case "$subcommand" in
   run) cmd_run "$@" ;;
   watch) cmd_watch "$@" ;;
   pull) cmd_pull "$@" ;;
+  logs) cmd_logs "$@" ;;
   status) cmd_status "$@" ;;
   -h | --help | help) usage ;;
   *) usage >&2; exit 2 ;;
