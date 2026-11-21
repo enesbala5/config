@@ -508,6 +508,7 @@ in
       piper
       qemu
       quickemu
+      moonlight-qt # Game-streaming client (pairs with Sunshine)
       converseen
       dnsmasq
       phodav
