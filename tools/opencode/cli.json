@@ -1,0 +1,30 @@
+{
+  "$schema": "https://opencode.ai/v2/cli.json",
+  "theme": {
+    "name": "github"
+  },
+  "attention": {
+    "enabled": true,
+    "sound": true,
+    "volume": 0.4
+  },
+  "diffs": {
+    "wrap": "word"
+  },
+  "session": {
+    "sidebar": "hide",
+    "scrollbar": true,
+    "thinking": "hide"
+  },
+  "animations": true,
+  "keybinds": {
+    "session.new": "ctrl+t",
+    "session.tab.close": "ctrl+w",
+    "variant.cycle": "ctrl+alt+t",
+    "input.delete.word.backward": "alt+backspace",
+    "session.last": "ctrl+alt+g,end,ctrl+alt+down",
+    "session.first": "ctrl+g,home,alt+home,ctrl+alt+up",
+    "which-key.scroll.up": "ctrl+alt+p",
+    "which-key.scroll.down": "ctrl+alt+n"
+  }
+}

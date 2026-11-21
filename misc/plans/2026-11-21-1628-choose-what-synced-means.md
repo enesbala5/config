@@ -1,13 +1,13 @@
 # Plan: Make cli.json the source of truth for personal ...
 
-- Status: draft
-- Created: 2026-11-21T15:36:45.824Z
+- Status: in progress
+- Created: 2026-11-21T17:01:15.044Z
 - Project: `/home/e/config`
 
 ## Steps
 
-- [ ] 1. Make cli.json the source of truth for personal ...
-- [ ] 2. Link just cli.json, not the whole directory.
+- [x] 1. Make cli.json the source of truth for personal ...
+- [x] 2. Link just cli.json, not the whole directory.
 - [ ] 3. Link and the Git workflow.
 
 ## Plan
