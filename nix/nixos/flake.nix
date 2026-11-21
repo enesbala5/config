@@ -181,6 +181,14 @@
       url = "github:donutbrowser/donutbrowser";
       # Upstream flake pins its own nixpkgs; do not force follows.
     };
+
+    claude-desktop = {
+      url = "github:k3d3/claude-desktop-linux-flake";
+      # Pin the flake's nixpkgs to the rev from its own flake.lock (2025-06).
+      # Neither our 26.05 nixpkgs nor a floating nixpkgs-unstable works:
+      # claude-desktop.nix uses nodePackages.asar, removed from nixpkgs later.
+      inputs.nixpkgs.url = "github:nixos/nixpkgs/6ad174a6dc07c7742fc64005265addf87ad08615";
+    };
   };
 
   outputs =

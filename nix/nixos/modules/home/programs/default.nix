@@ -28,6 +28,7 @@
     ./davinci-resolve
     ./quiet-md
     ./chatgpt
+    ./claude-desktop
     ./easyeffects
     ./upscaling
     ./remote-render

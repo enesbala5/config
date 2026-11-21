@@ -32,6 +32,10 @@
     modules.home.davinciResolve.enable = false;
     modules.home.quietMd.enable = true;
     modules.home.chatgpt.enable = true;
+    modules.home.claudeDesktop = {
+      enable = true;
+      fhs = true; # MCP servers need npx/uvx/docker available inside Claude Desktop.
+    };
     modules.home.easyeffects.enable = true;
 
     # Client for the GPU host: upscale-remote copies clips to home-server, runs
