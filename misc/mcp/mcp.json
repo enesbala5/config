@@ -102,6 +102,11 @@
 			"command": "/etc/profiles/per-user/e/bin/hypruse",
 			"args": [],
 			"description": "Hyprland computer use: screenshot, windows, pointer and keyboard."
+		},
+		"blender": {
+			"command": "/home/e/.nix-profile/bin/uv",
+			"args": ["--directory", "/home/e/blender_mcp/mcp", "run", "blender-mcp"],
+			"description": "Blender MCP: inspect and edit the open scene via the Blender Lab add-on on localhost:9876."
 		}
 	}
 }

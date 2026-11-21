@@ -126,6 +126,17 @@
 			"args": [],
 			"env": {},
 			"enabled": true
+		},
+		"blender": {
+			"command": "/home/e/.nix-profile/bin/uv",
+			"args": [
+				"--directory",
+				"/home/e/blender_mcp/mcp",
+				"run",
+				"blender-mcp"
+			],
+			"env": {},
+			"enabled": true
 		}
 	},
 	"inlay_hints": {
