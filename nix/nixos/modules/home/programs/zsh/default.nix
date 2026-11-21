@@ -50,6 +50,38 @@
         bindkey "''${terminfo[kLFT5]}" backward-word
       fi
 
+      # Shift+arrows select text in the prompt; Ctrl+Shift+arrows select by word.
+      # kitty sends CSI 1;2{D,C} for shift and CSI 1;6{D,C} for ctrl+shift;
+      # its own ctrl+shift+arrow tab bindings are disabled in kitty.nix.
+      # zsh highlights the active region via its built-in zle_highlight.
+      zle-select-move() {
+        (( REGION_ACTIVE )) || zle set-mark-command
+        zle "$1"
+      }
+      zle-select-char-left()  { zle-select-move backward-char }
+      zle-select-char-right() { zle-select-move forward-char }
+      zle-select-word-left()  { zle-select-move backward-word }
+      zle-select-word-right() { zle-select-move forward-word }
+      zle -N zle-select-char-left
+      zle -N zle-select-char-right
+      zle -N zle-select-word-left
+      zle -N zle-select-word-right
+
+      bindkey '^[[1;2D' zle-select-char-left
+      bindkey '^[[1;2C' zle-select-char-right
+      bindkey '^[[1;6D' zle-select-word-left
+      bindkey '^[[1;6C' zle-select-word-right
+
+      # Typing over an active selection replaces it, like a normal editor.
+      zle-select-self-insert() {
+        if (( REGION_ACTIVE )); then
+          zle kill-region
+          REGION_ACTIVE=0
+        fi
+        zle .self-insert
+      }
+      zle -N self-insert zle-select-self-insert
+
       setopt AUTO_CD
       ''
     ];

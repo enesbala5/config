@@ -29,10 +29,25 @@
 
       # Kitty's defaults are ctrl+tab next_tab and ctrl+shift+tab previous_tab.
       # Hand those chords to Herdr (Tab = codepoint 9; 5 = ctrl, 6 = ctrl+shift).
-      # Kitty tabs stay on ctrl+shift+left / ctrl+shift+right.
       "ctrl+tab" = "send_text all \\x1b[9;5u";
       "ctrl+shift+tab" = "send_text all \\x1b[9;6u";
-    };
+
+      # This setup uses Herdr's tabs, never kitty's. Disable every kitty tab
+      # shortcut so the chords pass through to the app. In particular,
+      # ctrl+shift+left/right would otherwise switch kitty tabs before zsh
+      # can use them for word-wise prompt selection. ctrl+tab and
+      # ctrl+shift+tab above stay as Herdr forwards (they are not kitty tabs).
+      "ctrl+shift+left" = "no_op"; # was previous_tab
+      "ctrl+shift+right" = "no_op"; # was next_tab
+      "ctrl+shift+t" = "no_op"; # was new_tab
+      "ctrl+shift+q" = "no_op"; # was close_tab
+      "ctrl+shift+." = "no_op"; # was move_tab_forward
+      "ctrl+shift+," = "no_op"; # was move_tab_backward
+    }
+    // builtins.listToAttrs (map (n: {
+      name = "ctrl+shift+${toString n}";
+      value = "no_op"; # was goto_tab n
+    }) (lib.range 1 9));
 
     # shellIntegration = {
     #   enableZshIntegration = true;
