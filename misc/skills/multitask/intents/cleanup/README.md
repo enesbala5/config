@@ -1,13 +1,12 @@
----
-name: worktree-cleanup
-description: Safely stop one worktree's verified runtime resources and remove its checkout under ~/dev/misc/worktrees. Use when finished with a task, PR, or branch prepared by multitask, or when explicitly asked to tear down a worktree.
----
+# Clean up a worktree
 
-# Worktree cleanup
+A cleanup request is enough to start this procedure; do not ask for a separate
+confirmation to begin. Confirmations for forced removal, discarding work or
+data, and Herdr closure still apply.
 
 Tear down only the worktree the user identifies. Leave the main checkout and
 all other worktrees and services unchanged. This is the teardown companion to
-`multitask`, not an automatic final step of that workflow.
+[setup](../setup/README.md), not an automatic final step of that workflow.
 
 ## Inputs
 
@@ -70,8 +69,8 @@ skip this step. Never use `docker system prune`.
 ## 3. Identify the matching Herdr space
 
 When Herdr is available in this session, inspect its installed CLI and live
-state before removing the checkout. For the Desktop integration used by
-`multitask`, inspect `herdr-app commands` and `herdr-app ls`. Record the exact
+state before removing the checkout. For the Desktop integration used during
+[setup](../setup/README.md), inspect `herdr-app commands` and `herdr-app ls`. Record the exact
 space ID whose folder matches the verified absolute worktree path; do not
 identify it by title, sidebar order, or indentation alone. Do not open Herdr
 just for cleanup. If no space matches, skip Herdr cleanup; if ownership is
@@ -95,6 +94,9 @@ Herdr is optional: unavailable inspection or declined closure does not prevent
 otherwise safe worktree removal. Record any space left behind for the report.
 
 ## 4. Remove the checkout
+
+Any forced removal requires explicit user confirmation for the specific target
+and reason; a request to start cleanup does not provide that confirmation.
 
 From the main checkout, first try normal removal:
 
