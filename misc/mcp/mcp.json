@@ -107,6 +107,10 @@
 			"command": "/home/e/.nix-profile/bin/uv",
 			"args": ["--directory", "/home/e/blender_mcp/mcp", "run", "blender-mcp"],
 			"description": "Blender MCP: inspect and edit the open scene via the Blender Lab add-on on localhost:9876."
+		},
+		"3dassets": {
+			"url": "https://3dassets.dev/mcp",
+			"description": "3dassets.dev: search and fetch free CC0 3D models and game asset packs (GLB)."
 		}
 	}
 }

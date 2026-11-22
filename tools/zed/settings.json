@@ -137,6 +137,10 @@
 			],
 			"env": {},
 			"enabled": true
+		},
+		"3dassets": {
+			"url": "https://3dassets.dev/mcp",
+			"enabled": true
 		}
 	},
 	"inlay_hints": {
