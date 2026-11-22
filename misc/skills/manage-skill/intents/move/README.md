@@ -40,10 +40,10 @@ to the source path.
    absolute paths → repository-relative or skill-relative paths, and any
    prerequisites or config locations that differ between repos. Do not change
    behavior beyond path portability.
-   - Worked case — `send-coverlttr-email`: its current global copy is at
-     `misc/skills/send-coverlttr-email/` in the config checkout. Moving it local
+   - Worked case — a Coverlttr-specific email skill: its current global copy
+     is at `misc/skills/<skill-name>/` in the config checkout. Moving it local
      to the coverlttr repo puts it at
-     `<coverlttr>/.agents/skills/send-coverlttr-email/`. Rewrite the
+     `<coverlttr>/.agents/skills/<skill-name>/`. Rewrite the
      `misc/emails/emails/founding-member-offer.tsx` template path and the
      absolute audience-file path into paths relative to the coverlttr repo (or
      a documented configuration value). Keep the endpoint, the

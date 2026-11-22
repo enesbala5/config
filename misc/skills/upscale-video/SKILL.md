@@ -1,6 +1,7 @@
 ---
 name: upscale-video
 description: Raise the resolution of existing video clips (for example 720p to 1080p) by running the free GPU upscaler on home-server from the laptop with `upscale-remote` (ssh + rsync). Use when the user asks to upscale, enlarge, or sharpen footage and home-server is the provider. Covers the remote-host approval gate, running and resuming a batch, and checking the output. Does not generate missing shots or edit project files.
+disable-model-invocation: true
 ---
 
 # Upscale video on home-server

@@ -1,6 +1,7 @@
 ---
 name: chatgpt-app-submission
 description: Inspect a ChatGPT Apps MCP server codebase and generate chatgpt-app-submission.json with app info suggestions, tool hint justifications, test cases, and negative test cases, then report review-check findings and outputSchema warnings for submission review.
+disable-model-invocation: true
 ---
 
 # ChatGPT App Submission

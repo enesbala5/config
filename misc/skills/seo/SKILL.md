@@ -150,5 +150,5 @@ Fix: Generate a unique title per product using the product name and primary cate
 
 - `seo-specialist`
 - `frontend-patterns`
-- `brand-voice`
+- `voice`
 - `market-research`

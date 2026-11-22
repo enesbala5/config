@@ -15,7 +15,7 @@ Backfill undocumented work as GitHub history. Write in [TONE.md](TONE.md).
 Draft first. Create and close only after the user says go.
 
 Read [TONE.md](TONE.md) before drafting anything. Do not scrape this repo's
-issues to rebuild tone. Do not use the `brand-voice` skill. Do not write
+issues to rebuild tone. Do not use the `voice` skill. Do not write
 informal, slangy, or typo-laden text that tries to sound like the author.
 
 ## When to use

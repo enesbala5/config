@@ -43,7 +43,7 @@ Produce:
 - core benefit statement (one sentence, no feature list, no jargon)
 - positioning formula: "[Product] helps [audience] [achieve outcome] by [mechanism]"
 - campaign angle: the specific tension, insight, or moment the whole campaign lives in
-- tone profile: lock before writing (delegate to `brand-voice` for durable, session-reusable voice capture)
+- tone profile: lock before writing (delegate to `voice` for durable, session-reusable voice capture)
 
 Do not write any copy until positioning and angle are approved.
 
@@ -107,7 +107,7 @@ Delete and rewrite any:
 
 ## Related Skills
 
-- `brand-voice` — source-derived voice capture (run before content production)
+- `voice` — source-derived voice capture (run before content production)
 - `content-engine` — platform-native content production
 - `crosspost` — multi-platform distribution
 - `market-research` — audience and competitive intelligence

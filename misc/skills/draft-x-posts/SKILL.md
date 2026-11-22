@@ -8,7 +8,7 @@ platforms: [linux, macos]
 metadata:
   hermes:
     tags: [social-media, x, drafts, personal-brand, coverlttr, cron]
-    related_skills: [comment-response, coverlttr-x-organic-replies, brand-voice]
+    related_skills: [comment-response, coverlttr-x-organic-replies, voice]
 ---
 
 # Draft X posts
@@ -37,7 +37,7 @@ Voice files live in his GitHub repos. Read them through the cached reader: never
 
 ```bash
 bash scripts/repo-file.sh enesbala5/portfolio main misc/TONE.md misc/PROFILE.md
-bash scripts/repo-file.sh enesbala5/coverlttr dev docs/marketing/messaging.md docs/marketing/brand-voices/precise-advocate.md
+bash scripts/repo-file.sh enesbala5/coverlttr dev docs/marketing/messaging.md docs/marketing/voices/precise-advocate.md
 ```
 
 Clone once, pull at most once per TTL, read from disk, keep working if the pull fails. The full contract is in [references/repo-cache.md](references/repo-cache.md). `comment-response` calls the same script as `../draft-x-posts/scripts/repo-file.sh`, so one cache and one pull serve both skills.

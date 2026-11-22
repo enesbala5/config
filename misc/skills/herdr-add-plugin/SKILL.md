@@ -1,6 +1,7 @@
 ---
 name: herdr-add-plugin
 description: Install a Herdr plugin and record it in the config repo so a rebuilt machine can restore it. Use when the user installs a Herdr plugin, asks to add one, or wants a plugin synced to tools/herdr.
+disable-model-invocation: true
 ---
 
 # Add a Herdr plugin

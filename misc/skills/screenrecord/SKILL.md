@@ -5,6 +5,7 @@ description: >
   including background windows where supported. Use for screen recordings,
   app demos, repro videos, and visual test evidence. Routes screenshots to
   existing browser/hypruse tools rather than inventing another screenshot CLI.
+disable-model-invocation: true
 ---
 
 # Screen recording and visual evidence
