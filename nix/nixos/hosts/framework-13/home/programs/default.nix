@@ -196,6 +196,10 @@ in
           "helium.desktop"
           "google-chrome.desktop"
         ];
+        # Claude Desktop installs claude.desktop with this MimeType, but it
+        # does not become the default handler on its own (see issue #8 in
+        # k3d3/claude-desktop-linux-flake); needed for the OAuth redirect.
+        "x-scheme-handler/claude" = "claude.desktop";
         "x-scheme-handler/hyperframes-signin" = "hyperframes.desktop";
         "x-scheme-handler/hyperframes-open" = "hyperframes.desktop";
         "text/html" = [
