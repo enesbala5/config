@@ -35,6 +35,10 @@
       # Ctrl-R: fzf history (after emacs keymap so ^R is not reset)
       eval "$(${pkgs.fzf}/bin/fzf --zsh)"
 
+      # Ctrl+F: fuzzy file finder, same widget fzf binds to Ctrl+T. Added after
+      # fzf --zsh so the widget is defined. kitty passes ^F straight through.
+      bindkey '^F' fzf-file-widget
+
       # Control + backspace
       bindkey '^H' backward-kill-word
 
