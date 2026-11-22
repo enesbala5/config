@@ -23,8 +23,9 @@
     "variant.cycle": "ctrl+alt+t",
     "input.delete.word.backward": "alt+backspace",
     "session.last": "ctrl+alt+g,end,ctrl+alt+down",
-    "session.first": "ctrl+g,home,alt+home,ctrl+alt+up",
+    "session.first": "home,alt+home,ctrl+alt+up",
     "which-key.scroll.up": "ctrl+alt+p",
-    "which-key.scroll.down": "ctrl+alt+n"
+    "which-key.scroll.down": "ctrl+alt+n",
+    "prompt.editor": "ctrl+g"
   }
 }

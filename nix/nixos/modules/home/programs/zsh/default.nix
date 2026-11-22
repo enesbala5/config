@@ -151,6 +151,15 @@
       bindkey '^[[120;6u' zle-select-cut
       bindkey '^[[120::57344;6u' zle-select-cut
 
+      export VISUAL='zeditor --new --wait'
+
+      # Ctrl+G: open the current command line in Zed for multi-cursor editing.
+      # ZLE-only binding: while a TUI app (opencode/pi/vim/...) owns the tty,
+      # ^G is delivered to that app and this widget is not involved.
+      autoload -Uz edit-command-line
+      zle -N edit-command-line
+      bindkey '^G' edit-command-line
+
       setopt AUTO_CD
       ''
     ];
