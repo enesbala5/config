@@ -31,6 +31,7 @@ const zedPath = path.join(HOME, ".config/zed/settings.json");
 
 const PI_ONLY_KEYS = new Set(["exposure", "description", "oauth"]);
 const NAME_RE = /^[A-Za-z0-9_-]+$/;
+const URL_VAR_RE = /\$\{[A-Za-z_][A-Za-z0-9_]*\}/;
 const check = process.argv.includes("--check");
 
 const warnings = [];
@@ -187,16 +188,20 @@ writeJson(cursorPath, { mcpServers: Object.fromEntries(Object.entries(enabled).m
 
 // Zed: context_servers live inside settings.json, which is JSONC and hand-edited.
 // Header values are not expanded here. Zed would store the token in this repo file.
+// The same applies to ${VAR} placeholders in a URL (e.g. a ?userToken=... token):
+// route those through the proxy, which expands them at connect time.
 const httpProxy = path.join(CONFIG_DIR, "scripts/utilities/mcp-http.sh");
 const zedServers = {};
 for (const [name, s] of Object.entries(enabled)) {
-  const rawHeaders = canonical.mcpServers[name]?.headers;
+  const raw = canonical.mcpServers[name] ?? {};
+  const rawHeaders = raw.headers;
+  const urlHasSecret = typeof raw.url === "string" && URL_VAR_RE.test(raw.url);
   if (s.command) {
     zedServers[name] = { command: s.command, args: s.args ?? [], env: s.env ?? {}, enabled: true };
-  } else if (rawHeaders && Object.keys(rawHeaders).length) {
+  } else if (urlHasSecret || (rawHeaders && Object.keys(rawHeaders).length)) {
     zedServers[name] = {
       command: httpProxy,
-      args: [s.url, ...Object.entries(rawHeaders).map(([key, value]) => `${key}: ${value}`)],
+      args: [urlHasSecret ? raw.url : s.url, ...Object.entries(rawHeaders ?? {}).map(([key, value]) => `${key}: ${value}`)],
       env: {},
       enabled: true,
     };

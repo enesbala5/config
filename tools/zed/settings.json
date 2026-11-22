@@ -102,6 +102,14 @@
 			"url": "https://mcp.docs.astro.build/mcp",
 			"enabled": true
 		},
+		"penpot": {
+			"command": "/home/e/config/scripts/utilities/mcp-http.sh",
+			"args": [
+				"https://design.penpot.app/mcp/stream?userToken=${PENPOT_USER_TOKEN}"
+			],
+			"env": {},
+			"enabled": true
+		},
 		"playwright": {
 			"command": "/home/e/config/scripts/browser/playwright-mcp.sh",
 			"args": [],

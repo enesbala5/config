@@ -83,6 +83,10 @@
 			"oauth": { "clientName": "Claude Code" },
 			"description": "Figma: design files, frames, components and tokens (OAuth)."
 		},
+		"penpot": {
+			"url": "https://design.penpot.app/mcp/stream?userToken=${PENPOT_USER_TOKEN}",
+			"description": "Penpot: design files, frames, components and tokens."
+		},
 		"playwright": {
 			"command": "/home/e/config/scripts/browser/playwright-mcp.sh",
 			"args": [],

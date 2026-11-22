@@ -44,6 +44,11 @@ expand_template() {
   ' "$1"
 }
 
+# Expand ${VAR} in the URL as well, for servers that carry a token in the URL
+# (e.g. Penpot's ?userToken=${PENPOT_USER_TOKEN}). Keeps the template out of
+# tracked client configs; the real value is read from the secrets file at connect.
+url=$(expand_template "$url")
+
 if command -v mcp-remote >/dev/null 2>&1; then
   cmd=(mcp-remote "$url")
 elif command -v npx >/dev/null 2>&1; then
