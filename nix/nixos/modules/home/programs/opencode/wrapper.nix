@@ -19,8 +19,36 @@ let
   secretsFile = osConfig.age.secrets."opencode-secrets.json".path;
   mcpSecretsFile = osConfig.age.secrets."mcp-secrets.json".path;
 
-  # nixos-25.11 ships opencode 1.1.14, which predates the TUI "attention"
-  # sounds feature (see tui.nix). unstable is 1.17+, so run that instead.
+  # OpenCode v2 merges this over its writable cli.json. Do not manage that
+  # path in Home Manager: OpenCode can replace the file on an in-app save.
+  cliPreferences = {
+    theme.name = "github";
+    attention = {
+      enabled = true;
+      sound = true;
+      volume = 0.4;
+    };
+    diffs.wrap = "word";
+    session = {
+      sidebar = "hide";
+      scrollbar = true;
+      thinking = "show";
+    };
+    animations = true;
+    keybinds = {
+      "session.new" = "ctrl+t";
+      "session.tab.close" = "ctrl+w";
+      "variant.cycle" = "ctrl+alt+t";
+      "input.delete.word.backward" = "alt+backspace";
+      "session.last" = "ctrl+alt+g,end,ctrl+alt+down";
+      "session.first" = "home,alt+home,ctrl+alt+up";
+      "which-key.scroll.up" = "ctrl+alt+p";
+      "which-key.scroll.down" = "ctrl+alt+n";
+      "prompt.editor" = "ctrl+g";
+    };
+  };
+
+  # Use the unstable package for the v2 CLI preferences above.
   wrappedOpencode = pkgs.writeShellScriptBin "opencode" ''
     set -eu
     runtime="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
@@ -33,6 +61,7 @@ let
     install -d -m 700 "$runtime/opencode"
     install -m 600 "$src" "$dst"
     export OPENCODE_CONFIG="$dst"
+    export OPENCODE_CLI_CONFIG_CONTENT=${lib.escapeShellArg (builtins.toJSON cliPreferences)}
     # Bearer MCP servers in config.json use {env:VAR}. Same agenix file
     # mcp-sync reads for Cursor, Zed, and pi.
     mcp_secrets=${lib.escapeShellArg mcpSecretsFile}

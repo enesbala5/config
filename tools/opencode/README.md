@@ -1,26 +1,23 @@
-# OpenCode CLI preferences
+# OpenCode configuration
 
-Edit [cli.json](cli.json) here, then commit and push it. On another device,
-pull the repo and restart OpenCode if it's running. Preference changes don't
-require a Nix rebuild once the link is installed.
+Edit the [OpenCode Nix modules](../../nix/nixos/modules/home/programs/opencode/),
+not `~/.config/opencode/cli.json` or `tui.json`.
 
-## First setup on each device
+- `wrapper.nix` defines v2 CLI preferences (`cliPreferences`), including
+  keybindings, the theme selection, and display and notification settings.
+  It passes them to OpenCode at launch as `OPENCODE_CLI_CONFIG_CONTENT`.
+  Nix preferences take precedence for the keys they define; OpenCode can still
+  write its local file, but Home Manager does not install or back it up.
+- `providers.nix`, `mcp.nix`, and `theme.nix` configure providers, MCP, and the
+  custom theme. `tui.nix` supplies the legacy TUI settings.
 
-1. Close OpenCode. If `~/.config/opencode/cli.json` already exists and is not
-   linked to this checkout, back it up outside the repo and compare it with
-   this file. Merge any preferences you want to keep, then move the local file
-   out of the way before switching.
-2. Run the normal NixOS/Home Manager switch with OpenCode enabled. Confirm
-   that `readlink -f ~/.config/opencode/cli.json` points to
-   `~/config/tools/opencode/cli.json`.
-3. Start OpenCode and check a shortcut, such as `Ctrl+T` for a new session.
+Apply changes with the normal NixOS switch, then start a new OpenCode process.
+Check `systemctl is-active home-manager-$USER.service` and smoke-test the changed
+preference (for example, `Ctrl+T` should open a new session).
 
-Use the repo file as the edit point. If you change a preference inside
-OpenCode, check both the link and `git diff -- tools/opencode/cli.json`.
-An app that replaces the link instead of writing through it leaves the change
-local; merge it into the repo file, move the local file aside, and run the
-switch again to restore the link.
+## Retiring the old checkout link
 
-Providers, MCP, and custom theme definitions stay in Nix. The legacy
-`tui.json` remains managed by Home Manager. Do not add credentials, sessions,
-or machine-local plugins here.
+On each machine, inspect `~/.config/opencode/cli.json` before switching. If it
+is a symlink from the old setup, save any preferences you need and remove only
+that link. If it is a regular file, leave it and its backups in place. Do not
+create a replacement link: OpenCode owns this path now.
