@@ -71,6 +71,17 @@ in
     home.file.".config/herdr-app/keys.json" = {
       source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/desktop/keys.json";
     };
+
+    # Stylix-derived themes (circus / google-light base16 palettes). Additive
+    # only: settings.json, shared.json, layouts/ and mods/ are left untouched;
+    # pick the pair once in Herdr's appearance settings and it follows the
+    # system light/dark polarity from there.
+    home.file.".config/herdr-app/themes/stylix-dark.json" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/themes/stylix-dark.json";
+    };
+    home.file.".config/herdr-app/themes/stylix-light.json" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${data.configDirectory}/tools/herdr/themes/stylix-light.json";
+    };
     home.file.".config/herdr-app/layouts/herdr-t3-worktrees.json" = {
       source = config.lib.file.mkOutOfStoreSymlink "${gallerySrc}/layouts/herdr-t3-worktrees.json";
     };

@@ -5,7 +5,42 @@ kitty_graphics = true
 
 [theme]
 name = "terminal"
-auto_switch = false
+# Follow the host terminal's light/dark appearance (kitty gets its colors from
+# stylix) and layer the palettes below on top of the "terminal" base theme.
+auto_switch = true
+dark_name = "terminal"
+light_name = "terminal"
+
+# Chrome tokens from the same base16 schemes stylix enables:
+#   dark  = misc/scheme/circus.yaml
+#   light = misc/scheme/google-light.yaml
+[theme.custom.dark]
+panel_bg = "#191919"      # base00
+sidebar_bg = "#202020"    # base01
+active_row_bg = "#303030" # base02
+selection_bg = "#303030"  # base02
+surface_dim = "#808080"   # base06 (raised from base03 for contrast)
+text = "#ffffff"          # base07 (raised from base05 for contrast)
+accent = "#639ee4"        # base0D
+mauve = "#b888e2"         # base0E
+green = "#84b97c"         # base0B
+yellow = "#c3ba63"        # base0A
+red = "#dc657d"           # base08
+peach = "#4bb1a7"         # base09
+
+[theme.custom.light]
+panel_bg = "#ffffff"      # base00
+sidebar_bg = "#e0e0e0"    # base01
+active_row_bg = "#c5c8c6" # base02
+selection_bg = "#c5c8c6"  # base02
+surface_dim = "#66686b"   # base05/base04 blend (base04 alone was 2.9:1)
+text = "#1d1f21"          # base07 (raised from base05 for contrast)
+accent = "#3971ed"        # base0D
+mauve = "#a36ac7"         # base0E
+green = "#198844"         # base0B
+yellow = "#fba922"        # base0A
+red = "#cc342b"           # base08
+peach = "#f96a38"         # base09
 
 [ui.toast]
 delivery = "system"
@@ -37,23 +72,27 @@ prompt_new_tab_name = false
 # The per-state `rules` tint the whole token, title included. Delete the rules
 # (leave just { token = "$head" }) for a neutral title; the glyph shape still
 # distinguishes states.
+#
+# Inline token styles only accept literal hex, not theme tokens, so these are
+# picked from the two stylix base16 schemes for legibility in either polarity;
+# the rest of the chrome follows polarity via [theme.custom.light/.dark].
 [ui.sidebar.agents]
 row_gap = 0
 rows = [
   [
     { token = "$head", rules = [
-      { starts_with = "⣾", fg = "#fab387" },
-      { starts_with = "⣽", fg = "#fab387" },
-      { starts_with = "⣻", fg = "#fab387" },
-      { starts_with = "⢿", fg = "#fab387" },
-      { starts_with = "⡿", fg = "#fab387" },
-      { starts_with = "⣟", fg = "#fab387" },
-      { starts_with = "⣯", fg = "#fab387" },
-      { starts_with = "⣷", fg = "#fab387" },
-      { starts_with = "✓", fg = "#a6e3a1" },
-      { starts_with = "×", fg = "#f38ba8" },
-      { starts_with = "○", fg = "#9399b2", dim = true },
-      { starts_with = "·", fg = "#6c7086", dim = true },
+      { starts_with = "⣾", fg = "#a36ac7" },
+      { starts_with = "⣽", fg = "#a36ac7" },
+      { starts_with = "⣻", fg = "#a36ac7" },
+      { starts_with = "⢿", fg = "#a36ac7" },
+      { starts_with = "⡿", fg = "#a36ac7" },
+      { starts_with = "⣟", fg = "#a36ac7" },
+      { starts_with = "⣯", fg = "#a36ac7" },
+      { starts_with = "⣷", fg = "#a36ac7" },
+      { starts_with = "✓", fg = "#198844" },
+      { starts_with = "×", fg = "#cc342b" },
+      { starts_with = "○", fg = "#808080", dim = true },
+      { starts_with = "·", fg = "#7a7d7e", dim = true },
     ] },
   ],
   ["$vendor", "workspace"],
