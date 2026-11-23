@@ -25,8 +25,10 @@
     ./dsh
     ./vicinae
     ./figma-linux
+    ./penpot-desktop
     ./davinci-resolve
     ./quiet-md
+    ./openscreen
     ./chatgpt
     ./claude-desktop
     ./easyeffects

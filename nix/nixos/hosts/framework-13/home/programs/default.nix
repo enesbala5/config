@@ -17,6 +17,9 @@ let
   '';
 in
 {
+  modules.home.openscreen.enable = true;
+  modules.home.penpotDesktop.enable = true;
+
   # Client for delegating renders to home-server's render-worker.
   modules.home.remoteRender = {
     enable = true;

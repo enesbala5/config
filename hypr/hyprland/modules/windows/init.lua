@@ -82,6 +82,18 @@ hl.window_rule({
 	float = true,
 })
 
+-- OpenScreen's recording HUD is a frameless overlay: no border, no blur behind
+-- it, pinned on every workspace and parked just above the bar. Match its title
+-- so the editor window ("OpenScreen") keeps its normal placement/decorations.
+hl.window_rule({
+	match = { class = "(openscreen)", title = "^openscreen$" },
+	float = true,
+	pin = true,
+	border_size = 0,
+	move = { "(monitor_w - window_w) / 2", "monitor_h - window_h - 31" },
+	no_blur = true,
+})
+
 hl.window_rule({ match = { class = "^(affinity.exe)" }, tile = true })
 
 hl.window_rule({ match = { title = "(Developer Tools)" }, tile = true })
