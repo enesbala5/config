@@ -1131,6 +1131,22 @@
     },
     "nixpkgs_14": {
       "locked": {
+        "lastModified": 1788039129,
+        "narHash": "sha256-pa4Q0qErvCvzCaaUph7Sm37RhR4xvPrYI8Lgz6k85+A=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "d2f67949798825fe853f7c5d0492b8bf016d3f88",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_15": {
+      "locked": {
         "lastModified": 1788316716,
         "narHash": "sha256-bc7rSpXIdn9QWGNqfWcPZWOhEVF8NoeAZkWq0XWnf/k=",
         "owner": "NixOS",
@@ -1145,7 +1161,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_15": {
+    "nixpkgs_16": {
       "locked": {
         "lastModified": 1792094642,
         "narHash": "sha256-zp8ToDMnqZcu4o4IH9pdwXFXGp7yLm/M0dEnNWnyd7I=",
@@ -1161,7 +1177,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_16": {
+    "nixpkgs_17": {
       "locked": {
         "lastModified": 1791048980,
         "narHash": "sha256-KgItSKML8Xvte0B7/uGnBDsYzSnnKHcOaiUbgWBXLXw=",
@@ -1372,9 +1388,28 @@
         "type": "github"
       }
     },
+    "openscreen": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_14"
+      },
+      "locked": {
+        "lastModified": 1794924167,
+        "narHash": "sha256-HkjG0+274cOzMmY8opePXYtlg2vxo+t/bVqtF/8uHvQ=",
+        "owner": "getopenscreen",
+        "repo": "openscreen",
+        "rev": "8565c129f870513bdf97aa64e33d66a97163fc72",
+        "type": "github"
+      },
+      "original": {
+        "owner": "getopenscreen",
+        "ref": "v2.3.0",
+        "repo": "openscreen",
+        "type": "github"
+      }
+    },
     "pi": {
       "inputs": {
-        "nixpkgs": "nixpkgs_14",
+        "nixpkgs": "nixpkgs_15",
         "nixpkgs-darwin-x64": "nixpkgs-darwin-x64"
       },
       "locked": {
@@ -1510,6 +1545,7 @@
         "nixpkgs-hyprland": "nixpkgs-hyprland",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "omacut": "omacut",
+        "openscreen": "openscreen",
         "pi": "pi",
         "plasma-manager": "plasma-manager",
         "quiet-md-nix": "quiet-md-nix",
@@ -1914,7 +1950,7 @@
     },
     "vicinae": {
       "inputs": {
-        "nixpkgs": "nixpkgs_15",
+        "nixpkgs": "nixpkgs_16",
         "numen": "numen",
         "soulver-cpp": "soulver-cpp",
         "systems": "systems_10"
@@ -1984,7 +2020,7 @@
       "inputs": {
         "crane": "crane_2",
         "flake-parts": "flake-parts_3",
-        "nixpkgs": "nixpkgs_16",
+        "nixpkgs": "nixpkgs_17",
         "rust-overlay": "rust-overlay_3"
       },
       "locked": {

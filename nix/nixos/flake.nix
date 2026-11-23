@@ -70,6 +70,11 @@
       };
     };
 
+    openscreen = {
+      url = "github:getopenscreen/openscreen/v2.3.0";
+      # Keep upstream's nixpkgs pin for its Electron and native helpers.
+    };
+
     helium-browser = {
       url = "github:schembriaiden/helium-browser-nix-flake";
       inputs.nixpkgs.follows = "nixpkgs";
