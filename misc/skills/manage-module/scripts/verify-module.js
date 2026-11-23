@@ -29,7 +29,7 @@ const ownToken = scope === 'global' ? '<config>' : '<repo>';
 if (!fs.existsSync(base)) fail(`missing workspace: ${base}`);
 
 const problems = [];
-const required = ['AGENTS.md', 'README.md', 'LEARNINGS.md'];
+const required = ['AGENTS.md', 'README.md', 'LEARNINGS.md', 'providers/README.md'];
 for (const f of required) if (!fs.existsSync(path.join(base, f))) problems.push(`missing ${f}`);
 const intentsDir = path.join(base, 'intents');
 let intents = [];
@@ -73,7 +73,11 @@ for (const file of walk(base)) {
   const text = fs.readFileSync(file, 'utf8');
   const rel = path.relative(root, file);
   if (/\/home\/|\/tmp\/|~\//.test(text)) problems.push(`${rel}: absolute or home-relative path`);
-  if (/misc\/(video|design)\//.test(text)) problems.push(`${rel}: points at another module's workspace`);
+  for (const m of text.matchAll(/misc\/(video|design)\//g)) {
+    if (m[0] === `misc/${name}/`) continue;
+    problems.push(`${rel}: points at another module's workspace`);
+    break;
+  }
   if (/\{\{[A-Z_]+\}\}/.test(text)) problems.push(`${rel}: unrendered template token`);
   for (const m of text.matchAll(/\]\(([^)]+)\)/g)) {
     const target = m[1].split('#')[0];

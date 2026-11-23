@@ -41,6 +41,9 @@ Workspace: `<config>/misc/modules/<name>/` (global) or
 ├── README.md                         # workspace index: intents, layers, records
 ├── intents/
 │   └── <intent>/README.md            # one folder per intent, entry file
+├── providers/
+│   ├── README.md                     # external-backend index; "No external providers" when none
+│   └── <provider>/README.md          # one per adopted backend (added via `extend`)
 └── LEARNINGS.md                      # findings from real work, with status
 ```
 
@@ -68,6 +71,8 @@ Templates for every file above live in [`../templates/`](../templates/).
 | Router `SKILL.md` | Intent table + one file to read; root-anchored path tokens | Rules, gates, implementation steps, `../` chains |
 | `AGENTS.md` | Hard gates, where records live, read-chain, authority, approval | Task instructions, lesson content |
 | `intents/<intent>/README.md` | The sequence for one intent, its gates and handoffs | Other intents' flows, duplicated gates |
+| `providers/README.md` | Index of external backends: supplies, reach, spend | Workflow rules, approval gates, project data |
+| `providers/<provider>/README.md` | Minimal backend contract: supplies, reach, spend; gates point at `AGENTS.md` | Copied lesson text, credentials, signed URLs, gate policy |
 | `pipeline/README.md` | Stage → lesson-bucket routing | Lesson content |
 | `rules/<...>` | What must be true, with pointers to lesson evidence | Copies of lesson prose |
 | `LEARNINGS.md` | Findings from real work, with status | Guide lessons, final rules |
@@ -82,6 +87,7 @@ A nested file does not link to its parents or claim a parent "applies". The read
 | --- | --- |
 | New lesson in the guide | Zero module edits — rules point to buckets |
 | New intent | One folder + one router row + one `AGENTS.md` pointer |
+| New provider | One folder + one row in `providers/README.md` (replace the "none" line) |
 | New stage/axis | One `pipeline/` folder + one row |
 | New rule set | One file in `rules/` + one index line |
 | New finding | One `LEARNINGS.md` entry with status |

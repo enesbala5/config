@@ -2,7 +2,7 @@
 
 A catalogue used by the `suggest` intent and by `initialize` when proposing a design. Pick 2–4 that fit the module; let the user accept or reject each. Prefer removing structure over adding it.
 
-1. **Capability registry** — one index mapping each external capability/tool to where it is invoked and its prerequisites. Intents reference the registry row, so swapping a tool is one edit. Use when the module depends on CLIs or services.
+1. **Capability registry** — one index mapping each external capability/tool to where it is invoked and its prerequisites. Every module already has `providers/` for how a backend is reached; add a separate registry only when you also need to map each call site.
 2. **Pinned tool contracts** — if an external CLI or API is involved, pin its version/endpoint in one reference file and have intents point at it. Prevents drift.
 3. **Read-only verify** — always separate audit from change. `verify` reports and hands off; it never edits. Keeps checks and fixes from being conflated.
 4. **Stable record IDs** — give records immutable kebab-case slugs and keep human names as fields. Renames then never break links.

@@ -35,6 +35,12 @@ Applies to every nested tree here — `intents/`, `pipeline/`, `projects/`,
 
 {{RECORDS_RULE}}
 
+## Providers
+
+External backends are declared in {{PROVIDERS_LINK}}. "No external providers"
+is a valid declaration; a backend is added with `extend` (`target: provider`).
+Gates for using one live here, not in the provider docs.
+
 ## Authority
 
 _{{State what owns the real decisions here — for example a product spec, a

@@ -5,7 +5,7 @@ description: Build and maintain a repo-local agentic module — a thin skill rou
 
 # Manage module
 
-A **module** is two things: a thin skill router (`.agents/skills/<name>/SKILL.md` locally, `<config>/misc/skills/<name>/SKILL.md` globally), and a workflow workspace (`misc/<name>/` locally, `<config>/misc/modules/<name>/` globally) holding hard gates, intents, rules and records. The evidence lives in a guide's lessons; the module holds **rules derived from that evidence**, never copies of it.
+A **module** is two things: a thin skill router (`.agents/skills/<name>/SKILL.md` locally, `<config>/misc/skills/<name>/SKILL.md` globally), and a workflow workspace (`misc/<name>/` locally, `<config>/misc/modules/<name>/` globally) holding hard gates, intents, rules and records. The evidence lives in a guide's lessons; the module holds **rules derived from that evidence**, never copies of it. Every module also declares its external backends in `providers/`; "No external providers" is a valid declaration.
 
 This skill is self-contained. Its structure, templates and conventions are all in this folder. **Never point the agent at another repository, another project's workspace, or an existing module as something to read** — use only this skill's references and the target guide the user names.
 
@@ -54,7 +54,7 @@ already set so it does not re-ask "global or local?".
 | Intent | Extra parameters | Result |
 |---|---|---|
 | [`initialize`](intents/initialize.md) | `intents` (approved list), `layers`, `stages` | Scaffold the workspace, fill gates/rules/intents, hand the router to `manage-skill` |
-| [`extend`](intents/extend.md) | `target`, `change` | Add an intent, layer, stage, rule or record shape; update the owning index |
+| [`extend`](intents/extend.md) | `target`, `change` | Add an intent, layer, stage, rule, provider or record shape; update the owning index |
 | [`suggest`](intents/suggest.md) | `focus` (optional) | Tailored flexibility proposals from [`reference/flexibility.md`](reference/flexibility.md); stop for approval |
 | [`verify`](intents/verify.md) | — | Read-only structure/link check; hands fixes to `extend` |
 
@@ -66,6 +66,7 @@ already set so it does not re-ask "global or local?".
 - Rules say what must be true; lessons are the evidence. Keep them in separate files and link rule → lesson path.
 - No absolute machine paths; use `<config>` / `<repo>` tokens and never link across the two roots.
 - No references to other repositories as sources of truth, and no copied lesson text.
+- Every module ships `providers/README.md`. A backend is added with `extend` (`target: provider`) and documented minimally: what it supplies, how it is reached, what it costs; gates stay in `AGENTS.md`.
 - Do not commit unless asked.
 
 ## Verification

@@ -89,6 +89,7 @@ const vars = {
   INTENTS: intents.join(', '), INTENT_ROWS: intentRows, INTENT_LIST: intentList,
   STAGES: stages.join(', '), STAGE_ROWS: stageRows, LAYER_LIST: layerList,
   LEARNINGS_LINK: `${bt}${workspace}LEARNINGS.md${bt}`,
+  PROVIDERS_LINK: `${bt}${workspace}providers/README.md${bt}`,
 };
 
 if ('--print-router' in opts) {
@@ -111,6 +112,7 @@ function write(rel, content) {
 write(`${dir}/AGENTS.md`, render(readTpl('workspace-agents.md'), vars));
 write(`${dir}/README.md`, render(readTpl('workspace-readme.md'), vars));
 write(`${dir}/LEARNINGS.md`, render(readTpl('learnings.md'), vars));
+write(`${dir}/providers/README.md`, render(readTpl('providers-readme.md'), vars));
 for (const intent of intents) {
   write(`${dir}/intents/${intent}/README.md`, render(readTpl('intent-readme.md'), { ...vars, INTENT: intent }));
 }

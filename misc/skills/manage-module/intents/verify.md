@@ -8,13 +8,14 @@ Read-only structure check for a module. Never edits.
 
 ## Steps
 
-1. Run `node scripts/verify-module.js <root> <name> --scope <scope>`. It checks required files, router frontmatter and intent rows, token and relative paths, unrendered template tokens, absolute/home-relative paths, and references to other modules or repositories.
+1. Run `node scripts/verify-module.js <root> <name> --scope <scope>`. It checks required files (including `providers/README.md`), router frontmatter and intent rows, token and relative paths, unrendered template tokens, absolute/home-relative paths, and references to other modules or repositories.
 2. Additionally inspect by reading:
    - router router rows match the approved intent list;
    - `AGENTS.md` holds gates only, not workflow prose or lesson content;
    - each intent file names its handoff and does not restate sibling flows;
    - rules point to lesson evidence and never copy lesson text;
-   - `LEARNINGS.md` uses the declared status vocabulary.
+   - `LEARNINGS.md` uses the declared status vocabulary;
+   - `providers/README.md` declares no backends or has one row per provider folder, and each provider doc stays minimal (supplies, reach, spend) with gates in `AGENTS.md`.
 3. Report findings grouped by file with exact paths. Separate **blocking** problems (broken links, missing router) from **advisory** ones (thin rule, verbose AGENTS.md).
 
 ## Handoff

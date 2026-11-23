@@ -5,7 +5,7 @@ Add to an existing module. Read only the target module's `AGENTS.md`, `README.md
 ## Parameters
 
 - `name`, `scope`, `repo` — common parameters; prompt if missing. Use the scope the module was created with.
-- `target` — required: what to add (`intent`, `layer`, `stage`, `rule`, `record-shape`, `gate`, `capability`). If missing, list the options and ask.
+- `target` — required: what to add (`intent`, `layer`, `stage`, `rule`, `provider`, `record-shape`, `gate`, `capability`). If missing, list the options and ask.
 - `change` — required: the actual addition. If vague, ask for specifics before editing.
 
 ## Recipes
@@ -16,6 +16,7 @@ Add to an existing module. Read only the target module's `AGENTS.md`, `README.md
 | `stage` | Add `pipeline/<stage>/README.md`, one row in `pipeline/README.md` | Small |
 | `gate` | Add one bullet to the module's `AGENTS.md`; do not duplicate it in intents | Tiny |
 | `rule` | Add a file under `rules/`, one index line, with lesson evidence | Small |
+| `provider` | Add `providers/<id>/README.md` from `templates/provider-readme.md`, one row in `providers/README.md`; remove the "No external providers" line | Small |
 | `layer` | Add the optional layer's README, wire an index line; move detail out of `AGENTS.md` | Medium |
 | `record-shape` | Add the record template under `projects/`, update its index | Small |
 | `capability` | Add one row to the capability registry; intents reference the row | Small |
@@ -25,6 +26,7 @@ Add to an existing module. Read only the target module's `AGENTS.md`, `README.md
 - After any extension, update the **index that owns it**, then run `node scripts/verify-module.js <root> <name> --scope <scope>`.
 - A new rule must follow [`../reference/rules-from-lessons.md`](../reference/rules-from-lessons.md) — one enforceable statement with evidence, never copied lesson prose.
 - New intent names must appear in the router and in `AGENTS.md`; the verifier checks router rows against intent folders.
+- A provider row must link to its folder's README; the verifier checks that link. Keep the doc to supplies, reach and spend — gates belong in `AGENTS.md`.
 - Prefer removing structure over adding it. If an extension can be expressed as one index line, do that.
 - Flexibility ideas live in [`../reference/flexibility.md`](../reference/flexibility.md) — use it to decide whether a registry, pin or status vocabulary is warranted before adding ad-hoc structure.
 

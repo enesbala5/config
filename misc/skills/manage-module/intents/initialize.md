@@ -16,7 +16,7 @@ Read the guide's top-level README, each bucket README, and only the lessons need
 
 ## 2. Propose the design
 
-Present one short block: intents with reasons, layers (and deliberate omissions), hard gates derived from the guide's strongest warnings, 2–4 suggestions from [`../reference/flexibility.md`](../reference/flexibility.md), and the wiring plan. Then **stop** for approval.
+Present one short block: intents with reasons, layers (and deliberate omissions), the external backends the module will declare (or "none" — the index is core either way), hard gates derived from the guide's strongest warnings, 2–4 suggestions from [`../reference/flexibility.md`](../reference/flexibility.md), and the wiring plan. Then **stop** for approval.
 
 ## 3. Scaffold
 
@@ -39,6 +39,7 @@ the router `SKILL.md`.
 - Each `intents/<intent>/README.md`: trigger, sequence, gates, handoff.
 - `pipeline/README.md`: stage → guide-bucket table, no lesson content.
 - `LEARNINGS.md`: status vocabulary and empty sections.
+- `providers/README.md`: the external-backend index. Unless approved backends are listed, leave the scaffolded "No external providers" line.
 - Rule files: see [`../reference/rules-from-lessons.md`](../reference/rules-from-lessons.md).
 
 Use the approved intent names exactly — the verifier checks router rows against these folders.

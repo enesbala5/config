@@ -16,6 +16,11 @@ Router: `{{ROUTER_PATH}}`.
 
 {{LAYER_LIST}}
 
+## Providers
+
+{{PROVIDERS_LINK}} declares external backends — what they supply, how they are
+reached and what they cost. "No external providers" is a valid declaration.
+
 ## Rules
 
 _{{Point to `rules/` or to the stage index that owns domain rules. Rules state
