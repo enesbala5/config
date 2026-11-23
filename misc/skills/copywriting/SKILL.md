@@ -17,26 +17,36 @@ If a `marketing/` or `docs/marketing/` directory exists, run a `tree` command to
 
 **Hard gate — landing pages, campaign pages, messaging and positioning work.**
 Before writing *any* brief, strategy or copy for these surfaces, the human must
-have explicitly supplied all four of the following. Research documents can
+have explicitly supplied all five of the following. Research documents can
 inform your questions; they never count as an answer:
 
 - **Audience** — who this is for, in the repo's own terms.
 - **Traffic source** — where the visitor arrives from (cold paid/social, organic/SEO, email, …).
-- **Stage of awareness** — unaware / problem-aware / solution-aware *for the problem this surface addresses*.
+- **Stage of awareness** — unaware / problem-aware / solution-aware / product-aware / most aware *for the problem this surface addresses*.
+- **Page format** — derived from stage of awareness via the project's canonical
+  page-type-by-awareness ladder (in Coverlttr: `docs/marketing/page-types-by-awareness.md`),
+  never chosen from preference. The ladder is the single source of truth; do not
+  restate its mapping here.
 - **Primary action** — the one thing the visitor should take.
+
+Two warnings for this decision:
+
+- Do not default to a landing page or a quiz for unaware traffic — a quiz assumes the reader has already named the problem.
+- StoryBrand/SB7 is weak as an outer skeleton for unaware traffic; use the advertorial arc outside, SB7 inside from the realisation beat onward.
 
 A research doc describing problem-aware people does not authorize treating them as unaware. Awareness attaches to a problem, not a person.
 
-If any of the four is missing, **ask once** and then **stop** until the human
+If any of the five is missing, **ask once** and then **stop** until the human
 answers — do not infer, assume, or draft around the gap. Offer 2–3 concrete
 options drawn from the repo so a one-line reply is enough:
 
 - Audience: active repeat / screening-frustrated / writing-anxious (audience notes under `docs/marketing/`).
 - Stage of awareness: unaware / problem-aware / solution-aware (audience and campaign notes under `docs/marketing/`).
+- Page format: read off the canonical ladder once the stage is confirmed (Coverlttr: `docs/marketing/page-types-by-awareness.md`).
 
-No brief, strategy, or copy until all four are explicitly confirmed.
+No brief, strategy, or copy until all five are explicitly confirmed.
 
-Gather the remaining context below as needed — the four items above are never optional for the surfaces named in the gate:
+Gather the remaining context below as needed — the five items above are never optional for the surfaces named in the gate:
 
 ### 1. Page Purpose
 - What type of page? (homepage, landing page, pricing, feature, about)
