@@ -1,6 +1,6 @@
 # Stage index
 
-Routing only — no lesson content lives here. Lessons stay in `{{GUIDE}}/`.
+Routing only — no lesson content lives here. Lessons stay in `{{GUIDE_PATH}}`.
 
 An intent names a stage; the reader loads this file, the stage README, the guide
 root README, the bucket README, then only the lessons the task names. Never read

@@ -2,8 +2,11 @@
 
 {{PURPOSE}}
 
-Evidence lives in `{{GUIDE}}/`. The rules here derive from those lessons; the
-lessons themselves stay unchanged. Read `AGENTS.md` first for the hard gates.
+Evidence lives in `{{GUIDE_PATH}}`. The rules here derive from those lessons; the
+lessons themselves stay unchanged. Read `{{WORKSPACE}}AGENTS.md` first for the
+hard gates.
+
+Router: `{{ROUTER_PATH}}`.
 
 ## Intents
 
@@ -18,6 +21,10 @@ lessons themselves stay unchanged. Read `AGENTS.md` first for the hard gates.
 _{{Point to `rules/` or to the stage index that owns domain rules. Rules state
 what must be true and link to lesson evidence; they never copy lesson text._
 
+## Records
+
+{{RECORDS_RULE}}
+
 ## Findings
 
 {{LEARNINGS_LINK}} holds conclusions from real work with a status.
@@ -25,4 +32,4 @@ Guide lessons do not change when a finding is verified.
 
 ## Not yet needed
 
-_{{List deferred optional layers and the trigger that would add them.}_
+_{{List deferred optional layers and the trigger that would add them._

@@ -4,11 +4,11 @@ Read-only structure check for a module. Never edits.
 
 ## Parameters
 
-- `name`, `repo` — common parameters; prompt if missing.
+- `name`, `scope`, `repo` — common parameters; prompt if missing. Use the module's resolved scope.
 
 ## Steps
 
-1. Run `node scripts/verify-module.js <repo> <name>`. It checks required files, relative links, router frontmatter and intent rows, unrendered template tokens, absolute/home-relative paths, and references to other modules or repositories.
+1. Run `node scripts/verify-module.js <root> <name> --scope <scope>`. It checks required files, router frontmatter and intent rows, token and relative paths, unrendered template tokens, absolute/home-relative paths, and references to other modules or repositories.
 2. Additionally inspect by reading:
    - router router rows match the approved intent list;
    - `AGENTS.md` holds gates only, not workflow prose or lesson content;

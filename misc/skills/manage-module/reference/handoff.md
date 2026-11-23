@@ -8,9 +8,10 @@ skill: manage-module | manage-skill
 intent: initialize | extend | suggest | verify | create-skill
 status: awaiting_approval | ready | blocked | done
 name: <module name>
-repo: <repository path or identifier>
-dir: misc/<name>
-guide: <repo-relative guide path>
+scope: global | local
+repo: <working repository path or identifier>
+dir: <workspace path token, e.g. <config>/misc/modules/<name>/>
+guide: <guide path token, e.g. <config>/misc/guides/<topic>/>
 design:
   intents: [make, revise, verify, study]
   layers: [pipeline, projects]
@@ -31,7 +32,7 @@ notes: <one line of context>
 
 - `awaiting_approval` is a hard stop: never scaffold before the design is approved.
 - `ready` means the next agent may act. `blocked` always names the reason in `notes`.
-- When handing the router to `manage-skill`, quote the **full rendered router** inside `next_input.router` so that skill never needs to read this folder. State **local scope** explicitly, plus the target repo and the requirement that `name` matches the router folder.
+- When handing the router to `manage-skill`, quote the **full rendered router** inside `next_input.router` so that skill never needs to read this folder. State the **resolved scope** explicitly, plus its canonical destination, the target repo and the requirement that `name` matches the router folder. `manage-skill` must not re-ask "global or local?".
 - `verify` hands problems to `extend` with `next_input.target` set.
 - Keep it short; verbose handoffs defeat progressive disclosure.
 

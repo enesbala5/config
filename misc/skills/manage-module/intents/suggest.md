@@ -4,7 +4,7 @@ Review a module design or an existing module for flexibility, and propose improv
 
 ## Parameters
 
-- `name`, `repo` — common parameters; prompt if missing.
+- `name`, `scope`, `repo` — common parameters; prompt if missing.
 - `focus` — optional: a concern to concentrate on, e.g. "growing intents", "external tooling", "stateful work". If missing, review all categories.
 
 ## Steps

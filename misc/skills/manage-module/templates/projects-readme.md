@@ -1,7 +1,8 @@
 # Records
 
 One record per target of the module's work. This folder holds only the shape and
-the index convention; actual records live under `projects/<stable-slug>/`.
+the index convention; actual records live under
+`{{RECORDS_PATH}}<stable-slug>/`.
 
 ## Slug rules
 
@@ -18,5 +19,5 @@ Each record has the files its lifecycle needs, for example:
 
 ## Index
 
-`PROJECTS.md` at the workspace root: one status, one-line purpose, and the path
-only when it overrides the default. It is for discovery, not approval.
+`{{WORKSPACE}}PROJECTS.md` is the index: one status, one-line purpose, and the
+path only when it overrides the default. It is for discovery, not approval.

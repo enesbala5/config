@@ -4,7 +4,7 @@ Add to an existing module. Read only the target module's `AGENTS.md`, `README.md
 
 ## Parameters
 
-- `name`, `repo` — common parameters; prompt if missing.
+- `name`, `scope`, `repo` — common parameters; prompt if missing. Use the scope the module was created with.
 - `target` — required: what to add (`intent`, `layer`, `stage`, `rule`, `record-shape`, `gate`, `capability`). If missing, list the options and ask.
 - `change` — required: the actual addition. If vague, ask for specifics before editing.
 
@@ -22,7 +22,7 @@ Add to an existing module. Read only the target module's `AGENTS.md`, `README.md
 
 ## Rules
 
-- After any extension, update the **index that owns it**, then run `node scripts/verify-module.js <repo> <name>`.
+- After any extension, update the **index that owns it**, then run `node scripts/verify-module.js <root> <name> --scope <scope>`.
 - A new rule must follow [`../reference/rules-from-lessons.md`](../reference/rules-from-lessons.md) — one enforceable statement with evidence, never copied lesson prose.
 - New intent names must appear in the router and in `AGENTS.md`; the verifier checks router rows against intent folders.
 - Prefer removing structure over adding it. If an extension can be expressed as one index line, do that.
@@ -30,4 +30,4 @@ Add to an existing module. Read only the target module's `AGENTS.md`, `README.md
 
 ## Handoff
 
-On success → `verify` for a structure check, then done. If a router row changed, re-run the `initialize` router handoff to `manage-skill` with local scope.
+On success → `verify` for a structure check, then done. If a router row changed, re-run the `initialize` router handoff to `manage-skill` with the module's resolved scope.

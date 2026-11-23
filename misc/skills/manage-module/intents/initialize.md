@@ -4,7 +4,7 @@ Build one new module from a guide. Do not scaffold before the design is approved
 
 ## Parameters
 
-- `name`, `repo`, `guide`, `purpose` — common parameters; prompt interactively if missing.
+- `name`, `scope`, `repo`, `guide`, `purpose` — common parameters; prompt interactively if missing. Resolve `scope` first; it determines every path below.
 - `intents` — the approved intent list. Propose 3–5 from the purpose and buckets; include a read-only `verify` for any module that changes artifacts.
 - `layers` — optional layers from [`../reference/module-anatomy.md`](../reference/module-anatomy.md), only those justified.
 - `stages` — stage names, needed only when the `pipeline` layer is chosen.
@@ -21,12 +21,16 @@ Present one short block: intents with reasons, layers (and deliberate omissions)
 ## 3. Scaffold
 
 ```sh
-node <skill>/scripts/scaffold-module.js <repo> <name> \
-  --dir misc/<name> --intents <csv> --layers <csv> \
+node <skill>/scripts/scaffold-module.js <root> <name> \
+  --scope <global|local> --intents <csv> --layers <csv> \
   --stages <csv> --guide <guide> --purpose <phrase>
 ```
 
-The script writes only the workspace skeleton from this skill's templates. It never writes `.agents/skills/<name>/SKILL.md`.
+`<root>` is the config checkout for global scope, the working repo for local
+scope. The script derives the workspace directory (`misc/modules/<name>/` for
+global, `misc/<name>/` for local) and renders path tokens from the scope. It
+writes only the workspace skeleton from this skill's templates; it never writes
+the router `SKILL.md`.
 
 ## 4. Fill the files
 
@@ -42,14 +46,17 @@ Use the approved intent names exactly — the verifier checks router rows agains
 ## 5. Hand off the router
 
 ```sh
-node <skill>/scripts/scaffold-module.js <repo> <name> --print-router \
-  --dir misc/<name> --intents <csv> --guide <guide> --purpose <phrase>
+node <skill>/scripts/scaffold-module.js <root> <name> --print-router \
+  --scope <global|local> --intents <csv> --guide <guide> --purpose <phrase>
 ```
 
-Pass the rendered router to `manage-skill` with **local scope** in `<repo>`, quoting the full router in the handoff so that skill never reads this folder. Include the [`../reference/handoff.md`](../reference/handoff.md) block.
+Pass the rendered router to `manage-skill` with the **resolved scope** and its
+canonical destination, quoting the full router in the handoff so that skill
+never reads this folder. State the scope explicitly so `manage-skill` does not
+re-ask "global or local?". Include the [`../reference/handoff.md`](../reference/handoff.md) block.
 
 If `manage-skill` is unavailable: write the router from [`../templates/skill-router.md`](../templates/skill-router.md) yourself and report that delegation did not happen.
 
 ## 6. Wire and verify
 
-Apply approved discovery edits, then run `node <skill>/scripts/verify-module.js <repo> <name>`. Fix every problem and re-run. Report files created, decisions, and what was deferred.
+Apply approved discovery edits, then run `node <skill>/scripts/verify-module.js <root> <name> --scope <scope>`. Fix every problem and re-run. Report files created, decisions, and what was deferred.

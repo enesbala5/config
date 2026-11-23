@@ -5,8 +5,9 @@ distinguishes it from its siblings.}_
 
 ## Read first
 
-`../AGENTS.md` owns the hard gates. `_Name any index or rule file this intent
-needs, in read order. Do not load a whole bucket or a sibling intent._
+`{{WORKSPACE}}AGENTS.md` owns the hard gates. `_Name any index or rule file
+this intent needs, in read order. Do not load a whole bucket or a sibling
+intent._
 
 ## Sequence
 

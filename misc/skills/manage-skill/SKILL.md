@@ -23,8 +23,8 @@ operation. Nothing here restates the procedure.
 
 `list` and `update` are kept as two first-class intents with their own files,
 not a single shared rule file. Module-shaped requests — a thin router plus a
-`misc/<name>/` workspace derived from guide lessons — route to `manage-module`,
-not here.
+workspace derived from guide lessons (`<config>/misc/modules/<name>/` globally,
+`misc/<name>/` locally) — route to `manage-module`, not here.
 
 Stop after naming the intent and reading its file. The intent file and
 `intents/rules.md` own the next step, including any required confirmation,

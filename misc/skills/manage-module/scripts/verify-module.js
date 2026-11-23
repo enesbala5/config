@@ -1,24 +1,41 @@
 #!/usr/bin/env node
 // Read-only integrity check for a generated module.
-// usage: node verify-module.js <repo> <name>
+// usage: node verify-module.js <root> <name> --scope global|local
 const fs = require('fs');
 const path = require('path');
 
 function fail(msg) { console.error('verify-module: ' + msg); process.exit(1); }
-const [repoArg, name] = process.argv.slice(2);
-if (!repoArg || !name) fail('usage: node verify-module.js <repo> <name>');
-const repo = path.resolve(repoArg);
-const base = path.join(repo, 'misc', name);
-const router = path.join(repo, '.agents', 'skills', name, 'SKILL.md');
+const args = process.argv.slice(2);
+const [rootArg, name] = args;
+if (!rootArg || !name) fail('usage: node verify-module.js <root> <name> --scope global|local');
+const opts = {};
+for (let i = 2; i < args.length; i++) {
+  const flag = args[i];
+  if (!flag.startsWith('--')) continue;
+  const next = args[i + 1];
+  if (next && !next.startsWith('--')) { opts[flag] = next; i++; }
+  else opts[flag] = '';
+}
+const scope = opts['--scope'] || 'local';
+if (!['global', 'local'].includes(scope)) fail('--scope must be global or local');
+
+const root = path.resolve(rootArg);
+const dir = scope === 'global' ? path.join('misc', 'modules', name) : path.join('misc', name);
+const base = path.join(root, dir);
+const router = scope === 'global'
+  ? path.join(root, 'misc', 'skills', name, 'SKILL.md')
+  : path.join(root, '.agents', 'skills', name, 'SKILL.md');
+const ownToken = scope === 'global' ? '<config>' : '<repo>';
 if (!fs.existsSync(base)) fail(`missing workspace: ${base}`);
 
 const problems = [];
 const required = ['AGENTS.md', 'README.md', 'LEARNINGS.md'];
 for (const f of required) if (!fs.existsSync(path.join(base, f))) problems.push(`missing ${f}`);
 const intentsDir = path.join(base, 'intents');
+let intents = [];
 if (!fs.existsSync(intentsDir)) problems.push('missing intents/');
 else {
-  const intents = fs.readdirSync(intentsDir, { withFileTypes: true })
+  intents = fs.readdirSync(intentsDir, { withFileTypes: true })
     .filter((d) => d.isDirectory() && fs.existsSync(path.join(intentsDir, d.name, 'README.md')))
     .map((d) => d.name);
   if (!intents.length) problems.push('no intent has a README.md');
@@ -35,9 +52,12 @@ else {
     const desc = fm[1].match(/^description:\s*.+/m);
     if (!desc) problems.push('router: missing description');
   }
+  const rows = new Set();
   for (const m of text.matchAll(/intents\/([^/`]+)\/README\.md/g)) {
+    rows.add(m[1]);
     if (!fs.existsSync(path.join(intentsDir, m[1], 'README.md'))) problems.push(`router: unknown intent ${m[1]}`);
   }
+  for (const intent of intents) if (!rows.has(intent)) problems.push(`router: missing row for intent ${intent}`);
 }
 
 function walk(dir) {
@@ -51,17 +71,39 @@ function walk(dir) {
 }
 for (const file of walk(base)) {
   const text = fs.readFileSync(file, 'utf8');
-  const rel = path.relative(repo, file);
+  const rel = path.relative(root, file);
   if (/\/home\/|\/tmp\/|~\//.test(text)) problems.push(`${rel}: absolute or home-relative path`);
   if (/misc\/(video|design)\//.test(text)) problems.push(`${rel}: points at another module's workspace`);
   if (/\{\{[A-Z_]+\}\}/.test(text)) problems.push(`${rel}: unrendered template token`);
   for (const m of text.matchAll(/\]\(([^)]+)\)/g)) {
     const target = m[1].split('#')[0];
     if (!target || /^(https?:|mailto:)/.test(target)) continue;
-    if (!fs.existsSync(path.resolve(path.dirname(file), target))) problems.push(`${rel}: dead link ${target}`);
+    const resolved = path.resolve(path.dirname(file), target);
+    if (resolved !== root && !resolved.startsWith(root + path.sep)) {
+      problems.push(`${rel}: link escapes the ${scope} root: ${target}`);
+    }
+    if (!fs.existsSync(resolved)) problems.push(`${rel}: dead link ${target}`);
+  }
+  for (const m of text.matchAll(/`(<config>|<repo>)\/([^`]+)`/g)) {
+    if (m[1] !== ownToken || m[2].includes('<')) continue;
+    if (!fs.existsSync(path.join(root, m[2]))) problems.push(`${rel}: missing ${m[1]}/${m[2]}`);
   }
 }
 
-console.log(`workspace: ${path.relative(repo, base)}`);
+try {
+  const realRoot = fs.realpathSync(root);
+  for (const [label, target] of [['workspace', base], ['router', router]]) {
+    if (!fs.existsSync(target)) continue;
+    const real = fs.realpathSync(target);
+    if (real !== realRoot && !real.startsWith(realRoot + path.sep)) {
+      problems.push(`${label} resolves outside the ${scope} root (symlinked install?)`);
+    }
+  }
+} catch (e) {
+  problems.push('cannot resolve real paths: ' + e.message);
+}
+
+console.log(`scope: ${scope}`);
+console.log(`workspace: ${path.relative(root, base)}`);
 if (problems.length) { console.log('PROBLEMS:\n- ' + problems.join('\n- ')); process.exitCode = 1; }
 else console.log('OK');

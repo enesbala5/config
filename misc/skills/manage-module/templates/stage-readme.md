@@ -4,8 +4,8 @@
 
 ## Route
 
-Guide buckets: _{{bucket names}}_. Load the guide root README, the bucket README,
-then only the lessons the task names.
+Guide buckets: _{{bucket names}}_. Load `{{GUIDE_PATH}}README.md`, the bucket
+README, then only the lessons the task names.
 
 ## Adds / overrides
 

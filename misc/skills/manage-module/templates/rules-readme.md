@@ -1,7 +1,7 @@
 # Rules
 
 What must be true when using this module. Each rule points to lesson evidence in
-`{{GUIDE}}/`. Rules never copy lesson prose; lessons never change to fit rules.
+`{{GUIDE_PATH}}`. Rules never copy lesson prose; lessons never change to fit rules.
 
 ## Sets
 
