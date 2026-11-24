@@ -2,7 +2,7 @@
 # repo-file.sh - print files from a cached clone of a GitHub repo.
 #
 # Usage: repo-file.sh <owner/repo> <branch> <path> [path...]
-# Env:   REPO_CACHE_DIR  cache root   (default ~/.hermes/cache/repos)
+# Env:   REPO_CACHE_DIR  cache root   (default $HOME/.hermes/cache/repos)
 #        REPO_CACHE_TTL  seconds      (default 21600 = 6h, 0 forces a pull)
 #
 # Clone once, pull at most once per TTL, read the rest from disk.
