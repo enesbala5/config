@@ -217,4 +217,4 @@ When recommending experiments, consider tests for:
 - **signup**: For optimizing the signup before onboarding
 - **emails**: For onboarding email series
 - **paywalls**: For converting to paid during/after onboarding
-- **ab-testing**: For testing onboarding changes
+- **marketing** (`plan` / `verify` intents): For testing onboarding changes

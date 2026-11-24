@@ -42,7 +42,7 @@ The sync script writes `~/.pi/agent/mcp.json`, `~/.cursor/mcp.json`, and Zed's `
 
 A saved configuration is not proof that tools connect. An optional HTTP probe can establish reachability, but GET may legitimately return 405 for an MCP endpoint. Do not call that an authentication or protocol success. If sign-in is required, direct the user to their client's authentication flow; never claim login succeeded without verification.
 
-For credentials the user explicitly asks to persist, inspect the repository's existing agenix workflow first. Keep `${TOKEN_NAME}` placeholders in the canonical file, use the established encrypted-secret workflow, and never put plaintext tokens in tracked files or command output.
+For credentials the user explicitly asks to persist, keep `${TOKEN_NAME}` placeholders in the canonical file and ask the user to edit the encrypted JSON with `manage-secret mcp-secrets.json.age`. This is the config's interactive shell alias; if it is unavailable, run `agenix -e mcp-secrets.json.age` from `nix/secrets/` in the resolved config checkout with a waiting editor and an authorized age identity. Never put plaintext tokens in tracked files or command output. If the runtime secret is still unavailable, have the user apply their normal agenix deployment before retrying sync.
 
 ## Final response
 

@@ -95,7 +95,7 @@
     {
       "id": 7,
       "prompt": "Review this feature page for our API monitoring tool. Most traffic comes from organic search for 'API monitoring tools'. We want them to start a free trial.",
-      "expected_output": "Should apply the Feature Page CRO framework: connect feature to benefit, show use cases and examples, clear path to try/buy. Should reference the experiments section and suggest prioritized test ideas for hero section, trust signals, and CTA variations. Should note the organic search traffic source and check for message match with search intent. Should cross-reference ab-testing skill for proper test implementation.",
+      "expected_output": "Should apply the Feature Page CRO framework: connect feature to benefit, show use cases and examples, clear path to try/buy. Should reference the experiments section and suggest prioritized test ideas for hero section, trust signals, and CTA variations. Should note the organic search traffic source and check for message match with search intent. Should cross-reference the marketing module's `plan`/`verify` intents for proper test implementation.",
       "assertions": [
         "Applies Feature Page CRO framework",
         "Connects features to benefits",
@@ -103,7 +103,7 @@
         "Provides clear path to try/buy",
         "Notes organic traffic source and search intent match",
         "Suggests specific experiment hypotheses",
-        "Cross-references ab-testing skill"
+        "Cross-references the marketing module's test guidance"
       ],
       "files": []
     }

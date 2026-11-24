@@ -419,4 +419,4 @@ Ideas to A/B test with expected outcomes
 - **signup**: For account creation forms
 - **popups**: For forms inside popups/modals
 - **cro**: For the page containing the form
-- **ab-testing**: For testing form changes
+- **marketing** (`plan` / `verify` intents): For testing form changes

@@ -224,4 +224,4 @@ What you've accomplished:
 - **churn-prevention**: For cancel flows, save offers, and reducing churn post-upgrade
 - **cro**: For public pricing page optimization
 - **onboarding**: For driving to aha moment before upgrade
-- **ab-testing**: For testing paywall variations
+- **marketing** (`plan` / `verify` intents): For testing paywall variations

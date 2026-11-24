@@ -1,0 +1,32 @@
+# Experiments
+
+Hypotheses, test design, metrics, iteration and programme cadence — feeds the
+`verify` stage.
+
+- [Call the test with a fixed six-question checklist](call-the-test-with-a-checklist.md)
+- [Change one variable per test](change-one-variable-per-test.md)
+- [When traffic cannot power the test, change the question](change-the-question-when-traffic-cannot-power-it.md)
+- [Stress-test popular metrics and rules of thumb](distrust-popular-metrics.md)
+- [Feed the hypothesis backlog from six evidence sources](feed-the-backlog-from-six-sources.md)
+- [Fix the bottleneck before optimising anything else](fix-the-bottleneck-before-optimising.md)
+- [Freeze the test while it runs](freeze-the-test-while-it-runs.md)
+- [Give every test a primary, secondary and guardrail metric](give-every-test-three-metric-tiers.md)
+- [Turn the strongest objection into a monitoring tripwire](keep-a-tripwire-from-the-dissenter.md)
+- [Let keyed tests settle disputes, not opinion or committee](let-keyed-tests-settle-disputes.md)
+- [Make the change bold enough to detect](make-the-change-bold-enough-to-detect.md)
+- [Match test complexity to available traffic](match-test-complexity-to-traffic.md)
+- [Pick one North Star metric and align everything to it](pick-one-north-star-metric.md)
+- [Pre-commit to sample size and do not stop on an early lead](pre-commit-sample-and-do-not-stop-early.md)
+- [Pre-mortem the campaign before you launch](pre-mortem-the-campaign-before-launch.md)
+- [Prioritise the hypothesis backlog with ICE and re-score it monthly](prioritise-the-backlog-with-ice.md)
+- [Promote winners to a playbook of reusable patterns](promote-winners-to-a-pattern-playbook.md)
+- [Run experiments on a fixed weekly-to-quarterly cadence](run-a-fixed-experiment-cadence.md)
+- [Run tests in whole weeks and cap them at 4–8 weeks](run-tests-in-whole-weeks-and-cap-them.md)
+- [Size the test from baseline and the smallest effect worth acting on](size-the-test-from-baseline-and-mde.md)
+- [Track experiment velocity and win rate as leading indicators](track-velocity-and-win-rate.md)
+- [Diagnose reach before prescribing volume](volume-before-optimization.md)
+- [Write the hypothesis before you design the variant](write-the-hypothesis-before-the-variant.md)
+- [Track five community health metrics weekly](track-community-health-metrics-weekly.md)
+- [Audit the leaky community stage before chasing lurkers](audit-the-leaky-community-stage.md)
+- [Benchmark conversion by format and traffic source, not one number](benchmark-conversion-by-format-and-traffic-source.md)
+- [Judge a magnet downstream, by source](judge-a-magnet-downstream-by-source.md)

@@ -15,7 +15,7 @@ Creative direction comes from synthesis across three independent signal sources.
 | Signal | What to pull | How |
 |---|---|---|
 | **Account performance** | Winners/losers by angle, hook, format; funnel metrics per concept (see [hook-system.md](hook-system.md) diagnostic funnel); fatigue state | `google-ads` / `meta-ads` / `linkedin-ads` / `tiktok-ads` CLIs (see Tool Integrations in SKILL.md) |
-| **Customer/brand** | Verbatim pain/desire/objection language; unexpected use cases; who's *actually* buying vs. who's targeted | The Grounded Inputs corpus (`inputs/reviews/`, `inputs/comments/`), sales-call notes, support themes — per **customer-research** |
+| **Customer/brand** | Verbatim pain/desire/objection language; unexpected use cases; who's *actually* buying vs. who's targeted | The Grounded Inputs corpus (`inputs/reviews/`, `inputs/comments/`), sales-call notes, support themes — per the `marketing` module's `research` intent |
 | **External organic** | What the niche watches unpaid: top organic content, its hooks, formats, vocabulary; competitor ads running long enough to be presumed working | **scraping**, the social listening tooling in **social**, ad libraries, **competitor-profiling** |
 
 **Cadence:** a monthly deep dive (60–90 min, all three sources, feeds the monthly roadmap) plus a weekly ~20-minute refresh (what changed: new winners/losers, new review themes, anything spiking organically). Research beyond what the next decision needs is busywork — every synthesis session should end in concepts, not notes.

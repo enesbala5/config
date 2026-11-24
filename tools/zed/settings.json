@@ -64,6 +64,15 @@
 			"url": "https://mcp.axiom.co/mcp",
 			"enabled": true
 		},
+		"Refero": {
+			"command": "/home/e/config/scripts/utilities/mcp-http.sh",
+			"args": [
+				"https://mcp.enesbala.com/refero",
+				"Authorization: Bearer ${MCP_ENESBALA_TOKEN}"
+			],
+			"env": {},
+			"enabled": true
+		},
 		"openseo": {
 			"url": "https://openseo.enesbala.com/mcp",
 			"enabled": true

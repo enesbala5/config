@@ -1,0 +1,25 @@
+# Research
+
+Audience and problem discovery, VOC, pain points, competitive and demand inputs — feeds the `research` stage.
+
+- [Establish the research mode before you start](establish-research-mode-first.md)
+- [Read existing product-marketing context before asking questions](read-context-before-asking.md)
+- [Ask for the goal before you analyse anything](ask-goal-before-analysis.md)
+- [Segment before you average](segment-before-averaging.md)
+- [Capture exact customer words, not paraphrases](capture-verbatim-language.md)
+- [Cluster, then rank themes by frequency × intensity](rank-themes-by-frequency-and-intensity.md)
+- [Label every insight with a confidence level before presenting it](label-insights-with-confidence.md)
+- [Require five independent data points before personas or messaging](minimum-sample-before-personas.md)
+- [Weight the last twelve months most heavily](weight-recent-evidence.md)
+- [Choose research sources by where your ICP talks, not where you are discussed](choose-sources-by-icp.md)
+- [Read your own reviews in a deliberate order](read-own-reviews-in-order.md)
+- [Mine competitor four-star reviews for buried complaints](mine-competitor-four-star-reviews.md)
+- [Treat job postings as admissions of pain](job-postings-as-pain-signals.md)
+- [Use aggregated audience data for 'where', qualitative research for 'why'](aggregated-for-where-qualitative-for-why.md)
+- [With no first-party data, build personas outward from proxies](build-personas-from-proxies.md)
+- [Tag every quote with one shared taxonomy](tag-quotes-with-one-taxonomy.md)
+- [Ask which deliverable is needed before producing output](ask-which-deliverable.md)
+- [Channel existing desire — never try to create it](channel-existing-desire-not-create.md)
+- [Qualify stage, resources and history before recommending ideas](qualify-stage-and-resources-before-ideas.md)
+- [Close research with a brief that names the insights to exploit](close-research-with-an-exploitable-brief.md)
+- [Source magnet topics from existing assets and pre-purchase questions](source-magnet-topics-from-existing-assets.md)

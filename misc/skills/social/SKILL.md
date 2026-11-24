@@ -410,4 +410,4 @@ Tools: CapCut (free), Descript, Captions.ai, Premiere Pro
 - **copy** (write): For longer-form content that feeds social
 - **launch**: For coordinating social with launches
 - **emails**: For nurturing social audience via email
-- **marketing-psychology**: For understanding what drives engagement
+- **marketing** (`position` intent): For psychological principles behind what drives engagement

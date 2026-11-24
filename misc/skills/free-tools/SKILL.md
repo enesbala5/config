@@ -1,6 +1,6 @@
 ---
 name: free-tools
-description: When the user wants to plan, evaluate, or build a free tool for marketing purposes — lead generation, SEO value, or brand awareness. Also use when the user mentions "engineering as marketing," "free tool," "marketing tool," "calculator," "generator," "interactive tool," "lead gen tool," "build a tool for leads," "free resource," "ROI calculator," "grader tool," "audit tool," "should I build a free tool," or "tools for lead gen." Use this whenever someone wants to build something useful and give it away to attract leads or earn links. For downloadable content lead magnets (ebooks, checklists, templates), see lead-magnets.
+description: When the user wants to plan, evaluate, or build a free tool for marketing purposes — lead generation, SEO value, or brand awareness. Also use when the user mentions "engineering as marketing," "free tool," "marketing tool," "calculator," "generator," "interactive tool," "lead gen tool," "build a tool for leads," "free resource," "ROI calculator," "grader tool," "audit tool," "should I build a free tool," or "tools for lead gen." Use this whenever someone wants to build something useful and give it away to attract leads or earn links. For downloadable content lead magnets (ebooks, checklists, templates), see the marketing module (`plan` intent).
 metadata:
   version: 2.0.0
 ---
@@ -172,7 +172,7 @@ Rate each factor 1-5:
 
 ## Related Skills
 
-- **lead-magnets**: For downloadable content lead magnets (ebooks, checklists, templates)
+- **marketing** (`plan` intent): For downloadable content lead magnets (ebooks, checklists, templates)
 - **cro**: For optimizing the tool's landing page
 - **seo-audit**: For SEO-optimizing the tool
 - **analytics**: For measuring tool usage

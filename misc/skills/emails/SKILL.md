@@ -302,10 +302,10 @@ For implementation, see the [tools registry](../../tools/REGISTRY.md). Key email
 
 ## Related Skills
 
-- **lead-magnets**: For planning lead magnets that feed into nurture sequences
+- **marketing** (`plan` intent): For planning lead magnets that feed into nurture sequences
 - **churn-prevention**: For cancel flows, save offers, and dunning strategy (email supports this)
 - **onboarding**: For in-app onboarding (email supports this)
 - **copy** (write): For landing pages emails link to
-- **ab-testing**: For testing email elements
+- **marketing** (`plan` / `verify` intents): For testing email elements
 - **popups**: For email capture popups
 - **revops**: For lifecycle stages that trigger email sequences

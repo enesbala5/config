@@ -30,6 +30,13 @@
 			"url": "https://mcp.axiom.co/mcp",
 			"description": "Axiom observability: query logs, traces and datasets."
 		},
+		"Refero": {
+			"url": "https://mcp.enesbala.com/refero",
+			"headers": {
+				"Authorization": "Bearer ${MCP_ENESBALA_TOKEN}"
+			},
+			"description": "Refero MCP server."
+		},
 		"openseo": {
 			"url": "https://openseo.enesbala.com/mcp",
 			"description": "OpenSEO: keyword, backlink and SEO research."
