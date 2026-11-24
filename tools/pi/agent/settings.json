@@ -2,7 +2,7 @@
   "lastChangelogVersion": "1.4.0",
   "defaultProvider": "openai",
   "defaultModel": "gpt-6.2-sol",
-  "hideThinkingBlock": false,
+  "hideThinkingBlock": true,
   "quietStartup": true,
   "packages": [
     "npm:@ogulcancelik/pi-minimal-footer",
