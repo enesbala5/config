@@ -66,6 +66,8 @@ in
         launcher_window = {
           # Stylix sets this from stylix.opacity.popups (0.8).
           opacity = lib.mkForce 0.85;
+          # Square corners (Vicinae default is 10).
+          rounding = 0;
         };
 
         favorites = [
