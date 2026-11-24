@@ -350,4 +350,4 @@ Over time, your playbook becomes a library of proven growth patterns specific to
 
 - **cro**: For generating test ideas based on CRO principles
 - **analytics**: For setting up test measurement
-- **copywriting**: For creating variant copy
+- **copy** (write): For creating variant copy

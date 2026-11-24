@@ -69,7 +69,7 @@ skills work without pi:
 ```bash
 ask-local "explain: unshare: mount --make-rprivate failed"
 git diff | ask-local --skill chunk-and-commit "propose the commit chunks"
-ask-local --skill copy-editing --max-tokens 600 < draft.md
+ask-local --skill copy --max-tokens 600 < draft.md
 ```
 
 It reads the instruction from arguments and the data from stdin, loads

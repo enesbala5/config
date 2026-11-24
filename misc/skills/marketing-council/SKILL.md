@@ -1,6 +1,6 @@
 ---
 name: marketing-council
-description: "When the user wants multiple expert perspectives on a marketing question — a simulated board of advisors staffed by legendary marketers (Seth Godin, David Ogilvy, Eugene Schwartz, April Dunford, Rory Sutherland, Alex Hormozi, Byron Sharp, and more). Also use when the user mentions 'marketing council,' 'board of advisors,' 'advisory board,' 'what would Seth Godin say,' 'what would Ogilvy think,' 'channel Hormozi,' 'get multiple perspectives,' 'debate this,' 'have the council review,' 'marketing mentors,' or asks how a famous marketer would approach their problem. The council gives each advisor's take through their documented frameworks, surfaces where they disagree, and synthesizes a recommendation. For executing the winning direction, hand off to positioning, offers, copywriting, ads, or the relevant skill."
+description: "When the user wants multiple expert perspectives on a marketing question — a simulated board of advisors staffed by legendary marketers (Seth Godin, David Ogilvy, Eugene Schwartz, April Dunford, Rory Sutherland, Alex Hormozi, Byron Sharp, and more). Also use when the user mentions 'marketing council,' 'board of advisors,' 'advisory board,' 'what would Seth Godin say,' 'what would Ogilvy think,' 'channel Hormozi,' 'get multiple perspectives,' 'debate this,' 'have the council review,' 'marketing mentors,' or asks how a famous marketer would approach their problem. The council gives each advisor's take through their documented frameworks, surfaces where they disagree, and synthesizes a recommendation. For executing the winning direction, hand off to positioning, offers, the copy module, ads, or the relevant skill."
 metadata:
   version: 1.0.0
 ---
@@ -153,7 +153,7 @@ Users can extend the bench ("add my own advisor"). Create a dossier following th
 
 - **positioning** / **product-marketing**: When Dunford's take wins — execute the positioning work
 - **offers** / **pricing**: When Hormozi/Halbert direction wins — build the offer
-- **copywriting** / **copy-editing**: When the council reviewed copy — execute revisions
+- **copy** (write / revise): When the council reviewed copy — execute revisions
 - **ads** / **ad-creative**: When the debate was media or creative strategy
 - **content-strategy** / **social**: When Handley/Vaynerchuk direction wins
 - **brand-strategy** / **marketing-psychology**: For Sharp's availability work and Sutherland's behavioral mechanics

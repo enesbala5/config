@@ -54,14 +54,14 @@
     {
       "id": 4,
       "prompt": "We have a blog that gets 20k organic visits/month but almost nobody clicks through to our product. How do we get more conversions from blog readers?",
-      "expected_output": "Should apply the Blog Post CRO framework. Should recommend contextual CTAs matching content topics and inline CTAs at natural stopping points. Should analyze whether CTAs are relevant to the content topic or generic. Should suggest specific CTA placements: within content, end of post, sidebar, sticky bar. Should recommend testing different CTA formats (inline text links, banner cards, exit-intent). Should cross-reference copywriting skill for CTA copy improvement.",
+      "expected_output": "Should apply the Blog Post CRO framework. Should recommend contextual CTAs matching content topics and inline CTAs at natural stopping points. Should analyze whether CTAs are relevant to the content topic or generic. Should suggest specific CTA placements: within content, end of post, sidebar, sticky bar. Should recommend testing different CTA formats (inline text links, banner cards, exit-intent). Should cross-reference the copy module for CTA copy improvement.",
       "assertions": [
         "Applies Blog Post CRO framework",
         "Recommends contextual CTAs matching content",
         "Recommends inline CTAs at natural stopping points",
         "Suggests specific CTA placements",
         "Suggests testing different CTA formats",
-        "Cross-references copywriting or related skill"
+        "Cross-references the copy module or related skill"
       ],
       "files": []
     },

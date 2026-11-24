@@ -19,7 +19,7 @@
     {
       "id": 2,
       "prompt": "What would David Ogilvy say about this headline: 'Revolutionize your workflow with AI-powered synergy'?",
-      "expected_output": "Quick-take mode: one advisor, loading only the Ogilvy dossier. Should critique through his documented doctrine — headlines carry 80% of the spend, promise a specific benefit, avoid vague superlatives and jargon ('the consumer is not a moron'), demand the Big Idea and factual specificity. Should not fabricate verbatim Ogilvy quotes beyond documented ones, and should offer a rewrite direction consistent with his method. May hand off to copywriting for execution.",
+      "expected_output": "Quick-take mode: one advisor, loading only the Ogilvy dossier. Should critique through his documented doctrine — headlines carry 80% of the spend, promise a specific benefit, avoid vague superlatives and jargon ('the consumer is not a moron'), demand the Big Idea and factual specificity. Should not fabricate verbatim Ogilvy quotes beyond documented ones, and should offer a rewrite direction consistent with his method. May hand off to the copy module for execution.",
       "assertions": [
         "Runs quick-take mode with one advisor, not a full council",
         "Applies Ogilvy's documented headline doctrine specifically",
