@@ -18,7 +18,7 @@ through a video-authoring workflow. Edited promos/captions are separate work.
 
 | Need | Route |
 |---|---|
-| One web-page screenshot, element, or full page | Existing browser screenshot API (`page.screenshot` / `locator.screenshot`); see sibling `playwright-cdp/SKILL.md` |
+| One web-page screenshot, element, or full page | Existing browser screenshot API (`page.screenshot` / `locator.screenshot`); see sibling `playwright/SKILL.md` |
 | One desktop/window screenshot | `hypruse desktop`, then `hypruse screenshot --window ADDR --out PATH`; see sibling `hypruse/SKILL.md` |
 | Desktop/browser chrome, monitor, or region video | This CLI's native `wl-screenrec` backend |
 | Isolated app video without taking focus | This CLI's **sampled** grim + FFmpeg window backend |

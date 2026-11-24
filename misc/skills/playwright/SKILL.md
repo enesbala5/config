@@ -1,5 +1,5 @@
 ---
-name: playwright-cdp
+name: playwright
 description: Connect Playwright to the already-running Helium (preferred) or Chrome browser over CDP. Use when automating the real desktop browser, taking screenshots, clicking, filling forms, scraping a logged-in session, driving Playwright MCP, or when the user mentions Playwright, Helium CDP, chrome remote debugging, or connectOverCDP.
 ---
 
