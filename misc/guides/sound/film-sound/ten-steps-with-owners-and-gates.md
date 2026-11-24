@@ -1,0 +1,5 @@
+# The soundtrack is a 10-step pipeline with owners and gates
+
+**Feeds stage:** film-sound
+
+Run the real-recordings workflow as named steps, each handing a concrete artifact and passing a gate: 0 cue list (lead → `out/cues.json`; sync frames computed from the picture); 1 brief (lead → `audio/SOUND_BRIEF.md`; every cue has a sound need or "nothing"); 2 sourcing per category in parallel (sourcing agents → assets + manifests; each file measured and realness-checked on the trim used); 3 licence audit (auditor → `audit.json`; audit exit 0 for exactly what the film uses); 4 music edit (music supervisor → `music.json`; grid verified, drop on the reveal, clean splices); 5 design fragments per category in parallel (designers → solo render + qa clean); 6 integrate (lead → soundtrack, stems, report, trace; master gate); 7 QA + listening (lead → `qa.json`; no qa fail); 8 five read-only critics in parallel (ranked issues + tested operations); 9 fix by ONE fixer (qa: no regression); 10 master, credits, mux (credits exit 0, lag 0). Sub-agent briefs are ready-to-fill templates; do not skip a gate to reach the film faster.

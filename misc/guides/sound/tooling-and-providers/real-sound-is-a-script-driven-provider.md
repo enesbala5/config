@@ -1,0 +1,7 @@
+# real-sound is a script-driven provider for the future sound module
+
+**Feeds stage:** tooling-and-providers
+
+The `real-sound` companion is a script/CLI-driven provider, not just prose guidance. Its work is done by Python scripts — `scripts/analyze.py`, `audit.py`, `arrange.py`, `mix.py`, `qa.py`, `variant.py`, `credits.py`, `master.py` — the Node script `scripts/mux.mjs`, and `python -m earshot ...` listening commands (realness, rank, match, find, measure, timeline, sheet, critique). All of it runs on ONE Python interpreter (`{{PY}}`) that has numpy, scipy, soundfile and the earshot package: the earshot venv, or any python where `import earshot` works. Bare `python` on Windows is often the Microsoft Store stub and fails. Run scripts with `-I` so downloaded files cannot shadow a module; every script except `scripts/licences.py` (the policy module imported by audit and credits) prints `--help`. This companion can serve as a PROVIDER for the future `sound` module's real-recordings soundtrack path — wire it in when the module is built.
+
+**Note for module construction:** entry points are `scripts/analyze.py` (measure + spectrogram PNGs), `scripts/audit.py` with `scripts/licences.py` (licence policy), `scripts/arrange.py` (music grid and bar-line edit), `scripts/mix.py` (deterministic render, `--only`/`--dump`/`--trace`), `scripts/qa.py` (`--layers`/`--listen`/`--realness`), `scripts/variant.py` (critic variants, `--apply`), `scripts/credits.py`, `scripts/master.py` (`--measure`) and `scripts/mux.mjs`; listening is `python -m earshot <command>`.

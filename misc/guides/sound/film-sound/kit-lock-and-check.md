@@ -1,0 +1,5 @@
+# Place takes from the lock and swap every warned take
+
+**Feeds stage:** film-sound
+
+`earshot kit render audio/kit.json --out audio/kit` produces the takes and `kit.lock.json` (measured onset, peak, end, loudness per take): onset on the frame for hits and touches, the peak on a whoosh's apex, the end on a riser's hit — except roles aligned on `peak` (launch's riser and swell), whose members fall after their climax; `kit check` notes an end-aligned one. `earshot kit check audio/kit.json --out audio/kit` refuses what a render cannot use (a knob or pitch the sound cannot take, a level over 0 dBFS, two takes that would share a file). Every warning names a take and a reason: clicks, a cut tail, comb ring, silence, a pitch that climbs more than 4 semitones, a hit with two attacks or a build before it, `pitch_off` (a note the knob did not land). Swap the sound or the knob rather than keeping a warned take; read the notes too (a sounded riser, a composite sting). Finally listen through the finished film with timeline/sheet and check each cue landed.

@@ -1,0 +1,5 @@
+# Mix a recipe from few real layers
+
+**Feeds stage:** building-sounds
+
+Real recordings first, and few of them; a recording moved down is bigger (`"pitch": -12` turns a horse into a beast). Noise is only for air and rumble, the low sine only for weight under a hit; no synth tone and no bell for a thing that is not one. Layers are brought to the same peak before their gain: body at 0, what supports it at -4 to -10, air and rumble at -12 to -18. Example: a far car crash of tyres/screech, car_door/slam (-7 semitones), metal/drop (-5 semitones, -3 dB) and brown noise under 150 Hz at -16 dB rendered as `recipe/car_crash_far (3.02 s, peak at 1.58 s, -14 LUFS, clean)`. A fuller cookbook example: `earshot make "a car crash" -o crash.wav` → `recipe/car_crash (3.11 s, peak at 1.58 s, -14 LUFS, clean) [recipe]`, built from `tyres/screech; car_door/slam (-7 semitones); metal/drop (-5 semitones); glass/break; can/drop (-3 semitones)`, with `impact/car, boom/door, slam/door` as the nearest designs — a recipe answers because no design of the catalogue is that sound.

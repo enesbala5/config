@@ -1,0 +1,5 @@
+# The critic can be gamed: judge against the references
+
+**Feeds stage:** listening
+
+Say it plainly: the search optimises earshot's own models, so made sounds routinely out-score real recordings on them — the critic is satisfied, not the sound better. p_real is easy to fool (modal resonators plus a room and a noise floor read "real"); typicality rewards being an average; after a search every model check puts the made sound inside the real ones. Judge by measured closeness to the references (tonal balance, bands outside every reference, tails, lengths), robust re-renders and spectrograms, and ask for a human blind test (random order, loudness-matched, hidden key) before calling a made sound "as good as real". In a blind test of five forge sounds beside real recordings, one listener picked the made one 8 times out of 15 — chance. The forge renders candidates from recipe parameters and keeps the best through an evolutionary search (`--budget 144 --variants 4`); with no licensed `--refs DIR` of your own the critic runs in designed mode, and `earshot gallery out/forge_v2 -o out/gallery/gallery.html` turns results into one static listening page.

@@ -1,0 +1,5 @@
+# What builds well and what does not
+
+**Feeds stage:** building-sounds
+
+Measured by the listening model, what builds well is textures of many similar events and pulsing: a swarm, a campfire, a purr. Applause is a sketch (fits its words but loses to the catalogue's own applause). What does not: rain or hail on a surface the catalogue has no recording of, a vehicle passing built from another motor, voices (a whale came back as an owl and a wolf moved down), and pure tones. Prefer a learned thing whenever one fits; a build is not a substitute for a recording. The numbers: of 30 things the catalogue lacks, 29 builds fit the words better than what `make` hands over. Rebuilt from other recordings, things the catalogue already has came out near their real design for textures of many similar events and for pulsing — a purr, a swarm, a boiling pot, a campfire. Rain and hail on a new surface and a vehicle passing built from another motor did not. All of this was judged by the listening model, not by a person.

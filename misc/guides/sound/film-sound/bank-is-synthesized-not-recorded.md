@@ -1,0 +1,5 @@
+# The sound bank is made in code, not recorded
+
+**Feeds stage:** film-sound
+
+Say plainly what the bank is: forge sounds made in code (some tuned toward a private set of licensed reference clips and checked to stay originals, CLAP 0.84 at most against any of them), plus 15 sounds fitted as code from CC0 recordings (`fit/<role>/<name>`, each with its source; presets use them for clicks, ticks, keys, touches and the snap). All chosen and checked by measurement, none by a listening test; they are not recordings. When the brief asks for recorded sound, use real-sound instead. To add your own fit: `earshot fit --takes`, then `bank add-fit` (`docs/SFX.md`, "Add your own fit"). The bank holds 252 sound effects: 183 made by the forge in 34 categories, 51 made for films cut to music (`ui_pop`, `knock`, `cut_hit`, `mallet`, `drip`, `shutter`, `reverse_swell`), three tuned kalimba voices and 15 fitted from CC0 recordings. Their 209 named members are also in the `make` catalogue. Knobs set a length, a whoosh's apex time and a pitch — `earshot sfx render whoosh_fast/crisp -o w.wav --dur 0.8 --apex 0.32` — and every render is checked.

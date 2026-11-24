@@ -1,0 +1,5 @@
+# Start a film kit from a preset, then fit it to the film
+
+**Feeds stage:** film-sound
+
+For a code-made film (a cinetic film, any cue sheet), render effects from the shipped bank instead of writing synth voices: no models load, a whole kit renders in about a minute. `earshot kit init --preset calm -o audio/kit.json` — calm for text-led films, crisp for energetic product films, minimal for designed effects-only films, launch for music-cut films. Each role's `note` says why its sound was chosen. calm/crisp/minimal keep riser, swell and suck off: a reveal resolves on one element and the lockup is one clean hit; launch sounds one riser or reverse swell at a section change. Fit it with `earshot sfx list --kind hit` (or `--category`) for candidates with lengths, peak times and knobs; change a role's `sound`, set `edits` (`pitch` to the film's root for a hit/drop, `dur`/`apex` for a fixed move), `takes` (12 or more for typing, 2-4 elsewhere) and `level_db`. Audition one candidate with `earshot sfx render ID -o x.wav [--pitch E5] [--dur 0.8 --apex 0.32]` and read its measured onset/peak/end.
