@@ -79,10 +79,10 @@
     {
       "id": 6,
       "prompt": "Write me a 5-email welcome sequence for new email subscribers who came from my LinkedIn audience.",
-      "expected_output": "Should recognize this is an email sequence task, not social content. Should defer to or cross-reference the emails skill, which handles welcome sequences, drip campaigns, and lifecycle emails. May note the social-to-email bridge context but should make clear that emails is the right skill for writing email sequences.",
+      "expected_output": "Should recognize this is an email sequence task, not social content. Should defer to or cross-reference the `conversion` router (`plan` intent), which handles welcome sequences, drip campaigns and lifecycle emails. May note the social-to-email bridge context but should make clear that the conversion router is the right place for planning email sequences.",
       "assertions": [
         "Recognizes this as email sequence work",
-        "References or defers to emails skill",
+        "References or defers to the conversion router (`plan`)",
         "Does not attempt to write email sequence using social content patterns",
         "May note social-to-email bridge context"
       ],

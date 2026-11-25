@@ -173,7 +173,7 @@ Rate each factor 1-5:
 ## Related Skills
 
 - **marketing** (`plan` intent): For downloadable content lead magnets (ebooks, checklists, templates)
-- **cro**: For optimizing the tool's landing page
+- **conversion** (`audit`): For optimizing the tool's landing page
 - **seo-audit**: For SEO-optimizing the tool
 - **analytics**: For measuring tool usage
-- **emails**: For nurturing leads from the tool
+- **conversion** (`plan`): For nurturing leads from the tool

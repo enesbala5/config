@@ -71,7 +71,7 @@ Each metric in the delivery funnel isolates a different component. When an ad un
 | Stop | Thumbstop / 3-sec view rate | **Visual action** (and caption) | New visual opening; same everything else |
 | Stay | Hold rate (3s → 15s / 50% view) | **The on-ramp** — what follows the hook | Rework seconds 3–15, not the hook |
 | Click | CTR | Desire/offer clarity mid-ad | Sharpen the promise, CTA, or proof |
-| Convert | CVR post-click | Congruence — the page doesn't continue the ad | Fix the landing page or the claim, per **cro** |
+| Convert | CVR post-click | Congruence — the page doesn't continue the ad | Fix the landing page or the claim, per **conversion** (`audit`) |
 
 Two rules this table enforces:
 

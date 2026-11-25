@@ -81,10 +81,10 @@
     {
       "id": 6,
       "prompt": "We need to optimize the lead capture form inside our popup. It currently asks for name, email, company, and phone number. Too many fields?",
-      "expected_output": "Should recognize this overlaps with form optimization. Should defer to or cross-reference the cro skill, which handles form field optimization, layout, and conversion. May provide popup-specific context (popups need minimal fields due to fleeting attention) but should make clear that cro is the right skill for detailed form optimization.",
+      "expected_output": "Should recognize this overlaps with form optimization. Should defer to or cross-reference the `conversion` router (`audit` intent), which covers form field optimization, layout and conversion. May provide popup-specific context (popups need minimal fields due to fleeting attention) but should make clear that the conversion router is the right place for detailed form optimization.",
       "assertions": [
         "Recognizes overlap with form optimization",
-        "References or defers to cro skill",
+        "References or defers to the conversion router (`audit`)",
         "Notes popups need minimal fields due to context",
         "Does not attempt detailed form redesign"
       ],
