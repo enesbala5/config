@@ -21,7 +21,7 @@ Chrome fallback: `helium-cdp --chrome`
 
 Use `127.0.0.1`, not `localhost` (IPv6).
 
-Helium windows created by Playwright (their pages start at `about:blank`) are staged on workspace 11 by a window rule, then moved by a `window.open` hook in `hypr/hyprland/modules/windows/init.lua` to the first workspace >= 11 with no windows — so they stay off the human's workspaces and spread out (11, 12, 13, ...). Helium windows opened normally from the CLI or Vicinae are not matched. Find automation windows with `hypruse desktop` rather than assuming they followed the active workspace.
+Playwright MCP injects an invisible zero-width-space title marker (`scripts/browser/playwright-marker.js`, wired in via `playwright-mcp.config.json`). A `window.open` / `window.title` hook in `hypr/hyprland/modules/windows/init.lua` moves any Helium window carrying that marker off the human's workspaces (1-10) and onto the first empty workspace >= 11. Helium windows opened normally from the CLI or Vicinae have no marker and keep their normal placement. Because the marker comes from the MCP config, restart any already-running Playwright MCP client for this to take effect. Find automation windows with `hypruse desktop` rather than assuming they followed the active workspace.
 
 ## Visual evidence
 

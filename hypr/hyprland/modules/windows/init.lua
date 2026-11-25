@@ -4,14 +4,25 @@
 -- so Alt+Tab/cyclenext swaps windows without a resize.
 hl.workspace_rule({ workspace = "1", layout = "monocle" })
 
--- Playwright drives Helium over CDP and creates its pages at about:blank.
--- Match that initial title so windows the human opens from the CLI or Vicinae
--- (New Tab / a real site) keep their normal placement.
+-- Playwright MCP injects an invisible zero-width space at the start of every
+-- title in pages it controls (scripts/browser/playwright-marker.js). That is
+-- the only reliable way to tell its windows from Helium windows the human
+-- opens from the CLI or Vicinae: Playwright often navigates an existing New
+-- Tab instead of creating a fresh about:blank window.
+local PW_MARK = "\226\128\139" -- U+200B ZERO WIDTH SPACE, in UTF-8
+
+-- about:blank windows are created by Playwright before any page loads, so
+-- stage those immediately. Everything else is caught by the title hook below.
 hl.window_rule({
 	name = "playwright-windows-staging",
 	match = { class = "helium", initial_title = "^about:blank" },
 	workspace = "11",
 })
+
+local function is_playwright_window(win)
+	return win.class == "helium"
+		and (win.title or ""):find(PW_MARK, 1, true) ~= nil
+end
 
 local function playwright_empty_workspace(win)
 	local occupied = {}
@@ -33,19 +44,26 @@ local function playwright_empty_workspace(win)
 	return nil
 end
 
-hl.on("window.open", function(win)
-	if win.class ~= "helium" or not win.initial_title:match("^about:blank") then
+local function place_playwright_window(win)
+	if not is_playwright_window(win) then
+		return
+	end
+	-- Already on an automation workspace; don't shuffle it on every title change.
+	if win.workspace and win.workspace.id >= 11 then
 		return
 	end
 	local target = playwright_empty_workspace(win)
-	if not target or (win.workspace and win.workspace.id == target) then
+	if not target then
 		return
 	end
-	-- v0.56 needs a tick before dispatching a move from window.open.
+	-- v0.56 needs a tick before dispatching a move from an event callback.
 	hl.timer(function()
 		hl.dispatch(hl.dsp.window.move({ window = win, workspace = target }))
 	end, { timeout = 1, type = "oneshot" })
-end)
+end
+
+hl.on("window.open", place_playwright_window)
+hl.on("window.title", place_playwright_window)
 
 -- Anonymous on purpose. Named rules run first, so a named base rule would beat
 -- the later anonymous profile overrides.
