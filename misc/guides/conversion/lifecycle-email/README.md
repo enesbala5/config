@@ -1,0 +1,28 @@
+# Lifecycle Email
+
+Sequence design, email types, copy guidelines and cadence that feed the `plan` stage.
+
+- [One email, one job, one CTA](one-email-one-job.md)
+- [Lead with value before asking](value-before-ask.md)
+- [Prefer relevance over volume](relevance-over-volume.md)
+- [Every email should move the reader somewhere](every-email-moves-forward.md)
+- [Set sequence length by type and sales cycle](set-sequence-length-by-type-and-cycle.md)
+- [Time sends for the audience, not the calendar](time-sends-for-the-audience.md)
+- [Write clear, specific subject lines](write-clear-specific-subject-lines.md)
+- [Use preview text to extend the subject line](preview-text-extends-the-subject.md)
+- [Structure email copy from hook to sign-off](structure-email-copy-hook-to-signoff.md)
+- [Format emails for mobile scanning](format-email-for-mobile-scanning.md)
+- [Match email length to its purpose](match-email-length-to-purpose.md)
+- [Use buttons for primary actions, links for secondary ones](buttons-for-primary-links-for-secondary.md)
+- [Personalize with safe fallbacks and dynamic content](personalize-with-safe-fallbacks.md)
+- [Prefer triggered emails to time-based sends](trigger-emails-beat-time-based.md)
+- [Segment by behavior, stage and profile](segment-by-behavior-stage-and-profile.md)
+- [Let email support in-app onboarding, not duplicate it](email-supports-in-app-onboarding.md)
+- [Build sequences as a value-to-ask arc](sequence-arc-value-then-ask.md)
+- [Treat new-user and new-customer series differently](new-user-vs-new-customer-series-differ.md)
+- [Follow up NPS responses by score](follow-up-nps-by-score.md)
+- [Audit the whole program against a category checklist](use-an-email-program-audit-checklist.md)
+- [Ask for reviews after a positive moment](ask-for-reviews-after-positive-moments.md)
+- [Recover payments and win back customers without guilt](recover-payments-and-win-back-without-guilt.md)
+- [Make usage reports relevant or don't send them](make-usage-reports-relevant.md)
+- [Announce pricing changes with advance notice](announce-pricing-changes-with-advance-notice.md)
