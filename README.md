@@ -11,7 +11,7 @@ This repository houses the entire declarative environment for my machines. It is
 - **Declarative & reproducible:** The entire system is fully defined and reproducible across different hardware targets, like my Framework 13.
 - **Secret management:** Secure, key-based credential handling integrated natively via Agenix.
 - **Custom automation:** Handcrafted operational wrapper scripts to streamline background services like Rclone and Keymapper.
-- **Agent modules:** Workflow modules live in `misc/modules/` with thin router skills in `misc/skills/`; see the [sound module](./misc/modules/sound/README.md) for sound-design strategy and audio verification.
+- **Agent modules:** Workflow modules live in `misc/modules/` with thin router skills in `misc/skills/`; see the [sound module](./misc/modules/sound/README.md) for sound-design strategy and audio verification, or the [conversion module](./misc/modules/conversion/README.md) for conversion audits, fix plans and verification.
 
 ## Installation
 
