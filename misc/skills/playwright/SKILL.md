@@ -21,6 +21,8 @@ Chrome fallback: `helium-cdp --chrome`
 
 Use `127.0.0.1`, not `localhost` (IPv6).
 
+Helium windows created by Playwright (their pages start at `about:blank`) are staged on workspace 11 by a window rule, then moved by a `window.open` hook in `hypr/hyprland/modules/windows/init.lua` to the first workspace >= 11 with no windows — so they stay off the human's workspaces and spread out (11, 12, 13, ...). Helium windows opened normally from the CLI or Vicinae are not matched. Find automation windows with `hypruse desktop` rather than assuming they followed the active workspace.
+
 ## Visual evidence
 
 Use `page.screenshot(...)` / `locator.screenshot(...)` for page or element

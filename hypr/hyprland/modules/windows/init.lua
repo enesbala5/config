@@ -4,6 +4,49 @@
 -- so Alt+Tab/cyclenext swaps windows without a resize.
 hl.workspace_rule({ workspace = "1", layout = "monocle" })
 
+-- Playwright drives Helium over CDP and creates its pages at about:blank.
+-- Match that initial title so windows the human opens from the CLI or Vicinae
+-- (New Tab / a real site) keep their normal placement.
+hl.window_rule({
+	name = "playwright-windows-staging",
+	match = { class = "helium", initial_title = "^about:blank" },
+	workspace = "11",
+})
+
+local function playwright_empty_workspace(win)
+	local occupied = {}
+	for _, ws in ipairs(hl.get_workspaces()) do
+		if ws.id >= 11 and ws.windows > 0 then
+			for _, w in ipairs(hl.get_workspace_windows(ws)) do
+				if w.address ~= win.address then
+					occupied[ws.id] = true
+					break
+				end
+			end
+		end
+	end
+	for id = 11, 99 do
+		if not occupied[id] then
+			return id
+		end
+	end
+	return nil
+end
+
+hl.on("window.open", function(win)
+	if win.class ~= "helium" or not win.initial_title:match("^about:blank") then
+		return
+	end
+	local target = playwright_empty_workspace(win)
+	if not target or (win.workspace and win.workspace.id == target) then
+		return
+	end
+	-- v0.56 needs a tick before dispatching a move from window.open.
+	hl.timer(function()
+		hl.dispatch(hl.dsp.window.move({ window = win, workspace = target }))
+	end, { timeout = 1, type = "oneshot" })
+end)
+
 -- Anonymous on purpose. Named rules run first, so a named base rule would beat
 -- the later anonymous profile overrides.
 
