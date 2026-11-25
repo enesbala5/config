@@ -30,6 +30,8 @@ Umami specifics for purchase events:
 
 - `destinations/umami.ts` mirrors `value` as `revenue` (plus `currency`). The Umami Revenue insight aggregates only a property literally named `revenue`; do not drop the alias.
 - The server event sets `id` to `cl_aid` (the distinct ID). The client script reads the same cookie and sets `data-distinct-id`, so pageviews and server events share a visitor — required for the Attribution insight (first-click / last-click). Keep both sides on the same ID (`src/lib/services/analytics/cookieKeys.ts`); if you change the cookie name or make it httpOnly again, attribution breaks.
+- `ensureAnalyticsCookies()` reissues `cl_aid` with `httpOnly: false` on **every** call, even when the cookie already exists, keeping the same value and refreshing max-age. Do not "optimize" this back to set-only-when-missing: legacy httpOnly cookies are invisible to `document.cookie` and cannot be overwritten from script, so returning visitors would mint a new distinct ID on every page load. The hook calls it on each document request, before the client script attaches.
+- Privacy: `cl_aid` is a random ID, not personal data, but it is now readable by page scripts and persistent for 180 days. It is set by Coverlttr — Umami itself remains cookieless. If you change its lifetime, readability, or purpose, review the site's cookie notice / EU consent setup; dropping the distinct ID keeps revenue and plan tracking but loses purchase-to-source attribution.
 
 Adding a union value may cause TypeScript errors in GA4 and Meta `Record<ServerAnalyticsEvent, string>` maps. Preserve this intent's boundary: add deliberate placeholder entries if appropriate, or ask before implementing those provider mappings.
 
