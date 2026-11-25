@@ -17,9 +17,12 @@ or implement), and one of these inputs:
   unavailable, ask for the head/base details; do not guess or print tokens.
 - **Branch:** resolve the exact local branch or remote ref. If local and remote
   differ, clarify which to use rather than resetting either.
-- **Task description:** choose a descriptive new branch name and resolve its
-  starting base from the user's request or explicit repository instructions.
-  Ask if the base is ambiguous. Validate with `git check-ref-format --branch`.
+- **Task description:** choose a simple, descriptive new branch name with no
+  prefix — not `feat/`, `fix/`, `cursor/`, `agent/`, or any other tool prefix —
+  and resolve its starting base from the user's request or explicit repository
+  instructions. The worktree directory name comes from this name, so keep it
+  short and plain. Ask if the base is ambiguous. Validate with
+  `git check-ref-format --branch`.
 
 Read the repository's applicable `AGENTS.md` / `AGENT.md` and worktree/run docs.
 Inspect `git status --short`, `git remote -v`, and `git worktree list` from the
@@ -33,10 +36,13 @@ asks to merge but the base is unspecified, confirm it first.
 ## 2. Create or reuse the worktree
 
 Use `~/dev/misc/worktrees/<repo-name>/<branch-name>` per the shared convention.
-Preserve existing branch names (including slash-separated components); do not
-add an agent or harness prefix. For a PR, use its head branch name for the path.
-Resolve paths and ensure the destination stays under this repository's worktree
-parent. Quote paths and refs; never interpolate untrusted PR text into shell code.
+The worktree directory name comes from the branch name, so new names must be
+simple and prefix-free: no `feat/`, `fix/`, `cursor/`, `agent/`, or other tool
+prefix. For an existing branch or a PR, preserve its exact name (including
+slash-separated components) — never rename or add a prefix just for the
+worktree; a PR uses its head branch name for the path. Resolve paths and ensure
+the destination stays under this repository's worktree parent. Quote paths and
+refs; never interpolate untrusted PR text into shell code.
 
 From the verified main checkout:
 

@@ -1,9 +1,9 @@
 ---
-description: Never keep an agent branch prefix. Rename cursor/ branches before any commit or push.
+description: Never keep an agent or tool prefix on branches or worktrees. Keep worktree and branch names simple; rename cursor/ branches before any commit or push.
 alwaysApply: true
 ---
 
-# No agent prefix on branches
+# No prefixes on branches or worktrees
 
 Cursor's Branch Prefix setting injects `cursor/` even when that field looks empty. That prefix is not a naming convention. Ignore it.
 
@@ -16,8 +16,22 @@ Cursor's Branch Prefix setting injects `cursor/` even when that field looks empt
 git branch -m <name-without-prefix>
 ```
 
-- Follow the repo's existing branch names (`feat/...`, `fix/...`) when it has a convention. Do not add a tool prefix on top.
+- Follow the repo's existing branch names (`feat/...`, `fix/...`) when it has a convention, except for worktrees and the branches created for them, which stay prefix-free (see below). Do not add a tool prefix on top.
 - If a pull request already points at the prefixed branch, push the renamed branch and retarget the PR. Delete the prefixed branch.
+
+## Worktrees
+
+Worktree names — and the branches created for them — are simple and prefix-free. Do not add `feat/`, `fix/`, `cursor/`, `agent/`, or any other tool prefix. The worktree directory name comes from the branch name, so a prefixed name leaks into both the path and the branch:
+
+```bash
+# simple, no prefix
+git worktree add -b my-task "$HOME/dev/misc/worktrees/my-repo/my-task" <base>
+
+# avoid: prefix in the worktree path and branch
+git worktree add -b feat/my-task "$HOME/dev/misc/worktrees/my-repo/feat/my-task" <base>
+```
+
+For a PR or an already-existing branch, keep its exact name (including slash components); never rename it to remove or add a prefix just for the worktree.
 
 ## Commits and pull requests
 
