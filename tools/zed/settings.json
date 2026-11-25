@@ -158,6 +158,15 @@
 		"3dassets": {
 			"url": "https://3dassets.dev/mcp",
 			"enabled": true
+		},
+		"umami": {
+			"command": "/home/e/config/scripts/utilities/mcp-http.sh",
+			"args": [
+				"https://analytics.enesbala.com/mcp",
+				"Authorization: Bearer ${UMAMI_MCP_TOKEN}"
+			],
+			"env": {},
+			"enabled": true
 		}
 	},
 	"inlay_hints": {
