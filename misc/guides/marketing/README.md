@@ -1,17 +1,19 @@
 # Marketing guide
 
-Evidence for the global `marketing` module. Sources are verbatim archives of the
-selected global marketing skills; lessons are standalone ideas extracted from
-them. The module holds rules derived from these lessons, never copies of them.
+Evidence for the global `marketing` module. Sources are verbatim archives of
+selected marketing skills and other material; lessons are standalone ideas
+extracted from them. The module holds rules derived from these lessons, never
+copies of them.
 
 ## Status
 
-Extracted. Ten sources archived verbatim; 157 lessons across eight buckets,
-audited. Buckets were created on demand as their first lesson landed.
+Eleven sources archived verbatim. The original ten yielded 157 audited lessons
+across eight buckets. The social media marketing transcript is pending extraction.
+Buckets were created on demand as their first lesson landed.
 
 ## Selected sources
 
-| Slug | Original skill | Role | State |
+| Slug | Original material | Role | State |
 | --- | --- | --- | --- |
 | `customer-research` | `misc/skills/customer-research/` | Audience, VOC, ICP, JTBD | archived |
 | `marketing-council` | `misc/skills/marketing-council/` | Competing frameworks, trade-offs | archived |
@@ -23,6 +25,7 @@ audited. Buckets were created on demand as their first lesson landed.
 | `marketing-campaign` | `misc/skills/marketing-campaign/` | Campaign orchestration | archived |
 | `community-marketing` | `misc/skills/community-marketing/` | Community-led growth | archived |
 | `lead-magnets` | `misc/skills/lead-magnets/` | Capture offers and distribution | archived |
+| `the-new-era-of-social-media-marketing` | User-supplied talk transcript | Social strategy, creator distribution, creative testing | archived; extraction pending |
 
 Deliberately out of scope: `free-tools`, `onboarding`, `cro`, the OpenSEO set,
 and content-production skills (`ad-creative`, `cold-email`, `emails`, `social`,

@@ -6,6 +6,7 @@ Audience and problem discovery, VOC, pain points, competitive and demand inputs 
 - [Read existing product-marketing context before asking questions](read-context-before-asking.md)
 - [Ask for the goal before you analyse anything](ask-goal-before-analysis.md)
 - [Segment before you average](segment-before-averaging.md)
+- [Treat generational stereotypes as testable social hypotheses](treat-generational-stereotypes-as-testable-social-hypotheses.md)
 - [Capture exact customer words, not paraphrases](capture-verbatim-language.md)
 - [Cluster, then rank themes by frequency × intensity](rank-themes-by-frequency-and-intensity.md)
 - [Label every insight with a confidence level before presenting it](label-insights-with-confidence.md)

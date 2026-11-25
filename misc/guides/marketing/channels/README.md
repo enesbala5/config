@@ -4,6 +4,7 @@ Channel selection, community, lead magnets, growth loops and channel role — fe
 the `plan` stage.
 
 - [Build borrowed reach before you need it](build-borrowed-reach-before-you-need-it.md)
+- [Map the people who can tell the brand story](map-the-people-who-can-tell-the-brand-story.md)
 - [Choose your few channels by the signal the audience gives](choose-channels-by-the-signal-the-audience-gives.md)
 - [Route every channel back to owned channels](route-every-channel-back-to-owned.md)
 - [Reallocate effort to underpriced attention before it burns out](day-trade-underpriced-attention.md)

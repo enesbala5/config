@@ -3,6 +3,7 @@
 GTM sequencing, campaign roles and phased plans — feeds the `plan` stage.
 
 - [Clear the pre-launch gate before you announce](clear-the-pre-launch-gate.md)
+- [Overlay company, industry, and cultural calendars](overlay-company-industry-and-cultural-calendars.md)
 - [Launch again and again instead of relying on one moment](launch-again-and-again.md)
 - [Plan the post-launch adoption phase, not just the announcement](plan-the-post-launch-adoption-phase.md)
 - [Run launch day as an operations event, not a publish action](run-launch-day-as-an-operations-event.md)

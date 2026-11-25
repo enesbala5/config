@@ -10,6 +10,7 @@ Boundaries between strategy and execution — feeds the `handoff` stage.
 - [Give every recommendation fit, first steps, outcome and resources](state-fit-steps-outcome-and-resources.md)
 - [Council sets direction; execution skills produce the deliverable](strategy-decides-direction-execution-produces.md)
 - [Gate copy production on approved positioning and angle](gate-copy-on-approved-positioning.md)
+- [Brief social creative as message × format × hook](brief-social-creative-as-message-format-hook.md)
 - [Lock the tone profile before production and hand voice capture off](lock-tone-before-production.md)
 - [Gate the campaign on cross-deliverable consistency](gate-on-cross-deliverable-consistency.md)
 - [Budget community management as a real weekly role](budget-community-management-as-a-role.md)
