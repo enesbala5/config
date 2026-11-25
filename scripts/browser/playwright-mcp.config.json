@@ -1,5 +1,0 @@
-{
-  "browser": {
-    "initScript": ["playwright-marker.js"]
-  }
-}

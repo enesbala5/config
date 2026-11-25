@@ -1,27 +1,45 @@
 ---
 name: playwright
-description: Connect Playwright to the already-running Helium (preferred) or Chrome browser over CDP. Use when automating the real desktop browser, taking screenshots, clicking, filling forms, scraping a logged-in session, driving Playwright MCP, or when the user mentions Playwright, Helium CDP, chrome remote debugging, or connectOverCDP.
+description: Drive the dedicated Playwright Helium browser over CDP, or the human's Helium/Chrome when explicitly asked. Use when automating the real desktop browser, taking screenshots, clicking, filling forms, scraping, driving Playwright MCP, or when the user mentions Playwright, Helium CDP, chrome remote debugging, or connectOverCDP.
 ---
 
 # Playwright + Helium CDP
 
-On this machine Playwright talks to **Helium** (Chromium, lighter than a second Chrome) over Chrome DevTools Protocol. Do not download Playwright's Chromium. Do not launch an isolated browser unless the user asks for `--isolated`.
+Playwright has its **own dedicated Helium instance** on CDP port **9333**. The
+human's browsing Helium stays on 9222 and is never automated by default.
 
-NixOS: host Chromium from `playwright install` will not work. Packaged browsers live in `PLAYWRIGHT_BROWSERS_PATH` for isolated Playwright Test only.
+The dedicated instance has its own profile (`~/.cache/playwright-agent-helium`)
+and one fixed window, parked on workspace 11 at launch. Playwright pages open as
+**tabs in that one window** — no new windows, no title markers, no hooks that
+move windows around. If you need to inspect it visually, go to workspace 11 or
+find it with `hypruse desktop`.
+
+Do not download Playwright's Chromium. Do not launch an isolated browser unless
+the user asks for `--isolated`.
+
+**Hosts:** this is the `framework-13` desktop workflow. On `home-server`,
+browser automation is a separate headless MCP service at
+`http://10.0.100.1:8931/mcp` for the Incus agent VMs — don't use this setup
+there.
+
+NixOS: host Chromium from `playwright install` will not work. Packaged browsers
+live in `PLAYWRIGHT_BROWSERS_PATH` for isolated Playwright Test only.
 
 ## Before any automation
 
 ```bash
-helium-cdp
+playwright-helium
 ```
 
-Prints `http://127.0.0.1:9222` when ready. If Helium was started without the debug port, quit Helium fully and reopen it (Super+H or the Helium desktop entry). Both pass the CDP flags; the app launcher is `xdg.desktopEntries.helium` (installed as `helium.desktop`).
-
-Chrome fallback: `helium-cdp --chrome`
+Prints `http://127.0.0.1:9333` when ready. It is idempotent: if the agent
+browser is already up it just prints the URL. `playwright-mcp` calls this for
+you, so a connected Playwright MCP server usually needs no manual step.
 
 Use `127.0.0.1`, not `localhost` (IPv6).
 
-Playwright MCP injects an invisible zero-width-space title marker (`scripts/browser/playwright-marker.js`, wired in via `playwright-mcp.config.json`). A `window.open` / `window.title` hook in `hypr/hyprland/modules/windows/init.lua` moves any Helium window carrying that marker off the human's workspaces (1-10) and onto the first empty workspace >= 11. Helium windows opened normally from the CLI or Vicinae have no marker and keep their normal placement. Because the marker comes from the MCP config, restart any already-running Playwright MCP client for this to take effect. Find automation windows with `hypruse desktop` rather than assuming they followed the active workspace.
+To start the human's browsing Helium with CDP (not for automation):
+`helium-cdp` → `http://127.0.0.1:9222`. Chrome fallback for that:
+`helium-cdp --chrome`.
 
 ## Visual evidence
 
@@ -33,7 +51,10 @@ a context; it cannot be enabled retroactively on an existing CDP context.
 
 ## Prefer browser MCP (optional)
 
-If the `playwright` MCP server is connected, use those tools. It is configured with `--cdp-endpoint=http://127.0.0.1:9222` via `scripts/browser/playwright-mcp.sh`. If MCP fails, run `helium-cdp` then ask the user to reconnect the Playwright MCP server.
+If the `playwright` MCP server is connected, use those tools. `playwright-mcp.sh`
+starts/reuses the agent browser and runs
+`@playwright/mcp --cdp-endpoint=http://127.0.0.1:9333`. After changing this
+endpoint, restart the MCP client so it picks up the new port.
 
 ## Shell scripts (no MCP)
 
@@ -50,7 +71,7 @@ npm install playwright-core
 cd /tmp/playwright-cdp && node -e '
 const { chromium } = require("playwright-core");
 (async () => {
-  const browser = await chromium.connectOverCDP("http://127.0.0.1:9222");
+  const browser = await chromium.connectOverCDP("http://127.0.0.1:9333");
   const context = browser.contexts()[0] || await browser.newContext();
   const page = context.pages()[0] || await context.newPage();
   await page.goto("https://example.com", { waitUntil: "domcontentloaded", timeout: 15000 });
@@ -75,13 +96,14 @@ const title = await page.evaluate(() => document.title);
 
 Avoid `waitUntil: "networkidle"` on heavy sites.
 
-List tabs: `context.pages()`. New tab: `context.newPage()`. Find by URL: `pages().find(p => p.url().includes("..."))`.
+List tabs: `context.pages()`. New tab: `context.newPage()` (opens in the agent
+window, not a new window). Find by URL: `pages().find(p => p.url().includes("..."))`.
 
 Write one-off scripts to `/tmp/playwright-test-*.js`, not into git repos.
 
-## Isolated Playwright Test (not Helium)
+## Isolated Playwright Test (not the agent browser)
 
-Only when the user wants a clean test browser, not their session:
+Only when the user wants a clean test browser, not the agent session:
 
 - `PLAYWRIGHT_BROWSERS_PATH` and `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1` are set by Home Manager.
 - Pin `@playwright/test` to the same version as nixpkgs `playwright-driver`.
@@ -89,6 +111,7 @@ Only when the user wants a clean test browser, not their session:
 
 ## Troubleshooting
 
-- CDP down, Helium up → quit Helium, `helium-cdp`.
-- `npx` / MCP missing `node` → NixOS rebuild so `nodejs` is on PATH, then restart Cursor.
-- Port in use by something else → `ss -tlnp | grep 9222`.
+- Agent CDP down → run `playwright-helium`; check `ss -tlnp | grep 9333`.
+- `npx` / MCP missing `node` → NixOS rebuild so `nodejs` is on PATH, then restart the MCP client.
+- Agent window disappeared → `playwright-helium` reopens it on workspace 11.
+- Need the human's browser for a logged-in session → they must explicitly ask; use `helium-cdp` (9222).

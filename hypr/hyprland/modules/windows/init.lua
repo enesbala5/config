@@ -4,66 +4,10 @@
 -- so Alt+Tab/cyclenext swaps windows without a resize.
 hl.workspace_rule({ workspace = "1", layout = "monocle" })
 
--- Playwright MCP injects an invisible zero-width space at the start of every
--- title in pages it controls (scripts/browser/playwright-marker.js). That is
--- the only reliable way to tell its windows from Helium windows the human
--- opens from the CLI or Vicinae: Playwright often navigates an existing New
--- Tab instead of creating a fresh about:blank window.
-local PW_MARK = "\226\128\139" -- U+200B ZERO WIDTH SPACE, in UTF-8
-
--- about:blank windows are created by Playwright before any page loads, so
--- stage those immediately. Everything else is caught by the title hook below.
-hl.window_rule({
-	name = "playwright-windows-staging",
-	match = { class = "helium", initial_title = "^about:blank" },
-	workspace = "11",
-})
-
-local function is_playwright_window(win)
-	return win.class == "helium"
-		and (win.title or ""):find(PW_MARK, 1, true) ~= nil
-end
-
-local function playwright_empty_workspace(win)
-	local occupied = {}
-	for _, ws in ipairs(hl.get_workspaces()) do
-		if ws.id >= 11 and ws.windows > 0 then
-			for _, w in ipairs(hl.get_workspace_windows(ws)) do
-				if w.address ~= win.address then
-					occupied[ws.id] = true
-					break
-				end
-			end
-		end
-	end
-	for id = 11, 99 do
-		if not occupied[id] then
-			return id
-		end
-	end
-	return nil
-end
-
-local function place_playwright_window(win)
-	if not is_playwright_window(win) then
-		return
-	end
-	-- Already on an automation workspace; don't shuffle it on every title change.
-	if win.workspace and win.workspace.id >= 11 then
-		return
-	end
-	local target = playwright_empty_workspace(win)
-	if not target then
-		return
-	end
-	-- v0.56 needs a tick before dispatching a move from an event callback.
-	hl.timer(function()
-		hl.dispatch(hl.dsp.window.move({ window = win, workspace = target }))
-	end, { timeout = 1, type = "oneshot" })
-end
-
-hl.on("window.open", place_playwright_window)
-hl.on("window.title", place_playwright_window)
+-- Playwright MCP uses its own dedicated Helium instance (see
+-- scripts/browser/playwright-helium.sh), parked on workspace 11 at launch.
+-- Agent pages are tabs in that one window, so no window rules or hooks are
+-- needed to keep them away from the human's workspaces.
 
 -- Anonymous on purpose. Named rules run first, so a named base rule would beat
 -- the later anonymous profile overrides.

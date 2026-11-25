@@ -1,20 +1,11 @@
 #!/usr/bin/env bash
-# Cursor MCP entrypoint. Prefers the Home Manager wrapper after rebuild.
+# Playwright MCP entrypoint. Uses the dedicated agent Helium instance so pages
+# open as tabs in one known window instead of creating windows that get moved.
 set -euo pipefail
-ENDPOINT="${PLAYWRIGHT_MCP_CDP_ENDPOINT:-http://127.0.0.1:9222}"
+ENDPOINT="${PLAYWRIGHT_MCP_CDP_ENDPOINT:-http://127.0.0.1:9333}"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG="${PLAYWRIGHT_MCP_CONFIG:-$SCRIPT_DIR/playwright-mcp.config.json}"
 
-if command -v playwright-mcp >/dev/null 2>&1 && [[ "$(command -v playwright-mcp)" != "$0" ]]; then
-  exec playwright-mcp --config="$CONFIG" "$@"
-fi
+# Bring up the agent browser and park its window on the automation workspace.
+"$SCRIPT_DIR/playwright-helium.sh" >&2
 
-run_mcp() {
-  exec npx -y @playwright/mcp@latest --cdp-endpoint="$ENDPOINT" --config="$CONFIG" "$@"
-}
-
-if command -v npx >/dev/null 2>&1; then
-  run_mcp
-fi
-
-exec nix-shell -p nodejs --run "npx -y @playwright/mcp@latest --cdp-endpoint=${ENDPOINT} --config=${CONFIG} $*"
+exec npx -y @playwright/mcp@latest --cdp-endpoint="$ENDPOINT" "$@"
