@@ -50,7 +50,7 @@ in
   "opencode-secrets.json.age" = userConfig;
 
   # MCP bearer tokens shared by Cursor, Zed, pi, and OpenCode.
-  # JSON: { "TWENTY_MCP_TOKEN", "COOLIFY_HETZNER_TOKEN", "COOLIFY_HOME_TOKEN" }
+  # JSON: { "TWENTY_MCP_TOKEN", "COOLIFY_HETZNER_TOKEN", "COOLIFY_HOME_TOKEN", "UMAMI_MCP_TOKEN" }
   "mcp-secrets.json.age" = userConfig;
 
   # Codex

@@ -122,6 +122,13 @@
 		"3dassets": {
 			"url": "https://3dassets.dev/mcp",
 			"description": "3dassets.dev: search and fetch free CC0 3D models and game asset packs (GLB)."
+		},
+		"umami": {
+			"url": "https://analytics.enesbala.com/mcp",
+			"headers": {
+				"Authorization": "Bearer ${UMAMI_MCP_TOKEN}"
+			},
+			"description": "Umami analytics on the home server: website traffic and event data."
 		}
 	}
 }
