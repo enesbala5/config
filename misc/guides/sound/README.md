@@ -45,6 +45,6 @@ Bucket directories are created by lesson extraction, not at initialisation.
 
 ## Consumers
 
-The future global `sound` module will derive its rules from these lessons:
+The global `sound` module derives its rules from these lessons:
 workspace `misc/modules/sound/`, router `misc/skills/sound/SKILL.md`. Rules point
 here by bucket path; this guide never reads the module.
