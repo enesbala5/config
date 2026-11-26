@@ -63,7 +63,7 @@ already set so it does not re-ask "global or local?".
 - Router only picks an intent and names one file to read. All rules live in the workspace.
 - One intent per request; `verify` is read-only and hands fixes to `extend`.
 - Nested files add or override; they never restate an ancestor. Load a read-chain, never a whole tree.
-- Rules say what must be true; lessons are the evidence. Keep them in separate files and link rule → lesson path.
+- Rules say what must be true; lessons are the evidence. Keep them in separate files and link rule → lesson path. When a lesson materially informs a module change, append its repository-relative path and date to `CONSUMED-LESSONS.yml`; do not record mere reading.
 - No absolute machine paths; use `<config>` / `<repo>` tokens and never link across the two roots.
 - No references to other repositories as sources of truth, and no copied lesson text.
 - Every module ships `providers/README.md`. A backend is added with `extend` (`target: provider`) and documented minimally: what it supplies, how it is reached, what it costs; gates stay in `AGENTS.md`.

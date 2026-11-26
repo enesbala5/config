@@ -44,7 +44,8 @@ Workspace: `<config>/misc/modules/<name>/` (global) or
 ├── providers/
 │   ├── README.md                     # external-backend index; "No external providers" when none
 │   └── <provider>/README.md          # one per adopted backend (added via `extend`)
-└── LEARNINGS.md                      # findings from real work, with status
+├── LEARNINGS.md                      # findings from real work, with status
+└── CONSUMED-LESSONS.yml               # lesson paths + dates consumed by module changes
 ```
 
 ## Optional layers (add only when justified by the purpose)
@@ -76,6 +77,7 @@ Templates for every file above live in [`../templates/`](../templates/).
 | `pipeline/README.md` | Stage → lesson-bucket routing | Lesson content |
 | `rules/<...>` | What must be true, with pointers to lesson evidence | Copies of lesson prose |
 | `LEARNINGS.md` | Findings from real work, with status | Guide lessons, final rules |
+| `CONSUMED-LESSONS.yml` | Append-only log of lessons that materially informed module changes (`lesson`, `consumed_on`) | Mere reading/consideration; findings from real work |
 
 ## Read-chain
 
@@ -91,3 +93,4 @@ A nested file does not link to its parents or claim a parent "applies". The read
 | New stage/axis | One `pipeline/` folder + one row |
 | New rule set | One file in `rules/` + one index line |
 | New finding | One `LEARNINGS.md` entry with status |
+| Lesson informs module change | Append one event to `CONSUMED-LESSONS.yml` |

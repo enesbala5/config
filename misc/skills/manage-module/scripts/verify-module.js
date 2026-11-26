@@ -29,8 +29,28 @@ const ownToken = scope === 'global' ? '<config>' : '<repo>';
 if (!fs.existsSync(base)) fail(`missing workspace: ${base}`);
 
 const problems = [];
-const required = ['AGENTS.md', 'README.md', 'LEARNINGS.md', 'providers/README.md'];
+const required = ['AGENTS.md', 'README.md', 'LEARNINGS.md', 'CONSUMED-LESSONS.yml', 'providers/README.md'];
 for (const f of required) if (!fs.existsSync(path.join(base, f))) problems.push(`missing ${f}`);
+const consumedPath = path.join(base, 'CONSUMED-LESSONS.yml');
+if (fs.existsSync(consumedPath)) {
+  const consumed = fs.readFileSync(consumedPath, 'utf8');
+  if (!/^version:\s*1\s*$/m.test(consumed)) problems.push('CONSUMED-LESSONS.yml: missing version: 1');
+  const entriesAt = consumed.indexOf('entries:');
+  if (entriesAt < 0) problems.push('CONSUMED-LESSONS.yml: missing entries:');
+  else {
+    const body = consumed.slice(entriesAt + 'entries:'.length).split(/\r?\n/).filter((line) => line.trim() && !line.trim().startsWith('#'));
+    const entryMatches = [...consumed.matchAll(/^  - lesson: (.+)\r?\n    consumed_on: (\d{4}-\d{2}-\d{2})$/gm)];
+    const matchedLines = entryMatches.reduce((count) => count + 2, 0);
+    if (!(body.length === 1 && body[0].trim() === '[]') && (body.length !== matchedLines || !entryMatches.length)) {
+      problems.push('CONSUMED-LESSONS.yml: entries must use `  - lesson: <repo-relative-path>` followed by `    consumed_on: YYYY-MM-DD`; use `entries: []` when empty');
+    }
+    for (const [, lesson, date] of entryMatches) {
+      if (path.isAbsolute(lesson) || lesson.split(/[\\/]/).includes('..') || lesson.startsWith('~')) problems.push(`CONSUMED-LESSONS.yml: lesson path must be repository-relative and stay in root: ${lesson}`);
+      const parsed = new Date(`${date}T00:00:00Z`);
+      if (Number.isNaN(parsed.valueOf()) || parsed.toISOString().slice(0, 10) !== date) problems.push(`CONSUMED-LESSONS.yml: invalid consumed_on date: ${date}`);
+    }
+  }
+}
 const intentsDir = path.join(base, 'intents');
 let intents = [];
 if (!fs.existsSync(intentsDir)) problems.push('missing intents/');

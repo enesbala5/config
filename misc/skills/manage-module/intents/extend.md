@@ -23,6 +23,7 @@ Add to an existing module. Read only the target module's `AGENTS.md`, `README.md
 
 ## Rules
 
+- If a lesson materially informs a module change, append an entry to `<workspace>/CONSUMED-LESSONS.yml` with `lesson` (repository-relative path) and `consumed_on` (`YYYY-MM-DD`). Add a new entry on each separate consumption event; do not overwrite history. Do not log lessons merely read or considered. This is distinct from `LEARNINGS.md`, which records findings from real work.
 - After any extension, update the **index that owns it**, then run `node scripts/verify-module.js <root> <name> --scope <scope>`.
 - A new rule must follow [`../reference/rules-from-lessons.md`](../reference/rules-from-lessons.md) — one enforceable statement with evidence, never copied lesson prose.
 - New intent names must appear in the router and in `AGENTS.md`; the verifier checks router rows against intent folders.

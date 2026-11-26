@@ -39,6 +39,7 @@ the router `SKILL.md`.
 - Each `intents/<intent>/README.md`: trigger, sequence, gates, handoff.
 - `pipeline/README.md`: stage → guide-bucket table, no lesson content.
 - `LEARNINGS.md`: status vocabulary and empty sections.
+- `CONSUMED-LESSONS.yml`: parseable log of lesson consumption; scaffold the empty template. Record only lessons that materially informed module changes.
 - `providers/README.md`: the external-backend index. Unless approved backends are listed, leave the scaffolded "No external providers" line.
 - Rule files: see [`../reference/rules-from-lessons.md`](../reference/rules-from-lessons.md).
 
@@ -59,5 +60,7 @@ re-ask "global or local?". Include the [`../reference/handoff.md`](../reference/
 If `manage-skill` is unavailable: write the router from [`../templates/skill-router.md`](../templates/skill-router.md) yourself and report that delegation did not happen.
 
 ## 6. Wire and verify
+
+When lessons materially inform changes made during initialization, append an entry to `CONSUMED-LESSONS.yml` with the repository-relative lesson path and the consumption date (`YYYY-MM-DD`). Do not record lessons merely read or considered.
 
 Apply approved discovery edits, then run `node <skill>/scripts/verify-module.js <root> <name> --scope <scope>`. Fix every problem and re-run. Report files created, decisions, and what was deferred.

@@ -15,6 +15,7 @@ Read-only structure check for a module. Never edits.
    - each intent file names its handoff and does not restate sibling flows;
    - rules point to lesson evidence and never copy lesson text;
    - `LEARNINGS.md` uses the declared status vocabulary;
+   - `CONSUMED-LESSONS.yml` is valid YAML-shaped data with repository-relative lesson paths and real `YYYY-MM-DD` consumption dates; entries represent actual lesson-informed changes, not merely reading;
    - `providers/README.md` declares no backends or has one row per provider folder, and each provider doc stays minimal (supplies, reach, spend) with gates in `AGENTS.md`.
 3. Report findings grouped by file with exact paths. Separate **blocking** problems (broken links, missing router) from **advisory** ones (thin rule, verbose AGENTS.md).
 

@@ -30,6 +30,12 @@ what must be true and link to lesson evidence; they never copy lesson text._
 
 {{RECORDS_RULE}}
 
+## Lesson consumption
+
+`{{WORKSPACE}}CONSUMED-LESSONS.yml` logs each lesson that materially informed a
+module change, with its repository-relative path and consumption date. Append a
+new event each time; this is not a log of lessons merely read.
+
 ## Findings
 
 {{LEARNINGS_LINK}} holds conclusions from real work with a status.
