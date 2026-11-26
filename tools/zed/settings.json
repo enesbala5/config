@@ -167,6 +167,10 @@
 			],
 			"env": {},
 			"enabled": true
+		},
+		"treg": {
+			"url": "https://treg.to/mcp/",
+			"enabled": true
 		}
 	},
 	"inlay_hints": {

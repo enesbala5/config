@@ -129,6 +129,10 @@
 				"Authorization": "Bearer ${UMAMI_MCP_TOKEN}"
 			},
 			"description": "Umami analytics on the home server: website traffic and event data."
+		},
+		"treg": {
+			"url": "https://treg.to/mcp/",
+			"description": "Treg tool catalog and team tools MCP server."
 		}
 	}
 }
