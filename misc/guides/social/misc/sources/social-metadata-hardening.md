@@ -1,16 +1,16 @@
 ---
-name: social-metadata-hardening
-description: "Fix social sharing previews so URLs render as rich cards on Facebook, LinkedIn, X/Twitter, WhatsApp, Telegram, and more. Covers OG tags, Twitter cards, absolute image URLs, and debugging."
-category: seo
-risk: safe
-source: self
-source_type: self
-date_added: "2026-05-31"
-author: Whoisabhishekadhikari
-tags: [seo, open-graph, twitter-card, social-sharing, og-image, nextjs, metadata]
-tools: [claude, cursor, gemini, claude-code]
-version: 1.0.0
+title: "Social Metadata Hardening skill (verbatim archive)"
+source: "misc/skills/social-metadata-hardening/"
+author: "Whoisabhishekadhikari"
+published: "n/a"
+captured: "2026-11-26"
 ---
+
+# Social Metadata Hardening skill (verbatim archive)
+
+Reproduced from the global skill at `misc/skills/social-metadata-hardening/` as a source for the `social` guide. The body below is reproduced without summarisation or editing; YAML frontmatter from SKILL.md is omitted here and recorded above. That skill has no `references/` directory.
+
+## File: SKILL.md
 
 # Social Metadata Hardening Skill
 
