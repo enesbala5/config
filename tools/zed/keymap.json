@@ -516,7 +516,7 @@
  },
  {
   "bindings": {
-   "ctrl-shift-c": "editor::CopyRelativePath"
+   "ctrl-alt-c": "editor::CopyRelativePath"
   }
  }
 ]
