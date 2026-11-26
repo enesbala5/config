@@ -7,14 +7,20 @@ hl = {
 	dispatch = function(command)
 		dispatched[#dispatched + 1] = command
 		toggles[#toggles + 1] = hl.explicit_fullscreen_toggle
-		-- Mirrors Hyprland toggling the focused window's fullscreen state.
-		if active then
-			active.fullscreen = (active.fullscreen or 0) == 0 and 1 or 0
+		-- A true fullscreen toggle switches maximized (1) to fullscreen (2).
+		if command == "fullscreen" then
+			active.fullscreen = active.fullscreen == 2 and 0 or 2
+		elseif command == "restore" then
+			active.fullscreen = 0
 		end
 	end,
 	dsp = {
 		window = {
 			fullscreen = function() return "fullscreen" end,
+			fullscreen_state = function(opts)
+				assert(opts.internal == 0 and opts.client == 0 and opts.action == "set")
+				return "restore"
+			end,
 		},
 	},
 }
@@ -57,15 +63,17 @@ swipe(up, -50)
 expect("fullscreen")
 assert(#toggles == 1, "no-op swipe must not flag a toggle")
 
--- Swipe down leaves fullscreen; repeating it is a no-op.
-up, down = reset(window(2))
-swipe(down, 50)
-expect("fullscreen")
-assert(active.fullscreen == 0)
-assert(toggles[1] == false, "down must flag a leaving toggle")
-swipe(down, 50)
-expect("fullscreen")
-assert(#toggles == 1, "no-op swipe must not flag a toggle")
+-- Swipe down restores both maximized and fullscreen windows; repeating it is a no-op.
+for _, mode in ipairs({ 1, 2 }) do
+	up, down = reset(window(mode))
+	swipe(down, 50)
+	assert(active.fullscreen == 0, "down must restore window from mode " .. mode)
+	expect("restore")
+	assert(toggles[1] == false, "down must flag a leaving toggle")
+	swipe(down, 50)
+	expect("restore")
+	assert(#toggles == 1, "no-op swipe must not flag a toggle")
+end
 
 -- Sub-threshold and cancelled swipes are ignored.
 up, down = reset(window(0))

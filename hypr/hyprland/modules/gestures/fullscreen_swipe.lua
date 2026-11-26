@@ -1,5 +1,5 @@
--- Three-finger vertical swipe toggles true fullscreen for the focused window.
--- Swipe up enters fullscreen; swipe down leaves it.
+-- Three-finger swipe up enters true fullscreen for the focused window.
+-- Swipe down restores the window from fullscreen or maximized.
 --
 -- These swipes only commit once the fingers have travelled `commit` units in
 -- the bound direction, and only when the window is not already in the target
@@ -45,7 +45,12 @@ local function directional(wantFullscreen)
 			-- takeovers from the horizontal swipe do not set this, and keep
 			-- their flicker-free suppression.
 			hl.explicit_fullscreen_toggle = wantFullscreen
-			hl.dispatch(hl.dsp.window.fullscreen())
+			if wantFullscreen then
+				hl.dispatch(hl.dsp.window.fullscreen())
+			else
+				-- Toggling true fullscreen on a maximized window would enter it.
+				hl.dispatch(hl.dsp.window.fullscreen_state({ internal = 0, client = 0, action = "set" }))
+			end
 		end,
 	}
 end
