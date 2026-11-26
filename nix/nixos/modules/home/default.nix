@@ -58,9 +58,9 @@
     }
     {
       prefix = "${data.configDirectory}/misc/modules/marketing/providers/zernio";
-      entries.marketing-zernio = {
-        script = "cli.mjs";
-        runtimeInputs = [ pkgs.nodejs ];
+      entries.zernio-mcp = {
+        script = "zernio-mcp.sh";
+        runtimeInputs = [ pkgs.mcporter pkgs.jq ];
       };
     }
     {

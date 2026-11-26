@@ -283,12 +283,9 @@ Extract "content atoms" — self-contained moments from any long-form content th
 
 ## Delivery via Zernio
 
-For actual account lookup, drafts, scheduling or publishing, use the global
-`marketing-zernio` CLI. Read `<config>/misc/modules/marketing/providers/zernio/README.md`
-for usage. Confirm immediate publishing unless covered by an approved routine;
-connecting any new network requires explicit owner approval. Keep personal and
-brand identities separate. For Coverlttr cadence and copy constraints, consult
-`zernio-social-posting` before delivery.
+Run `zernio-mcp routes [platform]` to see configured workspaces and platforms (no API call). If the request clearly names the workspace, skip this step. Match brand/personal identity to the request; ask if ambiguous. Use `zernio-mcp call WORKSPACE TOOL 'JSON'` on demand. If the operation is unknown, call `search_tools` with a query; use the returned schema with Zernio's `call_tool`. No persistent MCP connection or raw REST fallback.
+
+Confirm immediate publishing unless covered by an approved routine. Connecting a new network requires explicit owner approval. For Coverlttr cadence and copy constraints, consult `zernio-social-posting`. Setup and examples: `<config>/misc/modules/marketing/providers/zernio/README.md`.
 
 ## Scheduling Best Practices
 

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "zernio": {
+      "baseUrl": "https://mcp.zernio.com/mcp",
+      "headers": { "Authorization": "${ZERNIO_MCP_AUTH}" }
+    }
+  },
+  "imports": []
+}

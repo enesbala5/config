@@ -1,27 +1,15 @@
-# Zernio: social delivery
+# Zernio: on-demand workspace MCP
 
-Lists connected accounts, resolves platform names, creates posts and checks status through `https://zernio.com/api/v1`. Workspace plans and limits vary. Marketing hands off; the `social` skill owns delivery.
-
-## One-time setup (Nix host)
-
-1. Run `manage-secret zernio-secrets.json.age`. Paste [workspaces.example.json](workspaces.example.json) into the editor and fill the empty `key` strings **there**, never in the tracked template. These are the three workspace groups from the original posting workflow. Remove platforms or groups you don't use. No env vars, account IDs, JSON Schema or MCP changes needed.
-2. Ensure the new **encrypted** `nix/secrets/zernio-secrets.json.age` is included in the flake source (`git add nix/secrets/zernio-secrets.json.age` for a Git flake). Activate your usual NixOS configuration with the CLI changes included. Only the runtime file `/run/agenix/zernio-secrets.json` contains plaintext. The CLI reads it on the runner, not from your current repo.
-3. Run `marketing-zernio accounts personal`. This read-only check lists allowed connected accounts; `x` is displayed as `twitter`. For rotation or reconnects, update the secret and reactivate if keys/platforms changed. IDs are discovered on every request. Existing MCP credentials and remote runners are not migrated.
-
-## Usage
+Use the installed `zernio-mcp` command. No editor MCP registration or background server. Transportation and tool discovery use the hosted MCP; there is no REST endpoint catalogue to maintain.
 
 ```sh
-marketing-zernio accounts coverlttr-paid
-marketing-zernio draft coverlttr-paid --request-id <stable-id> < post.json
-marketing-zernio status coverlttr-paid <returned-post-id>
+zernio-mcp routes instagram            # local config only; omit platform for all routes
+zernio-mcp call coverlttr-free search_tools '{"query":"Instagram Business Discovery"}'
+zernio-mcp tools coverlttr-free        # optional: top-level live MCP tool schemas
 ```
 
-Replace angle-bracket placeholders before running. A minimal `post.json`:
+`routes` shows **configured** platforms, not live connection status or account IDs. Use the requested identity to disambiguate; if unsure, ask. Call known top-level tools directly with `zernio-mcp call WORKSPACE TOOL 'JSON'`. For a nested operation found via `search_tools`, use upstream `call_tool` with its advertised schema. If an operation requires an account ID, look it up in that workspace. Check target, delivery mode and approval before writes; don't retry creates blindly. Zernio permissions, login requirements and plan limits still apply.
 
-```json
-{"content":"Approved copy", "platforms":[{"platform":"x"}]}
-```
+## Setup
 
-Use `schedule` instead of `draft` with `scheduledFor` and `timezone` in the payload, or `publish` for explicitly approved immediate delivery. Do not set `isDraft` or `publishNow` yourself. Normal Zernio fields such as `mediaItems`, `customContent` and `platformSpecificData` pass through. Use one stable request ID per logical create per workspace; reuse it only for that exact retry. Check status after creating, or the dashboard if the response was lost. Never blindly retry a create.
-
-If a platform matches multiple connected accounts, use `accounts` to identify the intended account and set `accountId` on that platform **in the post only**. If none match, verify the allowlist and connection before retrying. Missing secrets, empty keys, HTTP failures and ambiguous routes fail without exporting credentials. Access to the decrypted file is access to all configured workspaces.
+Keep the existing `zernio-secrets.json.age`. For a new workspace edit it with `manage-secret zernio-secrets.json.age` ([example](workspaces.example.json)) and activate the updated secret. No registry edit. Workspace platform lists guide routing, not permissions; authority is everything the selected key permits. The CLI passes only that workspace's credential to mcporter at runtime. Never print the key or put it in command arguments.

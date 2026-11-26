@@ -5,7 +5,7 @@ description: Existing entry point for Zernio delivery via social, including Cove
 
 # Zernio social posting
 
-Use the `social` skill for delivery. Its CLI, setup and account selection are documented in `<config>/misc/modules/marketing/providers/zernio/README.md`. Do not export workspace keys or maintain a routing table. Group approved targets by workspace; create and confirm one post per group. Capture published platform URLs when available. Obtain explicit approval for new connections and for immediate publishing outside an approved cadence.
+Use the `social` skill for delivery. Its on-demand `zernio-mcp` command, setup and account selection are documented in `<config>/misc/modules/marketing/providers/zernio/README.md`. Do not export workspace keys or maintain a routing table. Group approved targets by workspace; create and confirm one post per group. Capture published platform URLs when available. Obtain explicit approval for new connections and for immediate publishing outside an approved cadence.
 
 ## Existing Coverlttr and personal routines
 
