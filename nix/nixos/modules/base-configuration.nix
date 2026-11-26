@@ -16,7 +16,10 @@
 
   age.secrets =
     let
-      secrets = import ../../secrets/secrets.nix;
+      registered = import ../../secrets/secrets.nix;
+      # Allow first-time setup with manage-secret before the ciphertext exists.
+      secrets = if builtins.pathExists ../../secrets/zernio-secrets.json.age then registered
+        else removeAttrs registered [ "zernio-secrets.json.age" ];
     in
     lib.mapAttrs' (
       name: attrs:

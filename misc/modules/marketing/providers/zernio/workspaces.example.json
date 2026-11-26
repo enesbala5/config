@@ -1,0 +1,25 @@
+{
+  "workspaces": {
+    "coverlttr-paid": {
+      "key": "",
+      "accounts": [
+        "x",
+        "linkedin"
+      ]
+    },
+    "coverlttr-free": {
+      "key": "",
+      "accounts": [
+        "facebook",
+        "instagram"
+      ]
+    },
+    "personal": {
+      "key": "",
+      "accounts": [
+        "x",
+        "reddit"
+      ]
+    }
+  }
+}

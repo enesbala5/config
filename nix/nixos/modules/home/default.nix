@@ -57,6 +57,13 @@
       };
     }
     {
+      prefix = "${data.configDirectory}/misc/modules/marketing/providers/zernio";
+      entries.marketing-zernio = {
+        script = "cli.mjs";
+        runtimeInputs = [ pkgs.nodejs ];
+      };
+    }
+    {
       prefix = "${data.configDirectory}/tools/telegram";
       entries.telegram-notify = "notify.sh";
     }

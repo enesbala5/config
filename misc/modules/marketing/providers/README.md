@@ -7,4 +7,4 @@ Workflow rules and approval gates live in the workspace `AGENTS.md`, never here.
 
 ## Entries
 
-_No external providers._
+- [Zernio](zernio/README.md) — connected social accounts and delivery for the `social` skill. Marketing strategy hands off; it does not publish.

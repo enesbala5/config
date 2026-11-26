@@ -53,6 +53,9 @@ in
   # JSON: { "TWENTY_MCP_TOKEN", "COOLIFY_HETZNER_TOKEN", "COOLIFY_HOME_TOKEN", "UMAMI_MCP_TOKEN" }
   "mcp-secrets.json.age" = userConfig;
 
+  # Zernio workspace credentials and platform allowlists (not MCP env vars).
+  "zernio-secrets.json.age" = userConfig;
+
   # Codex
   # -------------------------------
   # DeepSeek API key (raw `sk-…`), injected as DEEPSEEK_API_KEY by the codex

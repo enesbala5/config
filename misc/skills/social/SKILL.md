@@ -281,6 +281,15 @@ Extract "content atoms" — self-contained moments from any long-form content th
 
 ---
 
+## Delivery via Zernio
+
+For actual account lookup, drafts, scheduling or publishing, use the global
+`marketing-zernio` CLI. Read `<config>/misc/modules/marketing/providers/zernio/README.md`
+for usage. Confirm immediate publishing unless covered by an approved routine;
+connecting any new network requires explicit owner approval. Keep personal and
+brand identities separate. For Coverlttr cadence and copy constraints, consult
+`zernio-social-posting` before delivery.
+
 ## Scheduling Best Practices
 
 ### When to Schedule vs. Post Live
